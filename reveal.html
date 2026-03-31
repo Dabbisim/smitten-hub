@@ -150,10 +150,9 @@ body::after {
   font-style: italic;
   font-family: 'Fraunces', serif;
   font-weight: 300;
-  background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 60%, var(--c3) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  -webkit-text-fill-color: var(--c1);
+  color: var(--c1);
+  text-shadow: 0 0 40px rgba(0,229,255,0.5), 0 0 80px rgba(0,229,255,0.2);
 }
 .slide.active .welcome-title { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.25s forwards; }
 
