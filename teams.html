@@ -299,6 +299,30 @@ html, body { width:100%; height:100%; background:var(--bg); color:#fff;
   font-size:0.8rem; color:var(--text-2);
 }
 
+/* ─── Pre-rooms teaser ──────────────────────────────────────── */
+#s-prerooms { gap:1.5rem; text-align:center; }
+.prerooms-kicker {
+  font-size:0.7rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--text-3);
+}
+.prerooms-line1 {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(2rem,5vw,4.5rem);
+  font-weight:700; letter-spacing:-0.04em; line-height:1;
+  color:var(--text-2);
+}
+.prerooms-line2 {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(2.5rem,6.5vw,6rem);
+  font-weight:700; letter-spacing:-0.04em; line-height:0.95;
+  background:linear-gradient(135deg, var(--c1) 0%, var(--c2) 50%, var(--c3) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-size:200%;
+  animation:shimmer 4s linear infinite;
+}
+.prerooms-sub {
+  color:var(--text-3); font-size:1rem; max-width:400px;
+}
+
 /* ─── All Rooms screen ──────────────────────────────────────── */
 #s-rooms { gap:2rem; }
 #s-rooms .rooms-eyebrow {
@@ -439,6 +463,15 @@ html, body { width:100%; height:100%; background:var(--bg); color:#fff;
   </div>
 </div>
 
+<!-- Pre-rooms teaser -->
+<div class="screen" id="s-prerooms">
+  <p class="prerooms-kicker">One last thing…</p>
+  <div class="prerooms-line1">Okay so…</div>
+  <div class="prerooms-line2">Where does<br>everyone sit?</div>
+  <p class="prerooms-sub">Each team has a room waiting for them.</p>
+  <div class="click-hint">Click or Space to reveal</div>
+</div>
+
 <!-- All Rooms reveal -->
 <div class="screen" id="s-rooms">
   <p class="rooms-eyebrow">Head to your workspace</p>
@@ -474,14 +507,14 @@ const SUPABASE_URL      = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
 
 const TEAM_META = [
-  { id:1, title:'Launch Smitten in Malta',   color:'#00E5FF', room:'The Launchpad',   roomIcon:'🚀', emoji:'🇲🇹' },
-  { id:2, title:'Organic Growth Hacks',       color:'#FFB800', room:'The Greenhouse',  roomIcon:'🌿', emoji:'🌱' },
-  { id:3, title:'AI Dating Profile Agent',    color:'#FF5C8A', room:'The Studio',      roomIcon:'✨', emoji:'🤖' },
+  { id:1, title:'Launch Smitten in Malta',   shortName:'Malta',        color:'#00E5FF', room:'The Launchpad',   roomIcon:'🚀', emoji:'🇲🇹' },
+  { id:2, title:'Organic Growth Hacks',       shortName:'Organic',      color:'#FFB800', room:'The Greenhouse',  roomIcon:'🌿', emoji:'🌱' },
+  { id:3, title:'AI Dating Profile Agent',    shortName:'Dating Agent', color:'#FF5C8A', room:'The Studio',      roomIcon:'✨', emoji:'🤖' },
 ];
 
 /* ── State ────────────────────────────────────────────────── */
 let teams        = { 1:[], 2:[], 3:[] };
-let phase        = 'loading';   // loading | intro | team | rooms | done
+let phase        = 'loading';   // loading | intro | team | prerooms | rooms | done
 let teamIdx      = 0;           // 0..2
 let revealedIdx  = 0;           // 0..members.length
 let busy         = false;
@@ -725,8 +758,9 @@ async function nextTeam() {
 
   teamIdx++;
   if (teamIdx >= 3) {
-    // All teams done — show combined rooms reveal
-    await showRoomsScreen();
+    // All teams done — show teaser then rooms
+    showScreen('prerooms');
+    phase = 'prerooms';
     busy = false;
     return;
   }
@@ -750,8 +784,7 @@ async function showRoomsScreen() {
     return `
       <div class="room-col" id="rcol-${i}" style="border-color:${meta.color}25">
         <div class="room-col-icon" style="background:${meta.color}18;animation-delay:${i*0.3}s">${meta.roomIcon}</div>
-        <span class="room-col-team" style="color:${meta.color};border-color:${meta.color}">Team ${i+1}</span>
-        <div class="room-col-challenge" style="color:var(--text-3)">${esc(meta.title)}</div>
+        <span class="room-col-team" style="color:${meta.color};border-color:${meta.color}">${esc(meta.shortName)}</span>
         <div class="room-col-name" style="color:${meta.color};text-shadow:0 0 40px ${meta.color}50">${meta.room}</div>
         <div class="room-col-members">${chips}</div>
       </div>`;
@@ -796,6 +829,8 @@ function advance() {
     } else {
       nextTeam();
     }
+  } else if (phase === 'prerooms') {
+    showRoomsScreen();
   } else if (phase === 'rooms') {
     buildDoneScreen();
     showScreen('done');
