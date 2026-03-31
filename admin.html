@@ -404,74 +404,165 @@
   .empty-icon { font-size: 2.5rem; margin-bottom: 0.6rem; }
   .empty-state p { font-size: 0.88rem; }
 
-  /* Teams grid */
-  .teams-grid {
+  /* ── DRAG-AND-DROP TEAM BUILDER ── */
+  .builder-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
 
-  .team-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
+  .builder-col {
+    display: flex;
+    flex-direction: column;
     border-radius: 18px;
     overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface);
     backdrop-filter: blur(24px);
+    position: relative;
   }
-  .team-head {
-    padding: 1rem 1.2rem;
+  .builder-col::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .builder-col:nth-child(1)::before { background: linear-gradient(90deg, var(--cyan), var(--cyan-deep)); }
+  .builder-col:nth-child(2)::before { background: linear-gradient(90deg, var(--amber), var(--amber-deep)); }
+  .builder-col:nth-child(3)::before { background: linear-gradient(90deg, var(--rose), #E04070); }
+
+  .builder-head {
+    padding: 1rem 1.1rem 0.9rem;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.5rem;
   }
-  .team-head-name {
+  .builder-col:nth-child(1) .builder-head { background: linear-gradient(135deg,rgba(0,229,255,0.06),transparent); }
+  .builder-col:nth-child(2) .builder-head { background: linear-gradient(135deg,rgba(255,184,0,0.06),transparent); }
+  .builder-col:nth-child(3) .builder-head { background: linear-gradient(135deg,rgba(255,92,138,0.06),transparent); }
+
+  .builder-eyebrow {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    margin-bottom: 0.15rem;
+  }
+  .builder-col:nth-child(1) .builder-eyebrow { color: var(--cyan); }
+  .builder-col:nth-child(2) .builder-eyebrow { color: var(--amber); }
+  .builder-col:nth-child(3) .builder-eyebrow { color: var(--rose); }
+
+  .builder-name {
     font-family: 'Clash Display', sans-serif;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 75%;
+    line-height: 1.25;
+    color: var(--text);
   }
-  .team-card:nth-child(1) .team-head { background: linear-gradient(135deg, rgba(0,229,255,0.06), transparent); }
-  .team-card:nth-child(2) .team-head { background: linear-gradient(135deg, rgba(255,184,0,0.06), transparent); }
-  .team-card:nth-child(3) .team-head { background: linear-gradient(135deg, rgba(255,92,138,0.06), transparent); }
 
-  .team-count {
-    font-size: 0.72rem;
+  .builder-count {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
     color: var(--text-3);
-    font-weight: 500;
-    white-space: nowrap;
-    margin-left: 0.5rem;
     flex-shrink: 0;
+    line-height: 1;
+    min-width: 2rem;
+    text-align: right;
   }
 
-  .team-members { padding: 0.5rem; min-height: 50px; }
-  .team-member {
+  .builder-zone {
+    padding: 0.5rem;
+    min-height: 120px;
+    flex: 1;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .builder-zone.drag-over {
+    background: rgba(255,255,255,0.04);
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,0.12);
+    border-radius: 0 0 18px 18px;
+  }
+
+  .builder-person {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.55rem 0.8rem;
+    gap: 0.4rem;
+    padding: 0.55rem 0.75rem;
     border-radius: 10px;
-    font-size: 0.85rem;
-    transition: background 0.15s;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    margin-bottom: 0.4rem;
+    cursor: grab;
+    user-select: none;
+    transition: background 0.15s, transform 0.15s, box-shadow 0.15s, opacity 0.15s;
   }
-  .team-member:hover { background: var(--surface-3); }
-  .tm-name { font-weight: 500; }
-  .tm-pref {
-    font-size: 0.65rem;
+  .builder-person:last-child { margin-bottom: 0; }
+  .builder-person:hover {
+    background: var(--surface-3);
+    border-color: var(--border-light);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+  .builder-person.dragging {
+    opacity: 0.35;
+    cursor: grabbing;
+    transform: scale(0.97);
+  }
+
+  .bp-name {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bp-drag-hint {
+    font-size: 0.7rem;
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+  .bp-pref {
+    font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    padding: 0.2em 0.55em;
+    padding: 0.18em 0.5em;
     border-radius: 5px;
+    flex-shrink: 0;
   }
   .pref-1st { background: rgba(0,229,255,0.12); color: var(--cyan); }
   .pref-2nd { background: rgba(255,184,0,0.12); color: var(--amber); }
   .pref-3rd { background: rgba(255,92,138,0.12); color: var(--rose); }
-  .team-empty { padding: 1.2rem; text-align: center; color: var(--text-3); font-size: 0.8rem; }
+
+  .builder-drop-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    border: 1.5px dashed var(--border);
+    border-radius: 10px;
+    color: var(--text-3);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    pointer-events: none;
+  }
+
+  .builder-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    .builder-grid { grid-template-columns: 1fr; }
+  }
 
   /* ── GROUPED BY CHALLENGE ── */
   .grouped-grid {
@@ -678,10 +769,15 @@
     <div class="empty-state"><div class="spinner"></div></div>
   </div>
 
-  <!-- Suggested teams -->
-  <div class="section-title">👥 Suggested Teams</div>
-  <div class="teams-grid" id="teams-grid">
-    <div class="team-empty" style="grid-column:1/-1;">Loading...</div>
+  <!-- Drag-and-drop team builder -->
+  <div class="section-title" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+    <span>🧩 Team Builder</span>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn btn-ghost" id="btn-reset-teams" style="padding:0.4em 1em;font-size:0.76rem;">↺ Reset to Suggested</button>
+    </div>
+  </div>
+  <div class="builder-grid" id="builder-grid">
+    <div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:2rem;">Loading…</div>
   </div>
 
   <!-- Actions -->
@@ -714,6 +810,9 @@ const CHALLENGES = [
 let db = null;
 let votes = [];
 let channel = null;
+let teamAssignments = { 1: [], 2: [], 3: [] };
+let teamsDirty = false; // true when user has manually moved someone
+let dragState = null;   // { voterId, fromTeam }
 
 // ════════════════════════════════════════════════
 //  BOOT
@@ -764,8 +863,65 @@ function showDashboard() {
     if (el) el.textContent = c.title;
   });
 
+  initDragListeners();
+
+  document.getElementById('btn-reset-teams').addEventListener('click', () => {
+    teamsDirty = false;
+    initTeamAssignments();
+    renderBuilder();
+  });
+
   loadVotes();
   subscribeRealtime();
+}
+
+function initDragListeners() {
+  const grid = document.getElementById('builder-grid');
+
+  grid.addEventListener('dragstart', e => {
+    const card = e.target.closest('.builder-person');
+    if (!card) return;
+    dragState = { voterId: card.dataset.id, fromTeam: parseInt(card.dataset.team) };
+    card.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+
+  grid.addEventListener('dragend', e => {
+    const card = e.target.closest('.builder-person');
+    if (card) card.classList.remove('dragging');
+    grid.querySelectorAll('.builder-zone.drag-over').forEach(z => z.classList.remove('drag-over'));
+    dragState = null;
+  });
+
+  grid.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const zone = e.target.closest('.builder-zone');
+    if (zone) zone.classList.add('drag-over');
+  });
+
+  grid.addEventListener('dragleave', e => {
+    const zone = e.target.closest('.builder-zone');
+    if (zone && !zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+  });
+
+  grid.addEventListener('drop', e => {
+    e.preventDefault();
+    const zone = e.target.closest('.builder-zone');
+    if (!zone || !dragState) return;
+    zone.classList.remove('drag-over');
+    const toTeam = parseInt(zone.dataset.team);
+    if (toTeam === dragState.fromTeam) return;
+
+    const fromList = teamAssignments[dragState.fromTeam];
+    const idx = fromList.findIndex(p => String(p.id) === String(dragState.voterId));
+    if (idx === -1) return;
+
+    const [person] = fromList.splice(idx, 1);
+    teamAssignments[toTeam].push(person);
+    teamsDirty = true;
+    renderBuilder();
+  });
 }
 
 async function loadVotes() {
@@ -799,7 +955,14 @@ function render() {
   renderStats();
   renderGrouped();
   renderTable();
-  renderTeams();
+  // Sync team assignments: re-suggest if not manually customised,
+  // otherwise just reconcile (add new voters, remove deleted ones)
+  if (!teamsDirty) {
+    initTeamAssignments();
+  } else {
+    reconcileTeamAssignments();
+  }
+  renderBuilder();
   document.getElementById('total-count').textContent = votes.length;
 }
 
@@ -912,24 +1075,20 @@ function renderTable() {
   </table>`;
 }
 
-function renderTeams() {
-  const grid = document.getElementById('teams-grid');
-  if (votes.length === 0) {
-    grid.innerHTML = '<div class="team-empty" style="grid-column:1/-1;">Waiting for votes…</div>';
-    return;
-  }
+// ─── TEAM BUILDER ────────────────────────────────
 
-  // Assign everyone to first choice, then balance using second
+function initTeamAssignments() {
   const teams = { 1: [], 2: [], 3: [] };
   votes.forEach(v => {
     teams[v.first_choice].push({
+      id: v.id,
       name: v.voter_name,
-      pref: '1st',
+      first: v.first_choice,
       second: v.second_choice,
       third: v.third_choice
     });
   });
-
+  // Balance: move overflow members to their 2nd choice team if it's undersized
   const ideal = Math.ceil(votes.length / 3);
   let changed = true, iters = 0;
   while (changed && iters++ < 10) {
@@ -938,31 +1097,68 @@ function renderTeams() {
       while (teams[t].length > ideal + 1) {
         const idx = teams[t].findIndex(p => teams[p.second].length < ideal);
         if (idx === -1) break;
-        const p = teams[t].splice(idx, 1)[0];
-        p.pref = '2nd';
+        const [p] = teams[t].splice(idx, 1);
         teams[p.second].push(p);
         changed = true;
       }
     }
   }
+  teamAssignments = teams;
+}
 
-  grid.innerHTML = CHALLENGES.map(c => `
-    <div class="team-card">
-      <div class="team-head">
-        <div class="team-head-name">${esc(c.title)}</div>
-        <span class="team-count">${teams[c.id].length} ${teams[c.id].length === 1 ? 'person' : 'people'}</span>
+function reconcileTeamAssignments() {
+  // Remove people who no longer exist in votes
+  const voteIds = new Set(votes.map(v => String(v.id)));
+  [1, 2, 3].forEach(t => {
+    teamAssignments[t] = teamAssignments[t].filter(p => voteIds.has(String(p.id)));
+  });
+  // Add any new voters to their first-choice team
+  const assignedIds = new Set([...teamAssignments[1], ...teamAssignments[2], ...teamAssignments[3]].map(p => String(p.id)));
+  votes.forEach(v => {
+    if (!assignedIds.has(String(v.id))) {
+      teamAssignments[v.first_choice].push({
+        id: v.id,
+        name: v.voter_name,
+        first: v.first_choice,
+        second: v.second_choice,
+        third: v.third_choice
+      });
+    }
+  });
+}
+
+function renderBuilder() {
+  const grid = document.getElementById('builder-grid');
+  if (votes.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:2rem;">Waiting for votes…</div>';
+    return;
+  }
+
+  grid.innerHTML = CHALLENGES.map((c, i) => {
+    const members = teamAssignments[c.id] || [];
+    const membersHTML = members.length === 0
+      ? '<div class="builder-drop-hint">Drop someone here</div>'
+      : members.map(m => {
+          const prefLabel = m.first === c.id ? '1st' : m.second === c.id ? '2nd' : '3rd';
+          const prefClass = m.first === c.id ? 'pref-1st' : m.second === c.id ? 'pref-2nd' : 'pref-3rd';
+          return `<div class="builder-person" draggable="true" data-id="${m.id}" data-team="${c.id}">
+            <span class="bp-name">${esc(m.name)}</span>
+            <span class="bp-pref ${prefClass}">${prefLabel}</span>
+            <span class="bp-drag-hint">⠿</span>
+          </div>`;
+        }).join('');
+
+    return `<div class="builder-col">
+      <div class="builder-head">
+        <div>
+          <div class="builder-eyebrow">Team ${i + 1}</div>
+          <div class="builder-name">${esc(c.title)}</div>
+        </div>
+        <div class="builder-count">${members.length}</div>
       </div>
-      <div class="team-members">
-        ${teams[c.id].length === 0
-          ? '<div class="team-empty">No members yet</div>'
-          : teams[c.id].map(m => `
-            <div class="team-member">
-              <span class="tm-name">${esc(m.name)}</span>
-              <span class="tm-pref pref-${m.pref}">${m.pref}</span>
-            </div>`).join('')}
-      </div>
-    </div>
-  `).join('');
+      <div class="builder-zone" data-team="${c.id}">${membersHTML}</div>
+    </div>`;
+  }).join('');
 }
 
 // ════════════════════════════════════════════════
