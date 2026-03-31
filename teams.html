@@ -709,10 +709,10 @@ async function revealPerson() {
   /* 3. Animate name */
   await sleep(80);
   nameEl.classList.add('show');
-  await scramble(nameEl, person.name, 2500);
+  await scramble(nameEl, person.name, 1500);
 
   /* 4. Hold — 2 extra seconds */
-  await sleep(2700);
+  await sleep(1700);
 
   /* 5. Hide overlay */
   overlay.classList.remove('show');
