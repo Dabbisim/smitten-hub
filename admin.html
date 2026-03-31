@@ -515,7 +515,8 @@
   <p class="gate-sub">Enter password to view all votes &amp; teams</p>
   <div class="gate-form">
     <input type="password" id="pwd-input" class="input" placeholder="Password"
-      onkeydown="if(event.key==='Enter') unlock()" autocomplete="off">
+      onkeydown="if(event.key==='Enter') unlock()" autocomplete="off"
+      data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other">
     <button class="btn btn-amber" onclick="unlock()">Enter</button>
     <div class="gate-error" id="gate-error"></div>
   </div>
