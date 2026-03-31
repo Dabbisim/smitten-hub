@@ -356,7 +356,42 @@
   tbody tr { transition: background 0.15s; }
   tbody tr:hover td { background: var(--surface-3); }
 
-  .td-name { font-weight: 600; color: var(--text) !important; }
+  .td-name { font-weight: 600; color: var(--text) !important; position: relative; }
+  .td-name-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 0.15em 0.4em;
+    margin: -0.15em -0.4em;
+    transition: background 0.15s;
+  }
+  .td-name-text:hover { background: rgba(255,255,255,0.07); }
+  .td-name-text::after {
+    content: '✎';
+    font-size: 0.7rem;
+    opacity: 0;
+    color: var(--text-3);
+    transition: opacity 0.15s;
+  }
+  .td-name-text:hover::after { opacity: 1; }
+
+  .name-edit-input {
+    background: var(--surface-2);
+    border: 1px solid var(--cyan);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    padding: 0.25em 0.6em;
+    outline: none;
+    width: 140px;
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.1);
+    transition: box-shadow 0.2s;
+  }
+  .name-edit-input:focus { box-shadow: 0 0 0 4px rgba(0,229,255,0.18); }
 
   .rank-pill {
     display: inline-flex;
@@ -1061,7 +1096,7 @@ function renderTable() {
         const c3 = CHALLENGES.find(c => c.id === v.third_choice);
         const t  = new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         return `<tr id="row-${v.id}">
-          <td class="td-name">${esc(v.voter_name)}</td>
+          <td class="td-name"><span class="td-name-text" data-id="${v.id}">${esc(v.voter_name)}</span></td>
           <td><span class="rank-pill rank-pill-1">C${v.first_choice} ${c1 ? esc(c1.title) : ''}</span></td>
           <td><span class="rank-pill rank-pill-2">C${v.second_choice} ${c2 ? esc(c2.title) : ''}</span></td>
           <td><span class="rank-pill rank-pill-3">C${v.third_choice} ${c3 ? esc(c3.title) : ''}</span></td>
@@ -1168,10 +1203,71 @@ function renderBuilder() {
 // Delegated click handler for delete buttons (avoids inline JS with special chars)
 document.addEventListener('click', e => {
   const btn = e.target.closest('.btn-delete');
-  if (!btn) return;
-  const id = btn.dataset.id;
-  if (id) deleteVote(id);
+  if (btn) { const id = btn.dataset.id; if (id) deleteVote(id); return; }
+
+  // Inline name editor
+  const nameSpan = e.target.closest('.td-name-text');
+  if (nameSpan && !nameSpan.querySelector('input')) startNameEdit(nameSpan);
 });
+
+function startNameEdit(span) {
+  const id = span.dataset.id;
+  const currentName = span.textContent.trim();
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'name-edit-input';
+  input.value = currentName;
+  input.setAttribute('data-1p-ignore', '');
+  input.setAttribute('data-lpignore', 'true');
+  input.setAttribute('autocomplete', 'off');
+
+  span.innerHTML = '';
+  span.appendChild(input);
+  input.focus();
+  input.select();
+
+  const commit = async () => {
+    const newName = input.value.trim();
+    if (!newName || newName === currentName) {
+      span.innerHTML = esc(currentName);
+      span.dataset.id = id;
+      return;
+    }
+    input.disabled = true;
+    await updateVoterName(id, newName, currentName, span);
+  };
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Escape') { span.innerHTML = esc(currentName); span.dataset.id = id; }
+  });
+  input.addEventListener('blur', commit);
+}
+
+async function updateVoterName(id, newName, fallbackName, span) {
+  try {
+    const { error } = await db.from('votes').update({ voter_name: newName }).eq('id', id);
+    if (error) throw error;
+    // Update local state
+    const vote = votes.find(v => String(v.id) === String(id));
+    if (vote) vote.voter_name = newName;
+    // Update team assignments
+    [1, 2, 3].forEach(t => {
+      const p = teamAssignments[t].find(p => String(p.id) === String(id));
+      if (p) p.name = newName;
+    });
+    span.textContent = newName;
+    span.dataset.id = id;
+    renderGrouped();
+    renderBuilder();
+  } catch (e) {
+    console.error('Rename error:', e);
+    span.textContent = fallbackName;
+    span.dataset.id = id;
+    alert(`Could not rename voter. Error: ${e.message}`);
+  }
+}
 
 async function deleteVote(id) {
   const vote = votes.find(v => String(v.id) === String(id));
