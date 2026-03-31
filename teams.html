@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Reveal — Smitten</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* ─── Reset & base ──────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --c1: #00E5FF;
+  --c2: #FFB800;
+  --c3: #FF5C8A;
+  --bg: #06060A;
+  --surface: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.08);
+  --text-1: #ffffff;
+  --text-2: rgba(255,255,255,0.6);
+  --text-3: rgba(255,255,255,0.25);
+}
+html, body { width:100%; height:100%; background:var(--bg); color:#fff;
+  font-family:'DM Sans',sans-serif; overflow:hidden; cursor:none; }
+
+/* ─── Canvas ────────────────────────────────────────────── */
+#bg-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+/* ─── Cursor ────────────────────────────────────────────── */
+#cursor {
+  position:fixed; width:18px; height:18px;
+  border:1.5px solid rgba(255,255,255,0.8);
+  border-radius:50%; pointer-events:none; z-index:9999;
+  transform:translate(-50%,-50%);
+  transition:transform 0.1s, border-color 0.3s, width 0.2s, height 0.2s;
+  mix-blend-mode:difference;
+}
+#cursor.big { width:36px; height:36px; }
+
+/* ─── Screens ────────────────────────────────────────────── */
+.screen {
+  position:fixed; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; z-index:10; padding:2rem;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.5s ease;
+}
+.screen.active { opacity:1; pointer-events:all; }
+
+/* ─── Loading ─────────────────────────────────────────────── */
+#s-loading .spin {
+  width:44px; height:44px;
+  border:2.5px solid rgba(255,255,255,0.08);
+  border-top-color:var(--c1);
+  border-radius:50%;
+  animation:spin 0.7s linear infinite;
+}
+#s-loading p {
+  margin-top:1.25rem; color:var(--text-3);
+  font-size:0.75rem; letter-spacing:0.18em; text-transform:uppercase;
+}
+
+/* ─── Intro ───────────────────────────────────────────────── */
+#s-intro { gap:1.25rem; text-align:center; }
+.eyebrow {
+  font-size:0.7rem; letter-spacing:0.22em;
+  text-transform:uppercase; color:var(--text-3);
+}
+.intro-title {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(3.5rem,8vw,7rem);
+  font-weight:700; line-height:0.95; letter-spacing:-0.04em;
+}
+.intro-title .gr {
+  background:linear-gradient(135deg, var(--c1) 0%, var(--c3) 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.intro-sub { color:var(--text-2); font-size:1.1rem; max-width:380px; }
+.click-hint {
+  margin-top:0.75rem; display:flex; align-items:center; gap:0.875rem;
+  color:var(--text-3); font-size:0.75rem; letter-spacing:0.15em;
+  text-transform:uppercase;
+  animation:breath 2.2s ease-in-out infinite;
+}
+.click-hint::before,.click-hint::after {
+  content:''; height:1px; width:32px;
+  background:rgba(255,255,255,0.1);
+}
+
+/* ─── Team screen ─────────────────────────────────────────── */
+#s-team { padding:0; justify-content:flex-start; }
+
+.team-bar {
+  width:100%; padding:1.75rem 3rem 1.5rem;
+  display:flex; align-items:center; gap:1.5rem;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  background:rgba(6,6,10,0.7); backdrop-filter:blur(24px);
+  flex-shrink:0; position:relative;
+}
+.team-bar::after {
+  content:''; position:absolute; bottom:-1px; left:0; right:0;
+  height:1px; background:currentColor; opacity:0.15;
+}
+.team-pill {
+  font-size:0.65rem; font-weight:600; letter-spacing:0.2em;
+  text-transform:uppercase; padding:0.35rem 0.8rem;
+  border:1.5px solid currentColor; border-radius:100px;
+  flex-shrink:0;
+}
+.team-info { flex:1; }
+.team-label {
+  font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--text-3); margin-bottom:0.2rem;
+}
+.team-title {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(1.2rem,2.5vw,2rem);
+  font-weight:700; line-height:1.1;
+}
+.team-tally {
+  font-size:0.8rem; color:var(--text-3);
+  letter-spacing:0.1em; text-transform:uppercase;
+  text-align:right; flex-shrink:0;
+}
+
+.team-stage {
+  flex:1; width:100%; display:flex;
+  align-items:center; justify-content:center;
+  position:relative; overflow:hidden; padding:2rem;
+}
+
+/* revealed members list */
+.members-list {
+  display:flex; flex-direction:column; gap:0.6rem;
+  width:100%; max-width:640px;
+  transition:opacity 0.35s, transform 0.35s;
+}
+
+.m-card {
+  display:flex; align-items:center; gap:1rem;
+  padding:0.875rem 1.25rem;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px; backdrop-filter:blur(10px);
+  animation:cardSlideIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both;
+}
+.m-avatar {
+  width:40px; height:40px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Clash Display',sans-serif; font-weight:700;
+  font-size:0.85rem; flex-shrink:0;
+}
+.m-name {
+  font-family:'Clash Display',sans-serif;
+  font-size:1.3rem; font-weight:600; letter-spacing:-0.01em;
+  flex:1;
+}
+.m-num {
+  font-size:0.65rem; color:var(--text-3);
+  letter-spacing:0.1em; text-transform:uppercase;
+}
+
+/* empty prompt */
+.stage-prompt {
+  text-align:center; display:flex; flex-direction:column;
+  align-items:center; gap:0.75rem;
+}
+.stage-prompt .big-num {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(5rem,15vw,12rem);
+  font-weight:700; line-height:0.9;
+  letter-spacing:-0.05em; opacity:0.06;
+}
+.stage-prompt .prompt-text {
+  font-size:0.8rem; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--text-3);
+  animation:breath 2.2s ease-in-out infinite;
+}
+
+/* bottom hint */
+.stage-hint {
+  position:absolute; bottom:1.5rem; left:50%;
+  transform:translateX(-50%);
+  font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase;
+  color:var(--text-3); white-space:nowrap;
+  animation:breath 2.2s ease-in-out infinite;
+}
+
+/* room reveal */
+.room-card {
+  text-align:center; display:flex; flex-direction:column;
+  align-items:center; gap:1rem;
+  animation:roomPop 0.7s cubic-bezier(0.175,0.885,0.32,1.275) both;
+}
+.room-icon-wrap {
+  width:80px; height:80px; border-radius:24px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem; animation:float 3s ease-in-out infinite;
+}
+.room-sub {
+  font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--text-3);
+}
+.room-name {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(2rem,5vw,4rem);
+  font-weight:700; line-height:1; letter-spacing:-0.03em;
+}
+.room-also {
+  display:flex; flex-direction:column; align-items:center; gap:0.5rem;
+  margin-top:0.5rem;
+}
+.team-members-small {
+  display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem;
+  max-width:500px;
+}
+.member-chip {
+  font-size:0.8rem; padding:0.25rem 0.75rem;
+  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.07);
+  border-radius:100px; white-space:nowrap;
+}
+
+/* ─── Reveal overlay ──────────────────────────────────────── */
+#reveal-overlay {
+  position:fixed; inset:0; z-index:100;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.2s;
+}
+#reveal-overlay.show { opacity:1; }
+.reveal-bg {
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(6,6,10,0.97) 100%);
+}
+.reveal-spotlight {
+  position:absolute; inset:0;
+  background:radial-gradient(ellipse 60% 60% at 50% 50%, transparent, rgba(0,0,0,0));
+  transition:background 0.3s;
+}
+.reveal-name-wrap {
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center; gap:0.75rem;
+}
+.reveal-name {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(3.5rem,10vw,9rem);
+  font-weight:700; letter-spacing:-0.04em;
+  line-height:0.95; text-align:center;
+  opacity:0;
+}
+.reveal-name.show { animation:nameIn 0.65s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+.reveal-badge {
+  font-size:0.65rem; letter-spacing:0.3em; text-transform:uppercase;
+  padding:0.35rem 1rem;
+  border:1px solid currentColor;
+  border-radius:100px; opacity:0;
+  transition:opacity 0.4s 0.7s;
+}
+.reveal-badge.show { opacity:0.6; }
+
+/* rings */
+.ring {
+  position:fixed; border-radius:50%;
+  border:2px solid currentColor;
+  pointer-events:none; z-index:200;
+  animation:ringOut 0.9s ease-out forwards;
+}
+
+/* particles */
+.spark {
+  position:fixed; border-radius:50%;
+  pointer-events:none; z-index:200;
+  animation:sparkFly 0.9s ease-out forwards;
+}
+
+/* ─── Done ────────────────────────────────────────────────── */
+#s-done { text-align:center; gap:1rem; }
+.done-title {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(3rem,7vw,6rem);
+  font-weight:700; letter-spacing:-0.04em; line-height:0.95;
+}
+.done-title .multi {
+  background:linear-gradient(90deg, var(--c1), var(--c2), var(--c3));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  background-size:200%;
+  animation:shimmer 3s linear infinite;
+}
+.done-sub { color:var(--text-2); font-size:1.1rem; }
+.teams-summary {
+  display:flex; gap:1rem; margin-top:1.5rem; flex-wrap:wrap; justify-content:center;
+}
+.summary-pill {
+  padding:0.5rem 1.25rem;
+  border-radius:100px;
+  border:1px solid rgba(255,255,255,0.12);
+  font-size:0.8rem; color:var(--text-2);
+}
+
+/* ─── Progress bar ──────────────────────────────────────────── */
+#prog {
+  position:fixed; bottom:0; left:0; height:2px;
+  background:var(--c1); opacity:0.5;
+  transition:width 0.5s ease, background 0.5s;
+  z-index:50; width:0%;
+}
+
+/* ─── Keyframes ─────────────────────────────────────────────── */
+@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes breath { 0%,100%{opacity:0.25} 50%{opacity:0.7} }
+@keyframes cardSlideIn {
+  from { opacity:0; transform:translateY(24px) scale(0.95); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes roomPop {
+  from { opacity:0; transform:scale(0.85) translateY(20px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+@keyframes float {
+  0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); }
+}
+@keyframes nameIn {
+  0%  { opacity:0; transform:scale(0.6) translateY(30px); filter:blur(24px); }
+  55% { opacity:1; transform:scale(1.04) translateY(-4px); filter:blur(0); }
+  80% { transform:scale(0.98) translateY(0); }
+  100%{ opacity:1; transform:scale(1) translateY(0); }
+}
+@keyframes ringOut {
+  0%   { width:0;    height:0;    opacity:0.9; border-width:2px; transform:translate(-50%,-50%); }
+  100% { width:700px; height:700px; opacity:0;  border-width:0;  transform:translate(-50%,-50%); }
+}
+@keyframes sparkFly {
+  0%   { opacity:1; transform:translate(0,0) scale(1); }
+  100% { opacity:0; transform:translate(var(--tx),var(--ty)) scale(0); }
+}
+@keyframes shimmer { from{background-position:0%} to{background-position:200%} }
+@keyframes screenFadeIn {
+  from { opacity:0; transform:translateY(12px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+<div id="cursor"></div>
+
+<!-- Loading -->
+<div class="screen active" id="s-loading">
+  <div class="spin"></div>
+  <p>Assembling teams…</p>
+</div>
+
+<!-- Intro -->
+<div class="screen" id="s-intro">
+  <p class="eyebrow">Smitten Workshop · 2026</p>
+  <h1 class="intro-title">Meet the<br><span class="gr">Teams</span></h1>
+  <p class="intro-sub">Three challenges. Three teams. Let's see where you landed.</p>
+  <div class="click-hint">Click or press Space to begin</div>
+</div>
+
+<!-- Team reveal screen (shared) -->
+<div class="screen" id="s-team">
+  <div class="team-bar" id="team-bar">
+    <span class="team-pill" id="team-pill">Team 1</span>
+    <div class="team-info">
+      <div class="team-label">Challenge</div>
+      <div class="team-title" id="team-title">–</div>
+    </div>
+    <div class="team-tally" id="team-tally">0 / 0 revealed</div>
+  </div>
+  <div class="team-stage" id="team-stage">
+    <div class="members-list" id="members-list"></div>
+    <div class="stage-hint" id="stage-hint">Click or Space to reveal</div>
+  </div>
+</div>
+
+<!-- Done -->
+<div class="screen" id="s-done">
+  <p class="eyebrow">All teams revealed</p>
+  <h1 class="done-title">Let's<br><span class="multi">Get To Work</span></h1>
+  <p class="done-sub">Three weeks. Three teams. One unforgettable sprint.</p>
+  <div class="teams-summary" id="done-summary"></div>
+</div>
+
+<!-- Reveal overlay -->
+<div id="reveal-overlay">
+  <div class="reveal-bg"></div>
+  <div class="reveal-spotlight" id="reveal-spotlight"></div>
+  <div class="reveal-name-wrap">
+    <div class="reveal-name" id="reveal-name"></div>
+    <div class="reveal-badge" id="reveal-badge">Team Member</div>
+  </div>
+</div>
+
+<!-- Progress bar -->
+<div id="prog"></div>
+
+<script>
+/* ── Config ───────────────────────────────────────────────── */
+const SUPABASE_URL      = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
+
+const TEAM_META = [
+  { id:1, title:'Launch Smitten in Malta',   color:'#00E5FF', room:'Old Dev / Product Room',  roomIcon:'💻', emoji:'🇲🇹' },
+  { id:2, title:'Organic Growth Hacks',       color:'#FFB800', room:'Old Operations Room',     roomIcon:'📊', emoji:'🌱' },
+  { id:3, title:'AI Dating Profile Agent',    color:'#FF5C8A', room:'Old Marketing Room',      roomIcon:'🎯', emoji:'🤖' },
+];
+
+/* ── State ────────────────────────────────────────────────── */
+let teams        = { 1:[], 2:[], 3:[] };
+let phase        = 'loading';   // loading | intro | team | done
+let teamIdx      = 0;           // 0..2
+let revealedIdx  = 0;           // 0..members.length  then 'room' then 'done'
+let roomShown    = false;
+let busy         = false;
+
+/* ── Canvas bg ────────────────────────────────────────────── */
+const canvas = document.getElementById('bg-canvas');
+const ctx    = canvas.getContext('2d');
+let pts      = [];
+let accentColor = '#00E5FF';
+
+function resizeCanvas() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+function initPts() {
+  pts = [];
+  const n = Math.floor((canvas.width * canvas.height) / 14000);
+  for (let i = 0; i < n; i++) pts.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    vx:(Math.random()-0.5)*0.25, vy:(Math.random()-0.5)*0.25,
+    r: Math.random()*1.4+0.4, a: Math.random()*0.45+0.1,
+  });
+}
+function drawBg() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  pts.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${p.a*0.5})`; ctx.fill();
+  });
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = i+1; j < pts.length; j++) {
+      const dx = pts[i].x-pts[j].x, dy = pts[i].y-pts[j].y;
+      const d  = Math.sqrt(dx*dx+dy*dy);
+      if (d < 110) {
+        ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.strokeStyle = `rgba(255,255,255,${(1-d/110)*0.04})`; ctx.lineWidth=0.5; ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(drawBg);
+}
+
+/* ── Cursor ───────────────────────────────────────────────── */
+const cursorEl = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursorEl.style.left = e.clientX+'px';
+  cursorEl.style.top  = e.clientY+'px';
+});
+document.addEventListener('mousedown', () => cursorEl.classList.add('big'));
+document.addEventListener('mouseup',   () => cursorEl.classList.remove('big'));
+
+/* ── Supabase ─────────────────────────────────────────────── */
+async function loadTeams() {
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data, error } = await db.from('votes').select('*').order('created_at',{ascending:true});
+  teams = {1:[],2:[],3:[]};
+  (data||[]).forEach(v => {
+    const slot = v.team_assignment ?? v.first_choice;
+    const t    = [1,2,3].includes(slot) ? slot : v.first_choice;
+    teams[t].push({ id:v.id, name:v.voter_name, first:v.first_choice, second:v.second_choice, third:v.third_choice });
+  });
+  showScreen('intro');
+  phase = 'intro';
+}
+
+/* ── Screens ──────────────────────────────────────────────── */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('s-'+name).classList.add('active');
+}
+
+/* ── Progress bar ─────────────────────────────────────────── */
+function updateProgress() {
+  const meta    = TEAM_META[teamIdx];
+  const members = teams[meta.id];
+  const total   = 3;
+  const pct     = (teamIdx + (roomShown ? 1 : revealedIdx / Math.max(members.length,1))) / total * 100;
+  const bar     = document.getElementById('prog');
+  bar.style.background = meta.color;
+  bar.style.width      = pct + '%';
+}
+
+/* ── Team screen setup ────────────────────────────────────── */
+function setupTeam(idx) {
+  teamIdx     = idx;
+  revealedIdx = 0;
+  roomShown   = false;
+  busy        = false;
+
+  const meta    = TEAM_META[idx];
+  const members = teams[meta.id];
+  accentColor   = meta.color;
+
+  document.getElementById('team-pill').textContent  = `Team ${idx+1}`;
+  document.getElementById('team-pill').style.color  = meta.color;
+  document.getElementById('team-pill').style.borderColor = meta.color;
+  document.getElementById('team-bar').style.color   = meta.color;
+  document.getElementById('team-title').textContent = meta.title;
+  document.getElementById('team-title').style.color = meta.color;
+  document.getElementById('team-tally').textContent = `0 / ${members.length} revealed`;
+  document.getElementById('stage-hint').textContent = 'Click or Space to reveal first member';
+  document.getElementById('members-list').innerHTML = '';
+  document.getElementById('prog').style.background  = meta.color;
+  cursorEl.style.borderColor = meta.color;
+  updateProgress();
+}
+
+/* ── Scramble effect ──────────────────────────────────────── */
+const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÞÐÆÖabcdefghijklmnopqrstuvwxyz0123456789!#$%';
+function scramble(el, text, ms = 850) {
+  return new Promise(res => {
+    const steps = 28, dt = ms/steps; let t = 0;
+    const id = setInterval(() => {
+      t++;
+      const prog    = t/steps;
+      const revealed = Math.floor(Math.pow(prog,0.55)*text.length);
+      el.textContent = text.split('').map((c,i) => {
+        if (c===' ') return ' ';
+        if (i < revealed) return c;
+        return GLYPHS[Math.floor(Math.random()*GLYPHS.length)];
+      }).join('');
+      if (t >= steps) { clearInterval(id); el.textContent = text; res(); }
+    }, dt);
+  });
+}
+
+/* ── FX: rings ────────────────────────────────────────────── */
+function spawnRings(color) {
+  [0, 100, 200].forEach(delay => {
+    const r = document.createElement('div');
+    r.className = 'ring';
+    r.style.cssText = `left:50%;top:50%;color:${color};border-color:${color};
+      box-shadow:0 0 12px ${color}50; animation-delay:${delay}ms;`;
+    document.body.appendChild(r);
+    setTimeout(() => r.remove(), 900+delay);
+  });
+}
+
+/* ── FX: sparks ───────────────────────────────────────────── */
+function spawnSparks(color, count=28) {
+  const cx = window.innerWidth/2, cy = window.innerHeight/2;
+  for (let i=0; i<count; i++) {
+    const angle = (i/count)*Math.PI*2 + (Math.random()-0.5)*0.4;
+    const speed = 80 + Math.random()*280;
+    const tx    = Math.cos(angle)*speed, ty = Math.sin(angle)*speed;
+    const size  = 2.5 + Math.random()*4.5;
+    const s     = document.createElement('div');
+    s.className = 'spark';
+    s.style.cssText = `
+      left:${cx}px; top:${cy}px;
+      width:${size}px; height:${size}px;
+      background:${color}; box-shadow:0 0 8px ${color};
+      --tx:${tx}px; --ty:${ty}px;
+      animation-duration:${0.6+Math.random()*0.4}s;
+      animation-delay:${Math.random()*80}ms;
+    `;
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1100);
+  }
+}
+
+/* ── Reveal a person ──────────────────────────────────────── */
+async function revealPerson() {
+  if (busy) return;
+  const meta    = TEAM_META[teamIdx];
+  const members = teams[meta.id];
+  const person  = members[revealedIdx];
+  busy = true;
+
+  /* 1. Show overlay */
+  const overlay  = document.getElementById('reveal-overlay');
+  const nameEl   = document.getElementById('reveal-name');
+  const badgeEl  = document.getElementById('reveal-badge');
+  const spotlight= document.getElementById('reveal-spotlight');
+
+  nameEl.className   = 'reveal-name';
+  nameEl.style.color = meta.color;
+  nameEl.style.textShadow = `0 0 60px ${meta.color}70, 0 0 120px ${meta.color}30`;
+  nameEl.textContent = '▓▓▓▓▓▓▓▓';
+  badgeEl.className  = 'reveal-badge';
+  badgeEl.style.color= meta.color;
+  badgeEl.style.borderColor = meta.color;
+  badgeEl.textContent = `Team ${teamIdx+1}`;
+  spotlight.style.background = `radial-gradient(ellipse 50% 45% at 50% 50%, ${meta.color}12 0%, transparent 70%)`;
+
+  overlay.classList.add('show');
+
+  /* 2. Spawn FX */
+  spawnRings(meta.color);
+  spawnSparks(meta.color);
+
+  /* 3. Animate name */
+  await sleep(80);
+  nameEl.classList.add('show');
+  await scramble(nameEl, person.name, 850);
+  badgeEl.classList.add('show');
+
+  /* 4. Hold */
+  await sleep(700);
+
+  /* 5. Hide overlay */
+  overlay.classList.remove('show');
+  await sleep(250);
+
+  /* 6. Add card to list */
+  const list    = document.getElementById('members-list');
+  const initials = person.name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+  const card    = document.createElement('div');
+  card.className = 'm-card';
+  card.style.borderColor = `${meta.color}25`;
+  card.innerHTML = `
+    <div class="m-avatar" style="background:${meta.color}18;color:${meta.color}">${esc(initials)}</div>
+    <div class="m-name">${esc(person.name)}</div>
+    <div class="m-num">#${revealedIdx+1}</div>
+  `;
+  list.appendChild(card);
+  revealedIdx++;
+
+  /* 7. Update tally */
+  const remaining = members.length - revealedIdx;
+  document.getElementById('team-tally').textContent = `${revealedIdx} / ${members.length} revealed`;
+  if (remaining > 0)
+    document.getElementById('stage-hint').textContent = `${remaining} more — click or Space`;
+  else
+    document.getElementById('stage-hint').textContent = `All revealed · click to unveil their room →`;
+
+  updateProgress();
+  busy = false;
+}
+
+/* ── Room reveal ─────────────────────────────────────────── */
+async function revealRoom() {
+  if (busy) return;
+  busy = true;
+
+  const meta    = TEAM_META[teamIdx];
+  const members = teams[meta.id];
+  const stage   = document.getElementById('team-stage');
+  const list    = document.getElementById('members-list');
+  const hint    = document.getElementById('stage-hint');
+
+  /* slide list out */
+  list.style.opacity   = '0';
+  list.style.transform = 'scale(0.94) translateY(-10px)';
+  await sleep(350);
+
+  /* build room card */
+  const chips = members.map(m => `<span class="member-chip">${esc(m.name)}</span>`).join('');
+  list.innerHTML = `
+    <div class="room-card" style="color:${meta.color}">
+      <div class="room-icon-wrap" style="background:${meta.color}18">${meta.roomIcon}</div>
+      <div class="room-sub">Your workspace</div>
+      <div class="room-name" style="color:${meta.color};text-shadow:0 0 50px ${meta.color}60">${meta.room}</div>
+      <div class="room-also">
+        <div class="team-members-small">${chips}</div>
+      </div>
+    </div>
+  `;
+  list.style.opacity   = '1';
+  list.style.transform = 'scale(1) translateY(0)';
+
+  hint.textContent = teamIdx < 2 ? 'Click or Space for next team →' : 'Click or Space to finish →';
+  hint.style.animation = 'breath 2.2s ease-in-out infinite';
+  spawnRings(meta.color);
+  spawnSparks(meta.color, 18);
+
+  roomShown = true;
+  updateProgress();
+  busy = false;
+}
+
+/* ── Advance to next team or done ────────────────────────── */
+async function nextTeam() {
+  if (busy) return;
+  busy = true;
+
+  const screen = document.getElementById('s-team');
+  screen.style.transition = 'opacity 0.35s';
+  screen.style.opacity    = '0';
+  await sleep(350);
+
+  teamIdx++;
+  if (teamIdx >= 3) {
+    buildDoneScreen();
+    showScreen('done');
+    phase = 'done';
+    document.getElementById('prog').style.width = '100%';
+    document.getElementById('prog').style.background = 'var(--c3)';
+    screen.style.opacity = '1';
+    busy = false;
+    return;
+  }
+
+  setupTeam(teamIdx);
+  screen.style.opacity = '1';
+  phase = 'team';
+  busy  = false;
+}
+
+/* ── Done screen ──────────────────────────────────────────── */
+function buildDoneScreen() {
+  const el = document.getElementById('done-summary');
+  el.innerHTML = TEAM_META.map((m,i) => `
+    <div class="summary-pill" style="border-color:${m.color}40;color:${m.color}">
+      Team ${i+1} · ${teams[m.id].length} members
+    </div>
+  `).join('');
+}
+
+/* ── Main advance logic ────────────────────────────────────── */
+function advance() {
+  if (phase === 'intro') {
+    phase  = 'team';
+    teamIdx = 0;
+    showScreen('team');
+    setupTeam(0);
+  } else if (phase === 'team') {
+    const meta    = TEAM_META[teamIdx];
+    const members = teams[meta.id];
+    if (revealedIdx < members.length) {
+      revealPerson();
+    } else if (!roomShown) {
+      revealRoom();
+    } else {
+      nextTeam();
+    }
+  }
+}
+
+/* ── Input ───────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (['Space','ArrowRight','Enter'].includes(e.code)) { e.preventDefault(); advance(); }
+});
+document.addEventListener('click', advance);
+
+/* ── Utils ───────────────────────────────────────────────── */
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, m =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+}
+
+/* ── Boot ────────────────────────────────────────────────── */
+window.addEventListener('resize', () => { resizeCanvas(); initPts(); });
+resizeCanvas(); initPts(); drawBg(); loadTeams();
+</script>
+</body>
+</html>
