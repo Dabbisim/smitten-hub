@@ -122,7 +122,10 @@ body::after {
   opacity: 0;
   animation: none;
 }
-.welcome-eyebrow .dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.welcome-eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.welcome-eyebrow .dot-c { background: var(--c1); box-shadow: 0 0 10px var(--c1), 0 0 22px rgba(0,229,255,0.4); }
+.welcome-eyebrow .dot-a { background: var(--c2); box-shadow: 0 0 10px var(--c2), 0 0 22px rgba(255,184,0,0.4); }
+.welcome-eyebrow .dot-r { background: var(--c3); box-shadow: 0 0 10px var(--c3), 0 0 22px rgba(255,92,138,0.4); }
 
 .slide.active .welcome-eyebrow { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s forwards; }
 
@@ -140,7 +143,7 @@ body::after {
   font-style: italic;
   font-family: 'Fraunces', serif;
   font-weight: 300;
-  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.45));
+  background: linear-gradient(135deg, var(--c1) 0%, var(--c2) 60%, var(--c3) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -512,12 +515,16 @@ body::after {
   <div class="slide active" id="s0">
     <div class="slide-glow"></div>
     <div class="welcome-eyebrow">
-      <span class="dot"></span>
-      Smitten Workshop · 2026
-      <span class="dot"></span>
+      <span class="dot dot-c"></span>
+      <span class="dot dot-a"></span>
+      <span class="dot dot-r"></span>
+      &nbsp;Smitten&nbsp;
+      <span class="dot dot-r"></span>
+      <span class="dot dot-a"></span>
+      <span class="dot dot-c"></span>
     </div>
     <h1 class="welcome-title">The<br><em>Challenge</em><br>Reveal.</h1>
-    <p class="welcome-sub">Three bold bets. Two and a half weeks. One team.<br>Let's figure out what we're building next.</p>
+    <p class="welcome-sub">Three bold bets. Three weeks. Three teams.<br>Let's figure out what we're building next.</p>
     <div class="welcome-hint">
       <span class="hint-key">→</span>
       <span>press to begin</span>
