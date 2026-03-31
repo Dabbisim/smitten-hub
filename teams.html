@@ -664,10 +664,7 @@ async function revealPerson() {
   nameEl.style.color = meta.color;
   nameEl.style.textShadow = `0 0 60px ${meta.color}70, 0 0 120px ${meta.color}30`;
   nameEl.textContent = '▓▓▓▓▓▓▓▓';
-  badgeEl.className  = 'reveal-badge';
-  badgeEl.style.color= meta.color;
-  badgeEl.style.borderColor = meta.color;
-  badgeEl.textContent = `Team ${teamIdx+1}`;
+  badgeEl.className  = 'reveal-badge'; // hidden — opacity stays 0
   spotlight.style.background = `radial-gradient(ellipse 50% 45% at 50% 50%, ${meta.color}12 0%, transparent 70%)`;
 
   overlay.classList.add('show');
@@ -680,10 +677,9 @@ async function revealPerson() {
   await sleep(80);
   nameEl.classList.add('show');
   await scramble(nameEl, person.name, 850);
-  badgeEl.classList.add('show');
 
-  /* 4. Hold */
-  await sleep(700);
+  /* 4. Hold — 2 extra seconds */
+  await sleep(2700);
 
   /* 5. Hide overlay */
   overlay.classList.remove('show');
