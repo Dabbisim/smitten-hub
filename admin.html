@@ -472,6 +472,103 @@
   .pref-3rd { background: rgba(255,92,138,0.12); color: var(--rose); }
   .team-empty { padding: 1.2rem; text-align: center; color: var(--text-3); font-size: 0.8rem; }
 
+  /* ── GROUPED BY CHALLENGE ── */
+  .grouped-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .group-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    backdrop-filter: blur(24px);
+    position: relative;
+  }
+  .group-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 18px 18px 0 0;
+  }
+  .group-card:nth-child(1)::before { background: linear-gradient(90deg, var(--cyan), var(--cyan-deep)); }
+  .group-card:nth-child(2)::before { background: linear-gradient(90deg, var(--amber), var(--amber-deep)); }
+  .group-card:nth-child(3)::before { background: linear-gradient(90deg, var(--rose), #E04070); }
+
+  .group-head {
+    padding: 1rem 1.2rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .group-eyebrow {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.2rem;
+  }
+  .group-card:nth-child(1) .group-eyebrow { color: var(--cyan); }
+  .group-card:nth-child(2) .group-eyebrow { color: var(--amber); }
+  .group-card:nth-child(3) .group-eyebrow { color: var(--rose); }
+
+  .group-title {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .group-body { padding: 0.6rem 0.7rem 0.7rem; }
+
+  .group-rank-section { margin-bottom: 0.4rem; }
+  .group-rank-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 0.3rem 0.5rem 0.1rem;
+  }
+
+  .group-person {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.38rem 0.55rem;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .group-person:hover { background: var(--surface-3); }
+  .group-person-name { font-size: 0.83rem; font-weight: 500; color: var(--text); flex: 1; }
+  .group-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.18em 0.5em;
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+  .gb-1 { background: rgba(0,229,255,0.12); color: var(--cyan); }
+  .gb-2 { background: rgba(255,184,0,0.12); color: var(--amber); }
+  .gb-3 { background: rgba(255,92,138,0.12); color: var(--rose); }
+
+  .group-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.3rem 0.2rem;
+    opacity: 0.5;
+  }
+  .group-empty { padding: 1.2rem; text-align: center; color: var(--text-3); font-size: 0.8rem; }
+
+  @media (max-width: 768px) {
+    .grouped-grid { grid-template-columns: 1fr; }
+  }
+
   /* Footer actions */
   .actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
 
@@ -566,6 +663,12 @@
         <div class="stat-count-item"><div class="stat-count-num stat-count-3" id="s3-3rd">0</div><div class="stat-count-label">3rd</div></div>
       </div>
     </div>
+  </div>
+
+  <!-- Grouped by challenge -->
+  <div class="section-title">🎯 Votes by Challenge</div>
+  <div class="grouped-grid" id="grouped-grid">
+    <div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:2rem;">Loading…</div>
   </div>
 
   <!-- All votes table -->
@@ -693,6 +796,7 @@ function subscribeRealtime() {
 
 function render() {
   renderStats();
+  renderGrouped();
   renderTable();
   renderTeams();
   document.getElementById('total-count').textContent = votes.length;
@@ -715,6 +819,54 @@ function renderStats() {
     document.getElementById(`s${c}-2nd`).textContent = counts[c][2];
     document.getElementById(`s${c}-3rd`).textContent = counts[c][3];
   });
+}
+
+function renderGrouped() {
+  const grid = document.getElementById('grouped-grid');
+  if (votes.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:2rem;">No votes yet</div>';
+    return;
+  }
+
+  // For each challenge, split voters into 1st / 2nd / 3rd pickers
+  const colors = ['cyan', 'amber', 'rose'];
+  grid.innerHTML = CHALLENGES.map((c, i) => {
+    const firsts  = votes.filter(v => v.first_choice  === c.id).map(v => v.voter_name);
+    const seconds = votes.filter(v => v.second_choice === c.id).map(v => v.voter_name);
+    const thirds  = votes.filter(v => v.third_choice  === c.id).map(v => v.voter_name);
+
+    const makeRows = (names, rank, badgeClass) =>
+      names.map(n => `<div class="group-person">
+        <span class="group-person-name">${esc(n)}</span>
+        <span class="group-badge ${badgeClass}">${rank}</span>
+      </div>`).join('');
+
+    const totalPeople = firsts.length + seconds.length + thirds.length;
+
+    return `<div class="group-card">
+      <div class="group-head">
+        <div class="group-eyebrow">Challenge ${c.id} · ${totalPeople} ${totalPeople === 1 ? 'person' : 'people'}</div>
+        <div class="group-title">${esc(c.title)}</div>
+      </div>
+      <div class="group-body">
+        ${firsts.length ? `
+          <div class="group-rank-label">1st choice</div>
+          ${makeRows(firsts, '1st', 'gb-1')}
+          ${(seconds.length || thirds.length) ? '<div class="group-divider"></div>' : ''}
+        ` : ''}
+        ${seconds.length ? `
+          <div class="group-rank-label">2nd choice</div>
+          ${makeRows(seconds, '2nd', 'gb-2')}
+          ${thirds.length ? '<div class="group-divider"></div>' : ''}
+        ` : ''}
+        ${thirds.length ? `
+          <div class="group-rank-label">3rd choice</div>
+          ${makeRows(thirds, '3rd', 'gb-3')}
+        ` : ''}
+        ${totalPeople === 0 ? '<div class="group-empty">No one yet</div>' : ''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderTable() {
