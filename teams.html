@@ -507,9 +507,9 @@ const SUPABASE_URL      = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
 
 const TEAM_META = [
-  { id:1, title:'Launch Smitten in Malta',   shortName:'Malta',        color:'#00E5FF', room:'The Launchpad',   roomIcon:'🚀', emoji:'🇲🇹' },
-  { id:2, title:'Organic Growth Hacks',       shortName:'Organic',      color:'#FFB800', room:'The Greenhouse',  roomIcon:'🌿', emoji:'🌱' },
-  { id:3, title:'AI Dating Profile Agent',    shortName:'Dating Agent', color:'#FF5C8A', room:'The Studio',      roomIcon:'✨', emoji:'🤖' },
+  { id:1, title:'Launch Smitten in Malta',   shortName:'Malta',        color:'#00E5FF', room:'Dev Room',        roomIcon:'🚀', emoji:'🇲🇹' },
+  { id:2, title:'Organic Growth Hacks',       shortName:'Organic',      color:'#FFB800', room:'Ops Room',        roomIcon:'🌿', emoji:'🌱' },
+  { id:3, title:'AI Dating Profile Agent',    shortName:'Dating Agent', color:'#FF5C8A', room:'Marketing Room',  roomIcon:'✨', emoji:'🤖' },
 ];
 
 /* ── State ────────────────────────────────────────────────── */
@@ -709,7 +709,7 @@ async function revealPerson() {
   /* 3. Animate name */
   await sleep(80);
   nameEl.classList.add('show');
-  await scramble(nameEl, person.name, 850);
+  await scramble(nameEl, person.name, 2500);
 
   /* 4. Hold — 2 extra seconds */
   await sleep(2700);
