@@ -67,6 +67,17 @@ html, body { width:100%; height:100%; background:var(--bg); color:#fff;
   font-size:0.7rem; letter-spacing:0.22em;
   text-transform:uppercase; color:var(--text-3);
 }
+.smitten-eyebrow {
+  display:flex; align-items:center; justify-content:center;
+  gap:0.75rem; font-size:0.7rem; letter-spacing:0.22em;
+  text-transform:uppercase; color:var(--c3); font-weight:600;
+}
+.smitten-eyebrow::before,
+.smitten-eyebrow::after {
+  content:''; display:block; width:36px; height:1.5px;
+  border-radius:2px; background:var(--c3); flex-shrink:0;
+  box-shadow:0 0 8px var(--c3), 0 0 18px rgba(255,92,138,0.5);
+}
 .intro-title {
   font-family:'Clash Display',sans-serif;
   font-size:clamp(3.5rem,8vw,7rem);
@@ -441,7 +452,7 @@ html, body { width:100%; height:100%; background:var(--bg); color:#fff;
 
 <!-- Intro -->
 <div class="screen" id="s-intro">
-  <p class="eyebrow">Smitten Workshop · 2026</p>
+  <p class="smitten-eyebrow">Smitten</p>
   <h1 class="intro-title">Meet the<br><span class="gr">Teams</span></h1>
   <p class="intro-sub">Three challenges. Three teams. Let's see where you landed.</p>
   <div class="click-hint">Click or press Space to begin</div>
