@@ -904,7 +904,7 @@ function renderTable() {
           <td><span class="rank-pill rank-pill-3">C${v.third_choice} ${c3 ? esc(c3.title) : ''}</span></td>
           <td class="td-time">${t}</td>
           <td class="td-delete">
-            <button class="btn-delete" title="Remove ${esc(v.voter_name)}" onclick="deleteVote('${v.id}', '${esc(v.voter_name)}')">✕</button>
+            <button class="btn-delete" data-id="${v.id}" title="Remove ${esc(v.voter_name)}">✕</button>
           </td>
         </tr>`;
       }).join('')}
@@ -969,7 +969,18 @@ function renderTeams() {
 //  EXPORT
 // ════════════════════════════════════════════════
 
-async function deleteVote(id, name) {
+// Delegated click handler for delete buttons (avoids inline JS with special chars)
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.btn-delete');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  if (id) deleteVote(id);
+});
+
+async function deleteVote(id) {
+  const vote = votes.find(v => String(v.id) === String(id));
+  const name = vote ? vote.voter_name : 'voter';
+
   // Visually fade the row immediately for snappy feel
   const row = document.getElementById(`row-${id}`);
   if (row) {
@@ -981,14 +992,12 @@ async function deleteVote(id, name) {
   try {
     const { error } = await db.from('votes').delete().eq('id', id);
     if (error) throw error;
-    // Remove from local state and re-render
-    votes = votes.filter(v => v.id !== id);
+    votes = votes.filter(v => String(v.id) !== String(id));
     render();
   } catch (e) {
     console.error('Delete error:', e);
-    // Restore row on failure
     if (row) { row.style.opacity = '1'; row.style.transform = ''; }
-    alert(`Failed to remove ${name}. Please try again.`);
+    alert(`Failed to remove "${name}". Error: ${e.message}`);
   }
 }
 
