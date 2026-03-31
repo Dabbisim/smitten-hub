@@ -372,6 +372,29 @@
 
   .td-time { color: var(--text-3) !important; font-size: 0.78rem !important; }
 
+  .btn-delete {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-delete:hover {
+    background: rgba(255,92,138,0.12);
+    border-color: rgba(255,92,138,0.3);
+    color: var(--rose);
+    transform: scale(1.1);
+  }
+  .btn-delete:active { transform: scale(0.95); }
+  .td-delete { width: 44px; text-align: center; }
+
   .empty-state {
     padding: 3rem;
     text-align: center;
@@ -710,6 +733,7 @@ function renderTable() {
         <th>2nd Choice</th>
         <th>3rd Choice</th>
         <th>Voted at</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -718,12 +742,15 @@ function renderTable() {
         const c2 = CHALLENGES.find(c => c.id === v.second_choice);
         const c3 = CHALLENGES.find(c => c.id === v.third_choice);
         const t  = new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        return `<tr>
+        return `<tr id="row-${v.id}">
           <td class="td-name">${esc(v.voter_name)}</td>
           <td><span class="rank-pill rank-pill-1">C${v.first_choice} ${c1 ? esc(c1.title) : ''}</span></td>
           <td><span class="rank-pill rank-pill-2">C${v.second_choice} ${c2 ? esc(c2.title) : ''}</span></td>
           <td><span class="rank-pill rank-pill-3">C${v.third_choice} ${c3 ? esc(c3.title) : ''}</span></td>
           <td class="td-time">${t}</td>
+          <td class="td-delete">
+            <button class="btn-delete" title="Remove ${esc(v.voter_name)}" onclick="deleteVote('${v.id}', '${esc(v.voter_name)}')">✕</button>
+          </td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -786,6 +813,29 @@ function renderTeams() {
 // ════════════════════════════════════════════════
 //  EXPORT
 // ════════════════════════════════════════════════
+
+async function deleteVote(id, name) {
+  // Visually fade the row immediately for snappy feel
+  const row = document.getElementById(`row-${id}`);
+  if (row) {
+    row.style.transition = 'opacity 0.3s, transform 0.3s';
+    row.style.opacity = '0.3';
+    row.style.transform = 'translateX(10px)';
+  }
+
+  try {
+    const { error } = await db.from('votes').delete().eq('id', id);
+    if (error) throw error;
+    // Remove from local state and re-render
+    votes = votes.filter(v => v.id !== id);
+    render();
+  } catch (e) {
+    console.error('Delete error:', e);
+    // Restore row on failure
+    if (row) { row.style.opacity = '1'; row.style.transform = ''; }
+    alert(`Failed to remove ${name}. Please try again.`);
+  }
+}
 
 function exportCSV() {
   if (!votes.length) return;
