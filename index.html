@@ -992,9 +992,7 @@
   <h2>Vote Recorded!</h2>
   <p class="confirm-sub">Thanks for ranking the challenges</p>
   <div class="vote-summary" id="vote-summary"></div>
-  <div class="confirm-actions">
-    <button class="btn btn-secondary" onclick="changeVote()">Change My Vote</button>
-  </div>
+  <div class="confirm-actions"></div>
 </div>
 
 <!-- ═══════════════ ADMIN: PASSWORD GATE ═══════════════ -->
@@ -1120,9 +1118,7 @@ let realtimeChannel = null;
 
 function init() {
   // Init Supabase
-  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // Constellation background
   initConstellation();

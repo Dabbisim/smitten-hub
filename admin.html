@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Top 3 Challenges</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  @import url('https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cyan: #00E5FF;
+    --cyan-deep: #00B8D4;
+    --cyan-glow: rgba(0, 229, 255, 0.15);
+    --amber: #FFB800;
+    --amber-deep: #E5A600;
+    --amber-glow: rgba(255, 184, 0, 0.15);
+    --rose: #FF5C8A;
+    --rose-glow: rgba(255, 92, 138, 0.15);
+    --green: #4ADE80;
+    --bg: #06060A;
+    --surface: rgba(14, 14, 22, 0.85);
+    --surface-solid: #0E0E16;
+    --surface-2: rgba(22, 22, 34, 0.9);
+    --surface-3: rgba(30, 30, 46, 0.6);
+    --border: rgba(255,255,255,0.07);
+    --border-light: rgba(255,255,255,0.14);
+    --text: #FFFFFF;
+    --text-2: rgba(255,255,255,0.55);
+    --text-3: rgba(255,255,255,0.3);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  h1, h2, h3, .stat-value, .rank-badge, .team-header {
+    font-family: 'Clash Display', 'Inter', sans-serif;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ── BACKGROUND ── */
+  canvas#bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .orb { position: absolute; border-radius: 50%; filter: blur(140px); opacity: 0.25; }
+  .orb-1 { width: 600px; height: 600px; background: var(--cyan-glow); top: -15%; right: -10%; animation: drift1 28s ease-in-out infinite; }
+  .orb-2 { width: 500px; height: 500px; background: var(--amber-glow); bottom: -15%; left: -10%; animation: drift2 32s ease-in-out infinite; }
+  .orb-3 { width: 350px; height: 350px; background: var(--rose-glow); top: 45%; left: 45%; animation: drift3 20s ease-in-out infinite; }
+  @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,40px)} }
+  @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} }
+  @keyframes drift3 { 0%,100%{transform:translate(-50%,-50%)} 50%{transform:translate(-40%,-60%)} }
+
+  @keyframes revealUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* ── PASSWORD GATE ── */
+  #gate {
+    position: relative;
+    z-index: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    gap: 0;
+  }
+
+  .gate-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 1.4rem;
+    opacity: 0;
+    animation: revealUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s forwards;
+  }
+  .gate-tag::before,.gate-tag::after { content:''; width:24px; height:1px; background:currentColor; opacity:0.4; }
+
+  #gate h1 {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg,#fff,rgba(255,255,255,0.65));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.25s forwards;
+  }
+
+  .gate-sub {
+    color: var(--text-2);
+    margin-bottom: 2.2rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.4s forwards;
+  }
+
+  .gate-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.55s forwards;
+  }
+
+  .input {
+    width: 320px;
+    max-width: 90vw;
+    padding: 0.9em 1.2em;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    outline: none;
+    transition: all 0.3s;
+    backdrop-filter: blur(20px);
+    text-align: center;
+  }
+  .input::placeholder { color: var(--text-3); }
+  .input:focus { border-color: rgba(255,184,0,0.35); box-shadow: 0 0 0 4px rgba(255,184,0,0.08); }
+
+  .btn {
+    padding: 0.8em 2.2em;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent 50%); opacity:0; transition:opacity 0.25s; }
+  .btn:hover::before { opacity:1; }
+  .btn:hover { transform:translateY(-2px); }
+  .btn:active { transform:scale(0.97); }
+
+  .btn-amber { background:linear-gradient(135deg,var(--amber),var(--amber-deep)); color:#000; box-shadow:0 4px 28px var(--amber-glow); }
+  .btn-ghost { background:var(--surface-2); color:var(--text-2); border:1px solid var(--border); backdrop-filter:blur(20px); font-weight:600; }
+  .btn-ghost:hover { border-color:var(--border-light); color:var(--text); }
+
+  .gate-error { color:var(--rose); font-size:0.85rem; min-height:1.2em; }
+
+  /* ── DASHBOARD ── */
+  #dashboard {
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* Top bar */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .topbar-left h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .topbar-left p { color: var(--text-3); font-size: 0.8rem; margin-top: 0.15rem; }
+  .topbar-right { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.2);
+    border-radius: 100px;
+    padding: 0.35em 0.9em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--green);
+  }
+  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s ease-in-out infinite; }
+
+  .vote-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.35em 0.9em;
+    font-size: 0.8rem;
+    color: var(--text-2);
+    backdrop-filter: blur(20px);
+  }
+  .vote-badge strong { color: var(--cyan); }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.4rem;
+    backdrop-filter: blur(24px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 18px 18px 0 0;
+  }
+  .stat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--cyan), var(--cyan-deep)); }
+  .stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--amber), var(--amber-deep)); }
+  .stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--rose), #E04070); }
+
+  .stat-challenge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .stat-card:nth-child(1) .stat-challenge { color: var(--cyan); }
+  .stat-card:nth-child(2) .stat-challenge { color: var(--amber); }
+  .stat-card:nth-child(3) .stat-challenge { color: var(--rose); }
+
+  .stat-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.8rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stat-counts {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .stat-count-item {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem 0.3rem;
+    background: var(--surface-2);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .stat-count-num {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+  .stat-count-1 { color: var(--cyan); }
+  .stat-count-2 { color: var(--amber); }
+  .stat-count-3 { color: var(--rose); }
+  .stat-count-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+
+  /* Section title */
+  .section-title {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+
+  /* Votes table */
+  .table-wrap {
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    backdrop-filter: blur(24px);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+  }
+  thead th {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 1rem 1.3rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  tbody td {
+    padding: 0.85rem 1.3rem;
+    font-size: 0.88rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-2);
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover td { background: var(--surface-3); }
+
+  .td-name { font-weight: 600; color: var(--text) !important; }
+
+  .rank-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.25em 0.6em;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .rank-pill-1 { background: rgba(0,229,255,0.1); color: var(--cyan); }
+  .rank-pill-2 { background: rgba(255,184,0,0.1); color: var(--amber); }
+  .rank-pill-3 { background: rgba(255,92,138,0.1); color: var(--rose); }
+
+  .td-time { color: var(--text-3) !important; font-size: 0.78rem !important; }
+
+  .empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-3);
+  }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 0.6rem; }
+  .empty-state p { font-size: 0.88rem; }
+
+  /* Teams grid */
+  .teams-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+    backdrop-filter: blur(24px);
+  }
+  .team-head {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .team-head-name {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 75%;
+  }
+  .team-card:nth-child(1) .team-head { background: linear-gradient(135deg, rgba(0,229,255,0.06), transparent); }
+  .team-card:nth-child(2) .team-head { background: linear-gradient(135deg, rgba(255,184,0,0.06), transparent); }
+  .team-card:nth-child(3) .team-head { background: linear-gradient(135deg, rgba(255,92,138,0.06), transparent); }
+
+  .team-count {
+    font-size: 0.72rem;
+    color: var(--text-3);
+    font-weight: 500;
+    white-space: nowrap;
+    margin-left: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .team-members { padding: 0.5rem; min-height: 50px; }
+  .team-member {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.55rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    transition: background 0.15s;
+  }
+  .team-member:hover { background: var(--surface-3); }
+  .tm-name { font-weight: 500; }
+  .tm-pref {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.2em 0.55em;
+    border-radius: 5px;
+  }
+  .pref-1st { background: rgba(0,229,255,0.12); color: var(--cyan); }
+  .pref-2nd { background: rgba(255,184,0,0.12); color: var(--amber); }
+  .pref-3rd { background: rgba(255,92,138,0.12); color: var(--rose); }
+  .team-empty { padding: 1.2rem; text-align: center; color: var(--text-3); font-size: 0.8rem; }
+
+  /* Footer actions */
+  .actions { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+
+  /* Loading spinner */
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .teams-grid { grid-template-columns: 1fr; }
+    .topbar { flex-direction: column; align-items: flex-start; }
+    .actions { flex-direction: column; }
+    .actions .btn { width: 100%; text-align: center; }
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- ── PASSWORD GATE ── -->
+<div id="gate">
+  <div class="gate-tag">Admin Access</div>
+  <h1>Results Dashboard</h1>
+  <p class="gate-sub">Enter password to view all votes &amp; teams</p>
+  <div class="gate-form">
+    <input type="password" id="pwd-input" class="input" placeholder="Password"
+      onkeydown="if(event.key==='Enter') unlock()" autocomplete="off">
+    <button class="btn btn-amber" onclick="unlock()">Enter</button>
+    <div class="gate-error" id="gate-error"></div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard" class="hidden">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h2>Results Dashboard</h2>
+      <p>Top 3 Challenges · Smitten Workshop</p>
+    </div>
+    <div class="topbar-right">
+      <div class="live-badge"><div class="live-dot"></div> Live</div>
+      <div class="vote-badge"><strong id="total-count">0</strong>&nbsp;votes</div>
+      <button class="btn btn-ghost" style="padding:0.5em 1em;font-size:0.78rem;" onclick="loadVotes()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- Stats per challenge -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card">
+      <div class="stat-challenge">Challenge 1</div>
+      <div class="stat-name" id="stat-name-1">—</div>
+      <div class="stat-counts">
+        <div class="stat-count-item"><div class="stat-count-num stat-count-1" id="s1-1st">0</div><div class="stat-count-label">1st</div></div>
+        <div class="stat-count-item"><div class="stat-count-num stat-count-2" id="s1-2nd">0</div><div class="stat-count-label">2nd</div></div>
+        <div class="stat-count-item"><div class="stat-count-num stat-count-3" id="s1-3rd">0</div><div class="stat-count-label">3rd</div></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-challenge">Challenge 2</div>
+      <div class="stat-name" id="stat-name-2">—</div>
+      <div class="stat-counts">
+        <div class="stat-count-item"><div class="stat-count-num stat-count-1" id="s2-1st">0</div><div class="stat-count-label">1st</div></div>
+        <div class="stat-count-item"><div class="stat-count-num stat-count-2" id="s2-2nd">0</div><div class="stat-count-label">2nd</div></div>
+        <div class="stat-count-item"><div class="stat-count-num stat-count-3" id="s2-3rd">0</div><div class="stat-count-label">3rd</div></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-challenge">Challenge 3</div>
+      <div class="stat-name" id="stat-name-3">—</div>
+      <div class="stat-counts">
+        <div class="stat-count-item"><div class="stat-count-num stat-count-1" id="s3-1st">0</div><div class="stat-count-label">1st</div></div>
+        <div class="stat-count-item"><div class="stat-count-num stat-count-2" id="s3-2nd">0</div><div class="stat-count-label">2nd</div></div>
+        <div class="stat-count-item"><div class="stat-count-num stat-count-3" id="s3-3rd">0</div><div class="stat-count-label">3rd</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All votes table -->
+  <div class="section-title">🗳️ All Votes</div>
+  <div class="table-wrap" id="table-wrap">
+    <div class="empty-state"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Suggested teams -->
+  <div class="section-title">👥 Suggested Teams</div>
+  <div class="teams-grid" id="teams-grid">
+    <div class="team-empty" style="grid-column:1/-1;">Loading...</div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+    <a href="index.html" class="btn btn-ghost" style="text-decoration:none;display:inline-flex;align-items:center;">← Back to Voting</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ════════════════════════════════════════════════
+//  CONFIG — same as index.html
+// ════════════════════════════════════════════════
+
+const SUPABASE_URL  = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
+const ADMIN_PASSWORD = 'smitten';
+
+const CHALLENGES = [
+  { id: 1, title: 'Challenge One' },
+  { id: 2, title: 'Challenge Two' },
+  { id: 3, title: 'Challenge Three' }
+];
+
+// ════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════
+
+let db = null;
+let votes = [];
+let channel = null;
+
+// ════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════
+
+function init() {
+  initConstellation();
+  document.getElementById('pwd-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') unlock();
+  });
+  if (sessionStorage.getItem('admin_ok') === '1') {
+    showDashboard();
+  }
+}
+
+// ════════════════════════════════════════════════
+//  AUTH
+// ════════════════════════════════════════════════
+
+function unlock() {
+  const val = document.getElementById('pwd-input').value;
+  const err = document.getElementById('gate-error');
+  if (val === ADMIN_PASSWORD) {
+    sessionStorage.setItem('admin_ok', '1');
+    showDashboard();
+  } else {
+    err.textContent = 'Wrong password — try again';
+    document.getElementById('pwd-input').style.borderColor = 'var(--rose)';
+    setTimeout(() => {
+      err.textContent = '';
+      document.getElementById('pwd-input').style.borderColor = '';
+    }, 2000);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  DASHBOARD
+// ════════════════════════════════════════════════
+
+function showDashboard() {
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Populate challenge names in stat cards
+  CHALLENGES.forEach(c => {
+    const el = document.getElementById(`stat-name-${c.id}`);
+    if (el) el.textContent = c.title;
+  });
+
+  loadVotes();
+  subscribeRealtime();
+}
+
+async function loadVotes() {
+  try {
+    const { data, error } = await db
+      .from('votes')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    votes = data || [];
+  } catch (e) {
+    console.error('Fetch error:', e);
+    votes = [];
+  }
+  render();
+}
+
+function subscribeRealtime() {
+  if (channel) return;
+  channel = db
+    .channel('admin-votes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => loadVotes())
+    .subscribe();
+}
+
+// ════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════
+
+function render() {
+  renderStats();
+  renderTable();
+  renderTeams();
+  document.getElementById('total-count').textContent = votes.length;
+}
+
+function renderStats() {
+  // Count per challenge per rank position
+  const counts = {
+    1: { 1: 0, 2: 0, 3: 0 },
+    2: { 1: 0, 2: 0, 3: 0 },
+    3: { 1: 0, 2: 0, 3: 0 }
+  };
+  votes.forEach(v => {
+    counts[v.first_choice][1]++;
+    counts[v.second_choice][2]++;
+    counts[v.third_choice][3]++;
+  });
+  [1, 2, 3].forEach(c => {
+    document.getElementById(`s${c}-1st`).textContent = counts[c][1];
+    document.getElementById(`s${c}-2nd`).textContent = counts[c][2];
+    document.getElementById(`s${c}-3rd`).textContent = counts[c][3];
+  });
+}
+
+function renderTable() {
+  const wrap = document.getElementById('table-wrap');
+  if (votes.length === 0) {
+    wrap.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🗳️</div>
+      <p>No votes yet — share the voting link to get started!</p>
+    </div>`;
+    return;
+  }
+
+  wrap.innerHTML = `<table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>1st Choice</th>
+        <th>2nd Choice</th>
+        <th>3rd Choice</th>
+        <th>Voted at</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${votes.map(v => {
+        const c1 = CHALLENGES.find(c => c.id === v.first_choice);
+        const c2 = CHALLENGES.find(c => c.id === v.second_choice);
+        const c3 = CHALLENGES.find(c => c.id === v.third_choice);
+        const t  = new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        return `<tr>
+          <td class="td-name">${esc(v.voter_name)}</td>
+          <td><span class="rank-pill rank-pill-1">C${v.first_choice} ${c1 ? esc(c1.title) : ''}</span></td>
+          <td><span class="rank-pill rank-pill-2">C${v.second_choice} ${c2 ? esc(c2.title) : ''}</span></td>
+          <td><span class="rank-pill rank-pill-3">C${v.third_choice} ${c3 ? esc(c3.title) : ''}</span></td>
+          <td class="td-time">${t}</td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderTeams() {
+  const grid = document.getElementById('teams-grid');
+  if (votes.length === 0) {
+    grid.innerHTML = '<div class="team-empty" style="grid-column:1/-1;">Waiting for votes…</div>';
+    return;
+  }
+
+  // Assign everyone to first choice, then balance using second
+  const teams = { 1: [], 2: [], 3: [] };
+  votes.forEach(v => {
+    teams[v.first_choice].push({
+      name: v.voter_name,
+      pref: '1st',
+      second: v.second_choice,
+      third: v.third_choice
+    });
+  });
+
+  const ideal = Math.ceil(votes.length / 3);
+  let changed = true, iters = 0;
+  while (changed && iters++ < 10) {
+    changed = false;
+    for (const t of [1, 2, 3]) {
+      while (teams[t].length > ideal + 1) {
+        const idx = teams[t].findIndex(p => teams[p.second].length < ideal);
+        if (idx === -1) break;
+        const p = teams[t].splice(idx, 1)[0];
+        p.pref = '2nd';
+        teams[p.second].push(p);
+        changed = true;
+      }
+    }
+  }
+
+  grid.innerHTML = CHALLENGES.map(c => `
+    <div class="team-card">
+      <div class="team-head">
+        <div class="team-head-name">${esc(c.title)}</div>
+        <span class="team-count">${teams[c.id].length} ${teams[c.id].length === 1 ? 'person' : 'people'}</span>
+      </div>
+      <div class="team-members">
+        ${teams[c.id].length === 0
+          ? '<div class="team-empty">No members yet</div>'
+          : teams[c.id].map(m => `
+            <div class="team-member">
+              <span class="tm-name">${esc(m.name)}</span>
+              <span class="tm-pref pref-${m.pref}">${m.pref}</span>
+            </div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ════════════════════════════════════════════════
+//  EXPORT
+// ════════════════════════════════════════════════
+
+function exportCSV() {
+  if (!votes.length) return;
+  const header = 'Name,1st Choice,2nd Choice,3rd Choice,Time\n';
+  const rows = votes.map(v => {
+    const c1 = CHALLENGES.find(c => c.id === v.first_choice)?.title;
+    const c2 = CHALLENGES.find(c => c.id === v.second_choice)?.title;
+    const c3 = CHALLENGES.find(c => c.id === v.third_choice)?.title;
+    return `"${v.voter_name}","${c1}","${c2}","${c3}","${new Date(v.created_at).toLocaleString()}"`;
+  }).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([header + rows], { type: 'text/csv' }));
+  a.download = 'challenge-votes.csv';
+  a.click();
+}
+
+// ════════════════════════════════════════════════
+//  CONSTELLATION BACKGROUND
+// ════════════════════════════════════════════════
+
+function initConstellation() {
+  const canvas = document.getElementById('bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts, mouse = { x: -999, y: -999 };
+  const N = 55, CONN = 160, MDIST = 200;
+
+  const resize = () => {
+    W = canvas.width = innerWidth;
+    H = canvas.height = innerHeight;
+    pts = Array.from({ length: N }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.28,
+      vy: (Math.random() - 0.5) * 0.28,
+      r: 1 + Math.random() * 1.4,
+      a: 0.2 + Math.random() * 0.3
+    }));
+  };
+
+  document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  document.addEventListener('mouseleave', () => { mouse.x = mouse.y = -999; });
+
+  const draw = () => {
+    ctx.clearRect(0, 0, W, H);
+    pts.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+    });
+    for (let i = 0; i < pts.length; i++) {
+      for (let j = i + 1; j < pts.length; j++) {
+        const d = Math.hypot(pts[i].x - pts[j].x, pts[i].y - pts[j].y);
+        if (d < CONN) {
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(0,229,255,${(1 - d / CONN) * 0.1})`;
+          ctx.lineWidth = 0.5;
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.stroke();
+        }
+      }
+      const md = Math.hypot(pts[i].x - mouse.x, pts[i].y - mouse.y);
+      if (md < MDIST) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(255,184,0,${(1 - md / MDIST) * 0.18})`;
+        ctx.lineWidth = 0.8;
+        ctx.moveTo(pts[i].x, pts[i].y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(255,255,255,${pts[i].a})`;
+      ctx.arc(pts[i].x, pts[i].y, pts[i].r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  };
+
+  resize();
+  draw();
+  window.addEventListener('resize', resize);
+}
+
+// ════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════
+
+function esc(t) {
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
