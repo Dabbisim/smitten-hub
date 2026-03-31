@@ -900,7 +900,10 @@ function showDashboard() {
 
   initDragListeners();
 
-  document.getElementById('btn-reset-teams').addEventListener('click', () => {
+  document.getElementById('btn-reset-teams').addEventListener('click', async () => {
+    if (!confirm('Reset all team assignments to the suggested layout?')) return;
+    // Clear team_assignment in Supabase for every vote
+    await db.from('votes').update({ team_assignment: null }).neq('id', '00000000-0000-0000-0000-000000000000');
     teamsDirty = false;
     initTeamAssignments();
     renderBuilder();
@@ -956,6 +959,10 @@ function initDragListeners() {
     teamAssignments[toTeam].push(person);
     teamsDirty = true;
     renderBuilder();
+    // Persist assignment to Supabase
+    db.from('votes').update({ team_assignment: toTeam }).eq('id', person.id).then(({ error }) => {
+      if (error) console.error('Failed to save team assignment:', error);
+    });
   });
 }
 
@@ -967,6 +974,9 @@ async function loadVotes() {
       .order('created_at', { ascending: true });
     if (error) throw error;
     votes = data || [];
+    // If any vote has a saved team_assignment, honour all of them
+    const hasPersistedAssignments = votes.some(v => v.team_assignment != null);
+    if (hasPersistedAssignments) teamsDirty = true;
   } catch (e) {
     console.error('Fetch error:', e);
     votes = [];
@@ -990,12 +1000,12 @@ function render() {
   renderStats();
   renderGrouped();
   renderTable();
-  // Sync team assignments: re-suggest if not manually customised,
-  // otherwise just reconcile (add new voters, remove deleted ones)
+  // If any DB-persisted assignments exist, load from those.
+  // Otherwise run the suggestion algorithm.
   if (!teamsDirty) {
     initTeamAssignments();
   } else {
-    reconcileTeamAssignments();
+    loadTeamAssignmentsFromDB();
   }
   renderBuilder();
   document.getElementById('total-count').textContent = votes.length;
@@ -1141,25 +1151,22 @@ function initTeamAssignments() {
   teamAssignments = teams;
 }
 
-function reconcileTeamAssignments() {
-  // Remove people who no longer exist in votes
-  const voteIds = new Set(votes.map(v => String(v.id)));
-  [1, 2, 3].forEach(t => {
-    teamAssignments[t] = teamAssignments[t].filter(p => voteIds.has(String(p.id)));
-  });
-  // Add any new voters to their first-choice team
-  const assignedIds = new Set([...teamAssignments[1], ...teamAssignments[2], ...teamAssignments[3]].map(p => String(p.id)));
+function loadTeamAssignmentsFromDB() {
+  // Rebuild from the team_assignment column stored in each vote row.
+  // Votes without a saved assignment go to their first choice.
+  const teams = { 1: [], 2: [], 3: [] };
   votes.forEach(v => {
-    if (!assignedIds.has(String(v.id))) {
-      teamAssignments[v.first_choice].push({
-        id: v.id,
-        name: v.voter_name,
-        first: v.first_choice,
-        second: v.second_choice,
-        third: v.third_choice
-      });
-    }
+    const slot = v.team_assignment ?? v.first_choice;
+    const team = [1, 2, 3].includes(slot) ? slot : v.first_choice;
+    teams[team].push({
+      id: v.id,
+      name: v.voter_name,
+      first: v.first_choice,
+      second: v.second_choice,
+      third: v.third_choice
+    });
   });
+  teamAssignments = teams;
 }
 
 function renderBuilder() {
