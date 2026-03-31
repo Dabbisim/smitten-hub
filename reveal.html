@@ -471,6 +471,28 @@ body::after {
 }
 .slide-counter .current { color: rgba(255,255,255,0.6); }
 
+/* fullscreen button */
+#btn-fullscreen {
+  position: fixed;
+  top: 1.55rem; right: 7rem;
+  z-index: 100;
+  width: 28px; height: 28px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.35);
+  cursor: none;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s, color .2s, background .2s;
+  padding: 0;
+}
+#btn-fullscreen:hover {
+  border-color: rgba(255,255,255,0.25);
+  color: #fff;
+  background: rgba(255,255,255,0.08);
+}
+#btn-fullscreen svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
 /* ── PROGRESS BAR ── */
 .progress-bar {
   position: fixed;
@@ -506,6 +528,10 @@ body::after {
 <div id="cursor"></div>
 <div class="progress-bar" id="progress-bar"></div>
 <div class="slide-counter"><span class="current" id="count-current">1</span> / <span id="count-total">5</span></div>
+<button id="btn-fullscreen" title="Toggle fullscreen">
+  <svg id="fs-icon-enter" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+  <svg id="fs-icon-exit" viewBox="0 0 24 24" style="display:none"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>
+</button>
 
 <!-- ═══════ NAV ═══════ -->
 <nav class="nav">
@@ -689,6 +715,32 @@ document.addEventListener('touchend', e => {
 //  CUSTOM CURSOR
 // ═══════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════
+//  FULLSCREEN
+// ═══════════════════════════════════════════════
+
+const btnFS = document.getElementById('btn-fullscreen');
+const fsEnter = document.getElementById('fs-icon-enter');
+const fsExit  = document.getElementById('fs-icon-exit');
+
+function updateFSIcon() {
+  const isFS = !!document.fullscreenElement;
+  fsEnter.style.display = isFS ? 'none' : '';
+  fsExit.style.display  = isFS ? '' : 'none';
+}
+
+btnFS.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+});
+
+document.addEventListener('fullscreenchange', updateFSIcon);
+
+// ═══════════════════════════════════════════════
+
 const cursor = document.getElementById('cursor');
 document.addEventListener('mousemove', e => {
   cursor.style.left = e.clientX + 'px';
@@ -696,7 +748,7 @@ document.addEventListener('mousemove', e => {
 });
 document.addEventListener('mouseenter', () => cursor.style.opacity = '1');
 document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
-document.querySelectorAll('button, a, .nav-dot').forEach(el => {
+document.querySelectorAll('button, a, .nav-dot, #btn-fullscreen').forEach(el => {
   el.addEventListener('mouseenter', () => cursor.classList.add('big'));
   el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
 });
