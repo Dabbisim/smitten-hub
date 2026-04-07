@@ -105,6 +105,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
 .fg{display:flex;flex-direction:column;gap:.5rem}
 .fl{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
 .fi,.fta{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.04);border:1px solid var(--bl);border-radius:10px;color:var(--text);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;resize:vertical}
+input[type="datetime-local"].fi{color-scheme:dark}
 .fi:focus,.fta:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(0,229,255,.08)}
 .fta{min-height:80px}
 .m-foot{padding:1.25rem 2rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem}
@@ -222,9 +223,10 @@ function card(s,votes){
   const d=new Date(s.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   const ia=s.status==='active';
   const base=window.location.href.replace('hub.html','');
+  const dl=deadlineLabel(s.ends_at,ia);
   return`<div class="sprint-card ${ia?'is-active':''}">
     <div class="sprint-head">
-      <div><div class="sprint-name">${esc(s.name)}</div><div class="sprint-date">Created ${d}</div></div>
+      <div><div class="sprint-name">${esc(s.name)}</div><div class="sprint-date">Created ${d}${dl?` · <span style="color:${ia&&s.ends_at&&new Date(s.ends_at)>new Date()?'#FFB800':'var(--t3)'}">${dl}</span>`:''}</div></div>
       <span class="s-badge ${ia?'active':'archived'}">${ia?'Active':'Archived'}</span>
     </div>
     <div class="sprint-stats">
@@ -258,9 +260,9 @@ async function restoreSprint(id){
 // ── modal form ────────────────────────────────────────────
 const STEPS=['sprint','c1','c2','c3','rooms'];
 let step=0;
-const fd={sprint:{name:''},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}};
+const fd={sprint:{name:'',deadline:''},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}};
 
-function openModal(){step=0;Object.assign(fd,{sprint:{name:''},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}});renderStep();document.getElementById('overlay').classList.add('open')}
+function openModal(){step=0;Object.assign(fd,{sprint:{name:'',deadline:''},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}});renderStep();document.getElementById('overlay').classList.add('open')}
 function closeModal(){document.getElementById('overlay').classList.remove('open')}
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
@@ -277,6 +279,7 @@ function renderStep(){
       <div class="s-title clash">Name your sprint</div>
       <div class="s-desc">Give this sprint a name like "Spring 2026" or "Q2 Challenge".</div>
       <div class="fg"><label class="fl">Sprint name</label><input class="fi" id="f0" placeholder="e.g. Spring 2026" value="${esc(fd.sprint.name)}" autofocus></div>
+      <div class="fg"><label class="fl">Voting deadline <span style="color:var(--t3);font-weight:400">(optional)</span></label><input class="fi" type="datetime-local" id="f1" value="${esc(fd.sprint.deadline)}"></div>
     </div>`;
   }else if(['c1','c2','c3'].includes(k)){
     const n=parseInt(k[1]);const col=COLORS[n-1];const d=fd[k];
@@ -301,7 +304,7 @@ function renderStep(){
 
 function saveStep(){
   const k=STEPS[step];
-  if(k==='sprint')fd.sprint.name=val('f0');
+  if(k==='sprint'){fd.sprint.name=val('f0');fd.sprint.deadline=val('f1');}
   else if(['c1','c2','c3'].includes(k)){fd[k].title=val('f0');fd[k].desc=val('f1');fd[k].constraint=val('f2')}
   else if(k==='rooms'){fd.rooms.r1=val('f0');fd.rooms.r2=val('f1');fd.rooms.r3=val('f2')}
 }
@@ -322,12 +325,25 @@ async function createSprint(){
     {teamId:3,shortTag:fd.c3.title.split(' ').slice(0,2).join(' '),room:fd.rooms.r3||'Room 3',icon:'✨'},
   ];
   await db.from('sprints').update({status:'archived'}).eq('status','active');
-  const{data,error}=await db.from('sprints').insert({name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms}).select().single();
+  const endsAt=fd.sprint.deadline?new Date(fd.sprint.deadline).toISOString():null;
+  const{data,error}=await db.from('sprints').insert({name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms,ends_at:endsAt}).select().single();
   if(error){console.error(error);btn.disabled=false;btn.textContent='✓ Create Sprint';alert('Error: '+error.message);return}
   closeModal();loadSprints();
 }
 
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m])}
+
+function deadlineLabel(endsAt, isActive) {
+  if (!endsAt) return '';
+  const dl = new Date(endsAt);
+  const now = new Date();
+  const diffMs = dl - now;
+  if (!isActive || diffMs < 0) return 'Closed ' + dl.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const diffDays = Math.ceil(diffMs / (1000*60*60*24));
+  if (diffDays === 0) return 'Closes today';
+  if (diffDays === 1) return 'Closes tomorrow';
+  return `Closes in ${diffDays} day${diffDays===1?'':'s'}`;
+}
 </script>
 </body>
 </html>

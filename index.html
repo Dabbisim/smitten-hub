@@ -329,6 +329,19 @@
     backdrop-filter: blur(20px);
   }
   .voter-name-tag span { color: var(--cyan); font-weight: 600; }
+  .deadline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255,184,0,0.1);
+    border: 1px solid rgba(255,184,0,0.25);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: #FFB800;
+    font-weight: 500;
+  }
 
   /* ── CHALLENGE CARDS ── */
   .challenge-cards {
@@ -972,6 +985,7 @@
     <div class="voter-name-tag">Voting as <span id="voter-display-name"></span></div>
     <h2>Rank Your Choices</h2>
     <p>Tap a rank for each challenge</p>
+    <div id="deadline-badge" class="deadline-badge hidden"></div>
   </div>
   <div class="challenge-cards" id="challenge-cards"></div>
   <div class="submit-wrap">
@@ -1086,6 +1100,11 @@ const ADMIN_PASSWORD = 'smitten';
 // Challenges loaded dynamically from active sprint (Supabase)
 let CHALLENGES = [];
 let currentSprintId = null;
+let currentSprintEndsAt = null;
+
+// Sprint-scoped localStorage keys so each sprint has its own vote state
+const KEY_SUBMITTED = () => `vote_submitted_${currentSprintId}`;
+const KEY_RANKINGS  = () => `vote_rankings_${currentSprintId}`;
 
 // ═══════════════════════════════════════════════════
 //  STATE
@@ -1110,6 +1129,7 @@ async function loadSprintConfig() {
   const { data } = await query;
   if (data) {
     currentSprintId = data.id;
+    currentSprintEndsAt = data.ends_at || null;
     CHALLENGES = (data.challenges || []).map(c => ({ id: c.id, title: c.title, description: c.description }));
   }
 }
@@ -1149,12 +1169,12 @@ function route() {
       show('admin-gate');
     }
   } else {
-    // Check if user already voted
-    const voted = localStorage.getItem('vote_submitted');
+    // Check if user already voted for this sprint
+    const voted = localStorage.getItem(KEY_SUBMITTED());
     const storedName = localStorage.getItem('voter_name');
     if (voted && storedName) {
       voterName = storedName;
-      rankings = JSON.parse(localStorage.getItem('vote_rankings') || '{}');
+      rankings = JSON.parse(localStorage.getItem(KEY_RANKINGS()) || '{}');
       showConfirmation();
     } else {
       show('welcome');
@@ -1192,6 +1212,27 @@ function submitName() {
 function showChallenges() {
   show('challenges');
   document.getElementById('voter-display-name').textContent = voterName;
+
+  // Show deadline badge if sprint has an end date
+  const badge = document.getElementById('deadline-badge');
+  if (currentSprintEndsAt) {
+    const dl = new Date(currentSprintEndsAt);
+    const now = new Date();
+    const diffMs = dl - now;
+    let label;
+    if (diffMs < 0) {
+      label = 'Voting closed';
+    } else {
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      if (diffDays === 0) label = 'Voting closes today';
+      else if (diffDays === 1) label = 'Voting closes tomorrow';
+      else label = `Voting closes in ${diffDays} days`;
+    }
+    badge.textContent = '⏱ ' + label;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
 
   const container = document.getElementById('challenge-cards');
   container.innerHTML = '';
@@ -1309,8 +1350,8 @@ async function submitVote() {
     }
   }
 
-  localStorage.setItem('vote_submitted', 'true');
-  localStorage.setItem('vote_rankings', JSON.stringify(rankings));
+  localStorage.setItem(KEY_SUBMITTED(), 'true');
+  localStorage.setItem(KEY_RANKINGS(), JSON.stringify(rankings));
 
   hideAll();
   showConfirmation();
@@ -1344,7 +1385,7 @@ function showConfirmation() {
 }
 
 function changeVote() {
-  localStorage.removeItem('vote_submitted');
+  localStorage.removeItem(KEY_SUBMITTED());
   hideAll();
   showChallenges();
 }
