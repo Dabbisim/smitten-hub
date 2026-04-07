@@ -1083,24 +1083,9 @@ const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
 
 const ADMIN_PASSWORD = 'smitten';
 
-// Edit these challenge details:
-const CHALLENGES = [
-  {
-    id: 1,
-    title: 'Launch Smitten in Malta',
-    description: 'Can we replicate the Iceland magic in a new market? Malta is strikingly similar — 570k population, island nation, tourism-heavy, tight-knit social scene. The challenge: launch Smitten for Maltese locals and make it stick. The main constraint is a near-zero marketing budget — no paid ads, no boosted posts. Pure hustle, community, and word of mouth only.'
-  },
-  {
-    id: 2,
-    title: 'Organic Growth Hacks',
-    description: 'What can we build outside of Smitten to drive organic growth, increase runway, and boost revenue? Think viral tools, content plays, communities, or utilities that funnel people toward Smitten without living inside the app. The main constraint: it cannot be a feature or anything built within Smitten itself — it must stand completely on its own.'
-  },
-  {
-    id: 3,
-    title: 'AI Dating Profile Agent',
-    description: 'Build a standalone AI agent that creates the best, most compelling dating profiles on the internet. This is its own product — not a Smitten feature. It works across Tinder, Hinge, Bumble, and beyond. The main constraint: radical authenticity — the AI can only work with real facts the user provides. No fabrication, no fake personas. The challenge is making the truth irresistible.'
-  }
-];
+// Challenges loaded dynamically from active sprint (Supabase)
+let CHALLENGES = [];
+let currentSprintId = null;
 
 // ═══════════════════════════════════════════════════
 //  STATE
@@ -1116,9 +1101,23 @@ let realtimeChannel = null;
 //  INIT
 // ═══════════════════════════════════════════════════
 
-function init() {
+async function loadSprintConfig() {
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sprintId = new URLSearchParams(window.location.search).get('sprint');
+  let query = db.from('sprints').select('*');
+  if (sprintId) query = query.eq('id', sprintId).single();
+  else query = query.eq('status', 'active').order('created_at', { ascending: false }).limit(1).single();
+  const { data } = await query;
+  if (data) {
+    currentSprintId = data.id;
+    CHALLENGES = (data.challenges || []).map(c => ({ id: c.id, title: c.title, description: c.description }));
+  }
+}
+
+async function init() {
   // Init Supabase
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  await loadSprintConfig();
 
   // Constellation background
   initConstellation();
@@ -1293,7 +1292,8 @@ async function submitVote() {
     voter_name: voterName,
     first_choice: parseInt(Object.entries(rankings).find(([, r]) => r === 1)[0]),
     second_choice: parseInt(Object.entries(rankings).find(([, r]) => r === 2)[0]),
-    third_choice: parseInt(Object.entries(rankings).find(([, r]) => r === 3)[0])
+    third_choice: parseInt(Object.entries(rankings).find(([, r]) => r === 3)[0]),
+    sprint_id: currentSprintId || null
   };
 
   if (supabaseClient) {

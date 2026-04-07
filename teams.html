@@ -584,7 +584,36 @@ document.addEventListener('mouseup',   () => cursorEl.classList.remove('big'));
 /* ── Supabase ─────────────────────────────────────────────── */
 async function loadTeams() {
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const { data, error } = await db.from('votes').select('*').order('created_at',{ascending:true});
+  const sprintId = new URLSearchParams(window.location.search).get('sprint');
+
+  // Load sprint config (rooms + challenge titles)
+  try {
+    let q = db.from('sprints').select('*');
+    q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
+    const { data: sprint } = await q;
+    if (sprint) {
+      const ch = sprint.challenges || [];
+      const rm = sprint.rooms || [];
+      TEAM_META = [1,2,3].map(id => {
+        const c = ch.find(x => x.id === id) || {};
+        const r = rm.find(x => x.teamId === id) || {};
+        return {
+          id,
+          title:     c.title     || TEAM_META[id-1]?.title,
+          shortName: r.shortTag  || TEAM_META[id-1]?.shortName,
+          color:     ['#00E5FF','#FFB800','#FF5C8A'][id-1],
+          room:      r.room      || TEAM_META[id-1]?.room,
+          roomIcon:  r.icon      || TEAM_META[id-1]?.roomIcon,
+          emoji:     TEAM_META[id-1]?.emoji,
+        };
+      });
+    }
+  } catch(e) { console.warn('Sprint config load skipped:', e); }
+
+  // Load votes filtered by sprint
+  let vq = db.from('votes').select('*').order('created_at',{ascending:true});
+  if (sprintId) vq = vq.eq('sprint_id', sprintId);
+  const { data } = await vq;
   teams = {1:[],2:[],3:[]};
   (data||[]).forEach(v => {
     const slot = v.team_assignment ?? v.first_choice;

@@ -752,12 +752,14 @@
   <div class="topbar">
     <div class="topbar-left">
       <h2>Results Dashboard</h2>
-      <p>Top 3 Challenges · Smitten Workshop</p>
+      <p id="sprint-label">Top 3 Challenges · Smitten Workshop</p>
     </div>
     <div class="topbar-right">
       <div class="live-badge"><div class="live-dot"></div> Live</div>
       <div class="vote-badge"><strong id="total-count">0</strong>&nbsp;votes</div>
       <button class="btn btn-ghost" style="padding:0.5em 1em;font-size:0.78rem;" onclick="loadVotes()">↻ Refresh</button>
+      <a class="btn btn-ghost" href="hub.html" style="padding:0.5em 1em;font-size:0.78rem;text-decoration:none">⚡ Hub</a>
+      <select id="sprint-select" class="btn btn-ghost" style="padding:0.5em 0.75em;font-size:0.78rem;background:transparent;cursor:pointer" onchange="switchSprint(this.value)"></select>
     </div>
   </div>
 
@@ -832,7 +834,7 @@ const SUPABASE_URL  = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
 const ADMIN_PASSWORD = 'smitten';
 
-const CHALLENGES = [
+let CHALLENGES = [
   { id: 1, title: 'Launch Smitten in Malta' },
   { id: 2, title: 'Organic Growth Hacks' },
   { id: 3, title: 'AI Dating Profile Agent' }
@@ -887,10 +889,50 @@ function unlock() {
 //  DASHBOARD
 // ════════════════════════════════════════════════
 
-function showDashboard() {
+let currentSprintId = new URLSearchParams(window.location.search).get('sprint') || null;
+
+async function loadSprintConfig() {
+  let query = db.from('sprints').select('*');
+  if (currentSprintId) query = query.eq('id', currentSprintId).single();
+  else query = query.eq('status', 'active').order('created_at', { ascending: false }).limit(1).single();
+  const { data } = await query;
+  if (data) {
+    currentSprintId = data.id;
+    CHALLENGES = (data.challenges || []).map(c => ({ id: c.id, title: c.title }));
+    document.getElementById('sprint-label').textContent = data.name + ' · Smitten';
+  }
+  await loadAllSprintsDropdown();
+}
+
+async function loadAllSprintsDropdown() {
+  const { data } = await db.from('sprints').select('id,name,status').order('created_at', { ascending: false });
+  const sel = document.getElementById('sprint-select');
+  if (!data || !data.length) { sel.style.display = 'none'; return; }
+  sel.innerHTML = data.map(s =>
+    `<option value="${s.id}" ${s.id === currentSprintId ? 'selected' : ''}>${s.name}${s.status === 'active' ? ' ✦' : ''}</option>`
+  ).join('');
+}
+
+async function switchSprint(id) {
+  currentSprintId = id;
+  history.replaceState(null, '', '?sprint=' + id);
+  teamsDirty = false;
+  teamAssignments = { 1: [], 2: [], 3: [] };
+  if (channel) { db.removeChannel(channel); channel = null; }
+  await loadSprintConfig();
+  CHALLENGES.forEach(c => {
+    const el = document.getElementById(`stat-name-${c.id}`);
+    if (el) el.textContent = c.title;
+  });
+  loadVotes();
+  subscribeRealtime();
+}
+
+async function showDashboard() {
   document.getElementById('gate').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
   db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  await loadSprintConfig();
 
   // Populate challenge names in stat cards
   CHALLENGES.forEach(c => {
@@ -968,10 +1010,9 @@ function initDragListeners() {
 
 async function loadVotes() {
   try {
-    const { data, error } = await db
-      .from('votes')
-      .select('*')
-      .order('created_at', { ascending: true });
+    let query = db.from('votes').select('*').order('created_at', { ascending: true });
+    if (currentSprintId) query = query.eq('sprint_id', currentSprintId);
+    const { data, error } = await query;
     if (error) throw error;
     votes = data || [];
     // If any vote has a saved team_assignment, honour all of them

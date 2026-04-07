@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint Hub · Smitten</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --c1:#00E5FF;--c2:#FFB800;--c3:#FF5C8A;--lime:#B8FF4A;
+  --bg:#06060A;--surface:rgba(14,14,22,0.85);--surface2:rgba(22,22,34,0.9);
+  --border:rgba(255,255,255,0.07);--bl:rgba(255,255,255,0.13);
+  --text:#fff;--t2:rgba(255,255,255,0.55);--t3:rgba(255,255,255,0.28);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+.hidden{display:none!important}
+h1,h2,.clash{font-family:'Clash Display',sans-serif}
+
+/* bg */
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+.orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(140px);opacity:.2}
+.o1{width:500px;height:500px;background:rgba(0,229,255,.15);top:-10%;right:-10%;animation:d1 28s ease-in-out infinite}
+.o2{width:400px;height:400px;background:rgba(255,184,0,.12);bottom:-10%;left:-5%;animation:d2 32s ease-in-out infinite}
+.o3{width:300px;height:300px;background:rgba(255,92,138,.12);top:40%;left:40%;animation:d3 20s ease-in-out infinite}
+@keyframes d1{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,30px)}}
+@keyframes d2{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-20px)}}
+@keyframes d3{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-40%,-55%)}}
+
+/* gate */
+#gate{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.75rem;padding:2rem;text-align:center}
+.smitten-badge{display:flex;align-items:center;gap:.75rem;font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--c3);font-weight:600}
+.smitten-badge::before,.smitten-badge::after{content:'';display:block;width:36px;height:1.5px;border-radius:2px;background:var(--c3);flex-shrink:0;box-shadow:0 0 8px var(--c3),0 0 18px rgba(255,92,138,.5)}
+.gate-title{font-size:clamp(2rem,5vw,3.5rem);font-weight:700;letter-spacing:-.03em}
+.gate-sub{color:var(--t2);font-size:.95rem}
+.pwd-form{display:flex;flex-direction:column;align-items:center;gap:.875rem;width:100%;max-width:300px}
+.pwd-input{width:100%;padding:.875rem 1.25rem;background:rgba(255,255,255,.04);border:1px solid var(--bl);border-radius:12px;color:var(--text);font-size:1rem;font-family:'Inter',sans-serif;text-align:center;letter-spacing:.3em;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-text-security:disc}
+.pwd-input:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(0,229,255,.1)}
+.pwd-btn{width:100%;padding:.875rem;background:var(--c1);color:#000;border:none;border-radius:12px;font-weight:700;font-size:.9rem;cursor:pointer;transition:opacity .2s;font-family:'Inter',sans-serif}
+.pwd-btn:hover{opacity:.85}
+.pwd-err{color:var(--c3);font-size:.8rem;min-height:1.2em}
+
+/* dashboard */
+#dash{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:2rem 1.5rem}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2.5rem;flex-wrap:wrap;gap:1rem}
+.brand{display:flex;align-items:center;gap:.6rem;font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--c3);font-weight:600}
+.brand::before,.brand::after{content:'';display:block;width:24px;height:1.5px;border-radius:2px;background:var(--c3);box-shadow:0 0 8px var(--c3)}
+.page-title{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin-top:.5rem}
+.btn-new{display:flex;align-items:center;gap:.5rem;padding:.7rem 1.4rem;background:var(--c1);color:#000;border:none;border-radius:12px;font-weight:700;font-size:.875rem;cursor:pointer;transition:opacity .2s,transform .1s;font-family:'Inter',sans-serif}
+.btn-new:hover{opacity:.85}
+.btn-new:active{transform:scale(.98)}
+
+.section-label{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);font-weight:600;margin-bottom:1rem}
+.sprint-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1rem;margin-bottom:2.5rem}
+
+.sprint-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden;backdrop-filter:blur(24px);transition:border-color .2s,transform .2s}
+.sprint-card:hover{transform:translateY(-2px);border-color:var(--bl)}
+.sprint-card.is-active{border-color:rgba(0,229,255,.3)}
+.sprint-head{padding:1.25rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border)}
+.sprint-card.is-active .sprint-head{background:linear-gradient(135deg,rgba(0,229,255,.06),transparent)}
+.sprint-name{font-family:'Clash Display',sans-serif;font-size:1.15rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.25rem}
+.sprint-date{font-size:.72rem;color:var(--t3)}
+.s-badge{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.25rem .6rem;border-radius:6px;flex-shrink:0}
+.s-badge.active{background:rgba(0,229,255,.12);color:var(--c1)}
+.s-badge.archived{background:rgba(255,255,255,.06);color:var(--t3)}
+
+.sprint-stats{padding:.875rem 1.5rem;display:flex;gap:2rem;border-bottom:1px solid var(--border)}
+.stat-val{font-family:'Clash Display',sans-serif;font-size:1.4rem;font-weight:600}
+.stat-lbl{font-size:.62rem;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-top:.1rem}
+
+.sprint-challenges{padding:.875rem 1.5rem;display:flex;flex-direction:column;gap:.4rem;border-bottom:1px solid var(--border)}
+.c-row{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--t2)}
+.c-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+.sprint-actions{padding:1rem 1.5rem;display:flex;gap:.5rem;flex-wrap:wrap}
+.alink{display:flex;align-items:center;gap:.3rem;padding:.4rem .85rem;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;color:var(--t2);font-size:.75rem;font-weight:500;cursor:pointer;transition:background .15s,color .15s,border-color .15s;text-decoration:none;font-family:'Inter',sans-serif;white-space:nowrap}
+.alink:hover{background:rgba(255,255,255,.08);color:var(--text);border-color:var(--bl)}
+.alink.danger:hover{color:var(--c3);border-color:rgba(255,92,138,.3)}
+
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--t3);font-size:.9rem;grid-column:1/-1}
+.empty-icon{font-size:2.5rem;margin-bottom:.875rem}
+
+/* ── modal ── */
+#overlay{position:fixed;inset:0;z-index:200;background:rgba(6,6,10,.88);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .3s}
+#overlay.open{opacity:1;pointer-events:all}
+#modal{background:#0c0c14;border:1px solid var(--bl);border-radius:24px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform .3s}
+#overlay.open #modal{transform:translateY(0)}
+.m-head{padding:1.75rem 2rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.m-title{font-size:1.35rem;font-weight:600}
+.m-close{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.06);border:none;color:var(--t2);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
+.m-close:hover{background:rgba(255,255,255,.1)}
+.pips{padding:1.25rem 2rem;display:flex;gap:.35rem;border-bottom:1px solid var(--border)}
+.pip{height:3px;border-radius:2px;flex:1;background:rgba(255,255,255,.07);transition:background .3s}
+.pip.done{background:var(--c1)}
+.pip.cur{background:rgba(0,229,255,.38)}
+.m-body{padding:2rem}
+.step{display:none;flex-direction:column;gap:1.25rem}
+.step.show{display:flex;animation:sIn .28s ease both}
+@keyframes sIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+.s-title{font-size:1.05rem;font-weight:600}
+.s-desc{font-size:.83rem;color:var(--t2);margin-top:-.75rem}
+.fg{display:flex;flex-direction:column;gap:.5rem}
+.fl{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--t3)}
+.fi,.fta{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.04);border:1px solid var(--bl);border-radius:10px;color:var(--text);font-size:.9rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s;resize:vertical}
+.fi:focus,.fta:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(0,229,255,.08)}
+.fta{min-height:80px}
+.m-foot{padding:1.25rem 2rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.btn-back{padding:.65rem 1.25rem;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;color:var(--t2);font-size:.875rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
+.btn-back:hover{background:rgba(255,255,255,.08)}
+.btn-next{padding:.65rem 1.5rem;background:var(--c1);color:#000;border:none;border-radius:10px;font-size:.875rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:opacity .2s}
+.btn-next:hover{opacity:.85}
+.btn-next:disabled{opacity:.38;cursor:not-allowed}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+
+<!-- Gate -->
+<div id="gate">
+  <div class="smitten-badge">Smitten</div>
+  <h1 class="gate-title clash">Sprint Hub</h1>
+  <p class="gate-sub">Create and manage challenge sprints.</p>
+  <div class="pwd-form">
+    <input type="text" class="pwd-input" id="pwd" placeholder="Password" autocomplete="off" data-1p-ignore>
+    <button class="pwd-btn" onclick="unlock()">Enter</button>
+    <p class="pwd-err" id="pwd-err"></p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dash" class="hidden">
+  <div class="top-bar">
+    <div>
+      <div class="brand">Smitten</div>
+      <h1 class="page-title clash">Sprint Hub</h1>
+    </div>
+    <button class="btn-new" onclick="openModal()">+ New Sprint</button>
+  </div>
+
+  <div id="active-sec">
+    <div class="section-label">Active Sprint</div>
+    <div class="sprint-grid" id="active-grid">
+      <div class="empty-state"><div class="empty-icon">🚀</div><p>No active sprint yet. Create one to get started.</p></div>
+    </div>
+  </div>
+
+  <div id="archived-sec" class="hidden">
+    <div class="section-label">Past Sprints</div>
+    <div class="sprint-grid" id="archived-grid"></div>
+  </div>
+</div>
+
+<!-- New Sprint Modal -->
+<div id="overlay">
+  <div id="modal">
+    <div class="m-head">
+      <h2 class="m-title clash" id="m-title">New Sprint</h2>
+      <button class="m-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="pips" id="pips"></div>
+    <div class="m-body" id="m-body"></div>
+    <div class="m-foot">
+      <button class="btn-back" id="btn-back" onclick="prevStep()">Back</button>
+      <button class="btn-next" id="btn-next" onclick="nextStep()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL     = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
+const SUPABASE_ANON_KEY= 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
+const PASS             = 'smitten';
+const COLORS           = ['#00E5FF','#FFB800','#FF5C8A'];
+let db, sprints = [];
+
+// ── canvas bg ─────────────────────────────────────────────
+const cv=document.getElementById('bg'),cx=cv.getContext('2d');let pts=[];
+function rsz(){cv.width=innerWidth;cv.height=innerHeight}
+function ipts(){pts=Array.from({length:Math.floor(innerWidth*innerHeight/13000)},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,vx:(Math.random()-.5)*.22,vy:(Math.random()-.5)*.22,r:Math.random()*1.2+.4,a:Math.random()*.35+.1}))}
+function draw(){cx.clearRect(0,0,cv.width,cv.height);pts.forEach(p=>{p.x=(p.x+p.vx+cv.width)%cv.width;p.y=(p.y+p.vy+cv.height)%cv.height;cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=`rgba(255,255,255,${p.a*.5})`;cx.fill()});for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<110){cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle=`rgba(255,255,255,${(1-d/110)*.04})`;cx.lineWidth=.5;cx.stroke()}}requestAnimationFrame(draw)}
+window.addEventListener('resize',()=>{rsz();ipts()});rsz();ipts();draw();
+
+// ── gate ──────────────────────────────────────────────────
+document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
+function unlock(){
+  const v=document.getElementById('pwd').value.trim().toLowerCase();
+  if(v===PASS){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('dash').classList.remove('hidden');
+    db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    loadSprints();
+  }else{
+    document.getElementById('pwd-err').textContent='Wrong password';
+    setTimeout(()=>document.getElementById('pwd-err').textContent='',2000);
+  }
+}
+
+// ── data ──────────────────────────────────────────────────
+async function loadSprints(){
+  const{data}=await db.from('sprints').select('*').order('created_at',{ascending:false});
+  sprints=data||[];
+  const{data:vd}=await db.from('votes').select('sprint_id');
+  const counts={};(vd||[]).forEach(v=>{counts[v.sprint_id]=(counts[v.sprint_id]||0)+1});
+  render(counts);
+}
+
+function render(counts={}){
+  const active=sprints.filter(s=>s.status==='active');
+  const archived=sprints.filter(s=>s.status==='archived');
+  document.getElementById('active-grid').innerHTML=active.length?active.map(s=>card(s,counts[s.id]||0)).join(''):`<div class="empty-state"><div class="empty-icon">🚀</div><p>No active sprint. Create one to get started.</p></div>`;
+  const asec=document.getElementById('archived-sec');
+  if(archived.length){asec.classList.remove('hidden');document.getElementById('archived-grid').innerHTML=archived.map(s=>card(s,counts[s.id]||0)).join('')}else{asec.classList.add('hidden')}
+}
+
+function card(s,votes){
+  const ch=s.challenges||[];
+  const d=new Date(s.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const ia=s.status==='active';
+  const base=window.location.href.replace('hub.html','');
+  return`<div class="sprint-card ${ia?'is-active':''}">
+    <div class="sprint-head">
+      <div><div class="sprint-name">${esc(s.name)}</div><div class="sprint-date">Created ${d}</div></div>
+      <span class="s-badge ${ia?'active':'archived'}">${ia?'Active':'Archived'}</span>
+    </div>
+    <div class="sprint-stats">
+      <div><div class="stat-val" style="color:var(--c1)">${votes}</div><div class="stat-lbl">Votes</div></div>
+      <div><div class="stat-val">${ch.length}</div><div class="stat-lbl">Challenges</div></div>
+    </div>
+    <div class="sprint-challenges">
+      ${ch.map((c,i)=>`<div class="c-row"><div class="c-dot" style="background:${COLORS[i]||'#fff'}"></div><span>${esc(c.title)}</span></div>`).join('')}
+    </div>
+    <div class="sprint-actions">
+      <a class="alink" href="index.html?sprint=${s.id}" target="_blank">🗳 Vote</a>
+      <a class="alink" href="admin.html?sprint=${s.id}" target="_blank">🛠 Admin</a>
+      <a class="alink" href="reveal.html?sprint=${s.id}" target="_blank">🎭 Reveal</a>
+      <a class="alink" href="teams.html?sprint=${s.id}" target="_blank">👥 Teams</a>
+      ${ia?`<button class="alink danger" onclick="archiveSprint('${s.id}')">📦 Archive</button>`:`<button class="alink" onclick="restoreSprint('${s.id}')">♻️ Restore</button>`}
+    </div>
+  </div>`;
+}
+
+async function archiveSprint(id){
+  if(!confirm('Archive this sprint?'))return;
+  await db.from('sprints').update({status:'archived'}).eq('id',id);
+  loadSprints();
+}
+async function restoreSprint(id){
+  await db.from('sprints').update({status:'archived'}).eq('status','active');
+  await db.from('sprints').update({status:'active'}).eq('id',id);
+  loadSprints();
+}
+
+// ── modal form ────────────────────────────────────────────
+const STEPS=['sprint','c1','c2','c3','rooms'];
+let step=0;
+const fd={sprint:{name:''},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}};
+
+function openModal(){step=0;Object.assign(fd,{sprint:{name:''},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}});renderStep();document.getElementById('overlay').classList.add('open')}
+function closeModal(){document.getElementById('overlay').classList.remove('open')}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+function renderStep(){
+  const total=STEPS.length;
+  document.getElementById('pips').innerHTML=STEPS.map((_,i)=>`<div class="pip ${i<step?'done':i===step?'cur':''}"></div>`).join('');
+  document.getElementById('btn-back').style.visibility=step===0?'hidden':'visible';
+  document.getElementById('btn-next').textContent=step===total-1?'✓ Create Sprint':'Continue';
+  const k=STEPS[step];
+  let html='';
+  if(k==='sprint'){
+    html=`<div class="step show">
+      <div class="s-title clash">Name your sprint</div>
+      <div class="s-desc">Give this sprint a name like "Spring 2026" or "Q2 Challenge".</div>
+      <div class="fg"><label class="fl">Sprint name</label><input class="fi" id="f0" placeholder="e.g. Spring 2026" value="${esc(fd.sprint.name)}" autofocus></div>
+    </div>`;
+  }else if(['c1','c2','c3'].includes(k)){
+    const n=parseInt(k[1]);const col=COLORS[n-1];const d=fd[k];
+    html=`<div class="step show">
+      <div class="s-title clash" style="color:${col}">Challenge ${n}</div>
+      <div class="s-desc">Teams will read this description when deciding their vote.</div>
+      <div class="fg"><label class="fl">Title</label><input class="fi" id="f0" placeholder="e.g. Launch Smitten in Malta" value="${esc(d.title)}"></div>
+      <div class="fg"><label class="fl">Description</label><textarea class="fta" id="f1" placeholder="What's the challenge? What does winning look like?">${esc(d.desc)}</textarea></div>
+      <div class="fg"><label class="fl">Constraint</label><input class="fi" id="f2" placeholder="e.g. Zero paid ads, pure hustle only" value="${esc(d.constraint)}"></div>
+    </div>`;
+  }else if(k==='rooms'){
+    const r=fd.rooms;
+    html=`<div class="step show">
+      <div class="s-title clash">Room names</div>
+      <div class="s-desc">What is each team's workspace called? Shown on the team reveal screen.</div>
+      ${[1,2,3].map(n=>`<div class="fg"><label class="fl" style="color:${COLORS[n-1]}">Team ${n} room</label><input class="fi" id="f${n-1}" placeholder="e.g. Dev Room" value="${esc(r[`r${n}`])}"></div>`).join('')}
+    </div>`;
+  }
+  document.getElementById('m-body').innerHTML=html;
+  setTimeout(()=>document.querySelector('#m-body .fi')?.focus(),50);
+}
+
+function saveStep(){
+  const k=STEPS[step];
+  if(k==='sprint')fd.sprint.name=val('f0');
+  else if(['c1','c2','c3'].includes(k)){fd[k].title=val('f0');fd[k].desc=val('f1');fd[k].constraint=val('f2')}
+  else if(k==='rooms'){fd.rooms.r1=val('f0');fd.rooms.r2=val('f1');fd.rooms.r3=val('f2')}
+}
+function val(id){return document.getElementById(id)?.value.trim()||''}
+function nextStep(){saveStep();if(step===STEPS.length-1){createSprint();return}step++;renderStep()}
+function prevStep(){saveStep();if(step>0){step--;renderStep()}}
+
+async function createSprint(){
+  const btn=document.getElementById('btn-next');btn.disabled=true;btn.textContent='Creating…';
+  const challenges=[
+    {id:1,title:fd.c1.title,description:fd.c1.desc,constraint:fd.c1.constraint},
+    {id:2,title:fd.c2.title,description:fd.c2.desc,constraint:fd.c2.constraint},
+    {id:3,title:fd.c3.title,description:fd.c3.desc,constraint:fd.c3.constraint},
+  ];
+  const rooms=[
+    {teamId:1,shortTag:fd.c1.title.split(' ').slice(0,2).join(' '),room:fd.rooms.r1||'Room 1',icon:'🚀'},
+    {teamId:2,shortTag:fd.c2.title.split(' ').slice(0,2).join(' '),room:fd.rooms.r2||'Room 2',icon:'🌿'},
+    {teamId:3,shortTag:fd.c3.title.split(' ').slice(0,2).join(' '),room:fd.rooms.r3||'Room 3',icon:'✨'},
+  ];
+  await db.from('sprints').update({status:'archived'}).eq('status','active');
+  const{data,error}=await db.from('sprints').insert({name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms}).select().single();
+  if(error){console.error(error);btn.disabled=false;btn.textContent='✓ Create Sprint';alert('Error: '+error.message);return}
+  closeModal();loadSprints();
+}
+
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m])}
+</script>
+</body>
+</html>

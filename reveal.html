@@ -637,6 +637,7 @@ body::after {
 
 </div><!-- /deck -->
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 // ═══════════════════════════════════════════════
 //  SLIDE ENGINE
@@ -813,6 +814,30 @@ document.querySelectorAll('button, a, .nav-dot, #btn-fullscreen').forEach(el => 
 
 buildDots();
 document.getElementById('progress-bar').style.width = '0%';
+
+// Load challenge content from active sprint
+(async () => {
+  const sprintId = new URLSearchParams(window.location.search).get('sprint');
+  try {
+    const db = window.supabase.createClient(
+      'https://cfuilfpgsyxgaizzwlee.supabase.co',
+      'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn'
+    );
+    let q = db.from('sprints').select('name,challenges');
+    q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
+    const { data } = await q;
+    if (!data || !data.challenges) return;
+    data.challenges.forEach((c, i) => {
+      const n = i + 1;
+      const titleEl = document.querySelector(`#s${n} .challenge-title`);
+      const descEl  = document.querySelector(`#s${n} .challenge-desc`);
+      const conEl   = document.querySelector(`#s${n} .constraint-text`);
+      if (titleEl) titleEl.innerHTML = c.title.replace(/\s(\S+)$/, '<br>$1') + '.';
+      if (descEl)  descEl.textContent = c.description || '';
+      if (conEl && c.constraint) conEl.textContent = c.constraint;
+    });
+  } catch(e) { console.warn('Sprint load skipped:', e); }
+})();
 </script>
 </body>
 </html>
