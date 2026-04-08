@@ -61,9 +61,12 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
 .sprint-card.is-active{border-color:rgba(0,229,255,.3)}
 .sprint-head{padding:1.25rem 1.5rem;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--border)}
 .sprint-card.is-active .sprint-head{background:linear-gradient(135deg,rgba(0,229,255,.06),transparent)}
-.sprint-name{font-family:'Clash Display',sans-serif;font-size:1.15rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.25rem;cursor:text;border-radius:6px;transition:background .15s}
-.sprint-name:hover{background:rgba(255,255,255,.06)}
-.sprint-name-input{font-family:'Clash Display',sans-serif;font-size:1.15rem;font-weight:600;letter-spacing:-.01em;margin-bottom:.25rem;background:rgba(255,255,255,.06);border:1px solid var(--c1);border-radius:6px;color:var(--text);padding:.1rem .4rem;outline:none;width:100%;box-shadow:0 0 0 3px rgba(0,229,255,.1)}
+.sprint-name-wrap{display:flex;align-items:center;gap:.4rem;cursor:text;border-radius:6px;padding:.1rem .3rem;margin:-.1rem -.3rem;transition:background .15s;margin-bottom:.25rem}
+.sprint-name-wrap:hover{background:rgba(255,255,255,.06)}
+.sprint-name-wrap:hover .edit-icon{opacity:1}
+.sprint-name{font-family:'Clash Display',sans-serif;font-size:1.15rem;font-weight:600;letter-spacing:-.01em}
+.edit-icon{opacity:0;transition:opacity .15s;flex-shrink:0;color:var(--t3);font-size:.75rem}
+.sprint-name-input{font-family:'Clash Display',sans-serif;font-size:1.15rem;font-weight:600;letter-spacing:-.01em;background:rgba(255,255,255,.06);border:1px solid var(--c1);border-radius:6px;color:var(--text);padding:.1rem .4rem;outline:none;width:100%;box-shadow:0 0 0 3px rgba(0,229,255,.1)}
 .sprint-date{font-size:.72rem;color:var(--t3)}
 .s-badge{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:.25rem .6rem;border-radius:6px;flex-shrink:0}
 .s-badge.active{background:rgba(0,229,255,.12);color:var(--c1)}
@@ -228,7 +231,7 @@ function card(s,votes){
   const dl=deadlineLabel(s.ends_at,ia);
   return`<div class="sprint-card ${ia?'is-active':''}">
     <div class="sprint-head">
-      <div style="flex:1;min-width:0"><div class="sprint-name" title="Click to rename" onclick="startRename(this,'${s.id}','${esc(s.name)}')">${esc(s.name)}</div><div class="sprint-date">Created ${d}${dl?` · <span style="color:${ia&&s.ends_at&&new Date(s.ends_at)>new Date()?'#FFB800':'var(--t3)'}">${dl}</span>`:''}</div></div>
+      <div style="flex:1;min-width:0"><div class="sprint-name-wrap" onclick="startRename(this,'${s.id}','${esc(s.name)}')"><span class="sprint-name">${esc(s.name)}</span><span class="edit-icon">✏️</span></div><div class="sprint-date">Created ${d}${dl?` · <span style="color:${ia&&s.ends_at&&new Date(s.ends_at)>new Date()?'#FFB800':'var(--t3)'}">${dl}</span>`:''}</div></div>
       <span class="s-badge ${ia?'active':'archived'}">${ia?'Active':'Archived'}</span>
     </div>
     <div class="sprint-stats">
@@ -341,25 +344,30 @@ async function createSprint(){
 
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m])}
 
-function startRename(el, id, currentName) {
-  if (el.querySelector('input')) return; // already editing
+function startRename(wrap, id, currentName) {
+  if (wrap.querySelector('input')) return; // already editing
   const input = document.createElement('input');
   input.className = 'sprint-name-input';
   input.value = currentName;
-  el.innerHTML = '';
-  el.appendChild(input);
+  wrap.innerHTML = '';
+  wrap.appendChild(input);
   input.focus();
   input.select();
+  let saved = false;
   const save = async () => {
+    if (saved) return; saved = true;
     const newName = input.value.trim();
     if (newName && newName !== currentName) {
       await db.from('sprints').update({name: newName}).eq('id', id);
       loadSprints();
     } else {
-      el.textContent = currentName;
+      loadSprints();
     }
   };
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); input.blur(); } if (e.key === 'Escape') { el.textContent = currentName; } });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { saved = true; loadSprints(); }
+  });
   input.addEventListener('blur', save);
 }
 
