@@ -823,19 +823,34 @@ document.getElementById('progress-bar').style.width = '0%';
       'https://cfuilfpgsyxgaizzwlee.supabase.co',
       'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn'
     );
-    let q = db.from('sprints').select('name,challenges');
+    let q = db.from('sprints').select('name,challenges,slides');
     q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
     const { data } = await q;
-    if (!data || !data.challenges) return;
-    data.challenges.forEach((c, i) => {
-      const n = i + 1;
-      const titleEl = document.querySelector(`#s${n} .challenge-title`);
-      const descEl  = document.querySelector(`#s${n} .challenge-desc`);
-      const conEl   = document.querySelector(`#s${n} .constraint-text`);
-      if (titleEl) titleEl.innerHTML = c.title.replace(/\s(\S+)$/, '<br>$1') + '.';
-      if (descEl)  descEl.textContent = c.description || '';
-      if (conEl && c.constraint) conEl.textContent = c.constraint;
-    });
+    if (!data) return;
+    if (data.challenges) {
+      data.challenges.forEach((c, i) => {
+        const n = i + 1;
+        const titleEl = document.querySelector(`#s${n} .challenge-title`);
+        const descEl  = document.querySelector(`#s${n} .challenge-desc`);
+        const conEl   = document.querySelector(`#s${n} .constraint-text`);
+        if (titleEl) titleEl.innerHTML = c.title.replace(/\s(\S+)$/, '<br>$1') + '.';
+        if (descEl)  descEl.textContent = c.description || '';
+        if (conEl && c.constraint) conEl.textContent = c.constraint;
+      });
+    }
+    // Patch welcome + final slide content if configured
+    const sl = data.slides || {};
+    const escHtml = s => String(s||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+    const fmtTitle = s => escHtml(s).replace(/\*([^*]+)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+    const fmtText  = s => escHtml(s).replace(/\n/g, '<br>');
+    if (sl.welcomeTitle) { const el = document.querySelector('.welcome-title'); if (el) el.innerHTML = fmtTitle(sl.welcomeTitle); }
+    if (sl.welcomeSub)   { const el = document.querySelector('.welcome-sub');   if (el) el.innerHTML = fmtText(sl.welcomeSub); }
+    if (sl.finalTitle)   { const el = document.querySelector('.final-title');   if (el) el.innerHTML = fmtTitle(sl.finalTitle); }
+    if (sl.finalSub)     { const el = document.querySelector('.final-sub');     if (el) el.innerHTML = fmtText(sl.finalSub); }
+    const cardVals = document.querySelectorAll('.final-card-value');
+    if (sl.card1 && cardVals[0]) cardVals[0].textContent = sl.card1;
+    if (sl.card2 && cardVals[1]) cardVals[1].textContent = sl.card2;
+    if (sl.card3 && cardVals[2]) cardVals[2].textContent = sl.card3;
   } catch(e) { console.warn('Sprint load skipped:', e); }
 })();
 </script>

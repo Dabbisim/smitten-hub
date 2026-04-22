@@ -284,12 +284,13 @@ async function deleteSprint(id){
 let STEPS=['sprint','c1','c2','c3','rooms'];
 let step=0;
 let editingId=null;
-const fd={sprint:{name:'',deadline:'',challengeCount:3,durationWeeks:0},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}};
+const EMPTY_SLIDES={welcomeTitle:'',welcomeSub:'',finalTitle:'',finalSub:'',card1:'',card2:'',card3:''};
+const fd={sprint:{name:'',deadline:'',challengeCount:3,durationWeeks:0},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''},slides:{...EMPTY_SLIDES}};
 
-function rebuildSteps(){const n=fd.sprint.challengeCount;const cs=Array.from({length:n},(_,i)=>`c${i+1}`);STEPS=['sprint',...cs,'rooms'];for(const k of cs){if(!fd[k])fd[k]={title:'',desc:'',constraint:''}}}
+function rebuildSteps(){const n=fd.sprint.challengeCount;const cs=Array.from({length:n},(_,i)=>`c${i+1}`);STEPS=['sprint',...cs,'rooms','slides'];for(const k of cs){if(!fd[k])fd[k]={title:'',desc:'',constraint:''}}}
 
 function resetFd(){
-  Object.assign(fd,{sprint:{name:'',deadline:'',challengeCount:3,durationWeeks:0},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}});
+  Object.assign(fd,{sprint:{name:'',deadline:'',challengeCount:3,durationWeeks:0},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''},slides:{...EMPTY_SLIDES}});
   for(const k in fd){if(/^c\d+$/.test(k)&&!['c1','c2','c3'].includes(k))delete fd[k];}
   for(const k in fd.rooms){if(!['r1','r2','r3'].includes(k))delete fd.rooms[k];}
 }
@@ -315,6 +316,7 @@ function openEditModal(id){
   else fd.sprint.deadline='';
   ch.forEach((c,i)=>{fd[`c${i+1}`]={title:c.title||'',desc:c.description||'',constraint:c.constraint||''}});
   rm.forEach((r,i)=>{fd.rooms[`r${i+1}`]=r.room||''});
+  if(s.slides&&typeof s.slides==='object'){Object.assign(fd.slides,EMPTY_SLIDES,s.slides);}
   rebuildSteps();renderStep();document.getElementById('overlay').classList.add('open');
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open')}
@@ -385,6 +387,21 @@ function renderStep(){
       <div class="s-desc">What is each team's workspace called? Shown on the team reveal screen.</div>
       ${Array.from({length:n},(_,idx)=>idx+1).map(i=>`<div class="fg"><label class="fl" style="color:${COLORS[(i-1)%COLORS.length]}">Team ${i} room</label><input class="fi" id="f${i-1}" placeholder="e.g. Dev Room" value="${esc(r[`r${i}`]||'')}"></div>`).join('')}
     </div>`;
+  }else if(k==='slides'){
+    const sl=fd.slides;
+    html=`<div class="step show">
+      <div class="s-title clash">Reveal slides</div>
+      <div class="s-desc">Customize the intro and outro of the reveal presentation. Use <code style="background:rgba(255,255,255,.06);padding:0 .3em;border-radius:4px">*word*</code> for italic, new lines for <code style="background:rgba(255,255,255,.06);padding:0 .3em;border-radius:4px">&lt;br&gt;</code>. Leave any field empty to keep the default.</div>
+      <div style="font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-top:.5rem">Intro slide</div>
+      <div class="fg"><label class="fl">Title</label><textarea class="fta" id="f0" placeholder="e.g. The *Challenge*&#10;Reveal." style="min-height:60px">${esc(sl.welcomeTitle)}</textarea></div>
+      <div class="fg"><label class="fl">Subtitle</label><textarea class="fta" id="f1" placeholder="e.g. Three bold bets. Three weeks. Three teams.">${esc(sl.welcomeSub)}</textarea></div>
+      <div style="font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--t3);margin-top:.75rem">Outro slide</div>
+      <div class="fg"><label class="fl">Title</label><textarea class="fta" id="f2" placeholder="e.g. Let's make&#10;it *fun.*" style="min-height:60px">${esc(sl.finalTitle)}</textarea></div>
+      <div class="fg"><label class="fl">Subtitle</label><textarea class="fta" id="f3" placeholder="e.g. Vote on the challenge you'd most want to work on…">${esc(sl.finalSub)}</textarea></div>
+      <div class="fg"><label class="fl">Deadline card</label><input class="fi" id="f4" placeholder="e.g. Friday, April 24th" value="${esc(sl.card1)}"></div>
+      <div class="fg"><label class="fl">Time to ship card</label><input class="fi" id="f5" placeholder="e.g. ~2.5 weeks after Easter" value="${esc(sl.card2)}"></div>
+      <div class="fg"><label class="fl">Teams card</label><input class="fi" id="f6" placeholder="e.g. Revealed tomorrow" value="${esc(sl.card3)}"></div>
+    </div>`;
   }
   document.getElementById('m-body').innerHTML=html;
   setTimeout(()=>document.querySelector('#m-body .fi')?.focus(),50);
@@ -395,6 +412,7 @@ function saveStep(){
   if(k==='sprint'){fd.sprint.name=val('f0');fd.sprint.deadline=val('f1');}
   else if(/^c\d+$/.test(k)){if(!fd[k])fd[k]={title:'',desc:'',constraint:''};fd[k].title=val('f0');fd[k].desc=val('f1');fd[k].constraint=val('f2')}
   else if(k==='rooms'){const n=fd.sprint.challengeCount;for(let i=1;i<=n;i++){fd.rooms[`r${i}`]=val(`f${i-1}`)}}
+  else if(k==='slides'){fd.slides.welcomeTitle=val('f0');fd.slides.welcomeSub=val('f1');fd.slides.finalTitle=val('f2');fd.slides.finalSub=val('f3');fd.slides.card1=val('f4');fd.slides.card2=val('f5');fd.slides.card3=val('f6');}
 }
 function val(id){return document.getElementById(id)?.value.trim()||''}
 function nextStep(){saveStep();if(step===STEPS.length-1){createSprint();return}step++;renderStep()}
@@ -408,13 +426,17 @@ async function createSprint(){
   const icons=['rocket','plant','star'];
   const rooms=cKeys.map((k,i)=>({teamId:i+1,shortTag:fd[k].title.split(' ').slice(0,2).join(' '),room:fd.rooms[`r${i+1}`]||`Room ${i+1}`,icon:icons[i%icons.length]}));
   const endsAt=fd.sprint.deadline?new Date(fd.sprint.deadline).toISOString():null;
+  const slides=Object.fromEntries(Object.entries(fd.slides).filter(([_,v])=>v&&v.trim()));
+  const hasSlides=Object.keys(slides).length>0;
   let error;
   if(editingId){
-    const res=await db.from('sprints').update({name:fd.sprint.name||'New Sprint',challenges,rooms,ends_at:endsAt}).eq('id',editingId);
+    const payload={name:fd.sprint.name||'New Sprint',challenges,rooms,ends_at:endsAt,slides:hasSlides?slides:null};
+    const res=await db.from('sprints').update(payload).eq('id',editingId);
     error=res.error;
   }else{
     await db.from('sprints').update({status:'archived'}).eq('status','active');
-    const res=await db.from('sprints').insert({name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms,ends_at:endsAt}).select().single();
+    const payload={name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms,ends_at:endsAt,slides:hasSlides?slides:null};
+    const res=await db.from('sprints').insert(payload).select().single();
     error=res.error;
   }
   if(error){console.error(error);btn.disabled=false;btn.textContent=editingId?'✓ Save Changes':'✓ Create Sprint';alert('Error: '+error.message);return}
