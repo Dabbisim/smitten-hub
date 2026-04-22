@@ -113,6 +113,10 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
 input[type="datetime-local"].fi{color-scheme:dark}
 .fi:focus,.fta:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(0,229,255,.08)}
 .fta{min-height:80px}
+.chip-row{display:flex;gap:.4rem;flex-wrap:wrap}
+.chip{padding:.38rem .85rem;background:rgba(255,255,255,.04);border:1px solid var(--bl);border-radius:8px;color:var(--t2);font-size:.8rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s,color .15s,border-color .15s}
+.chip:hover{background:rgba(255,255,255,.08);color:var(--text)}
+.chip.active{background:rgba(0,229,255,.12);border-color:rgba(0,229,255,.4);color:var(--c1)}
 .m-foot{padding:1.25rem 2rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .btn-back{padding:.65rem 1.25rem;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;color:var(--t2);font-size:.875rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s}
 .btn-back:hover{background:rgba(255,255,255,.08)}
@@ -269,14 +273,29 @@ async function deleteSprint(id){
 }
 
 // ── modal form ────────────────────────────────────────────
-const STEPS=['sprint','c1','c2','c3','rooms'];
+let STEPS=['sprint','c1','c2','c3','rooms'];
 let step=0;
-const fd={sprint:{name:'',deadline:''},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}};
+const fd={sprint:{name:'',deadline:'',challengeCount:3,durationWeeks:0},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}};
 
-function openModal(){step=0;Object.assign(fd,{sprint:{name:'',deadline:''},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}});renderStep();document.getElementById('overlay').classList.add('open')}
+function rebuildSteps(){const n=fd.sprint.challengeCount;const cs=['c1','c2','c3'].slice(0,n);STEPS=['sprint',...cs,'rooms']}
+
+function openModal(){
+  step=0;
+  Object.assign(fd,{sprint:{name:'',deadline:'',challengeCount:3,durationWeeks:0},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}});
+  rebuildSteps();renderStep();document.getElementById('overlay').classList.add('open');
+}
 function closeModal(){document.getElementById('overlay').classList.remove('open')}
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target===document.getElementById('overlay'))closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+function setCount(n){saveStep();fd.sprint.challengeCount=n;rebuildSteps();renderStep()}
+function setDuration(weeks){
+  saveStep();
+  fd.sprint.durationWeeks=weeks;
+  if(weeks>0){const d=new Date();d.setDate(d.getDate()+weeks*7);fd.sprint.deadline=d.toISOString().slice(0,16);}
+  else{fd.sprint.deadline='';}
+  renderStep();
+}
 
 function renderStep(){
   const total=STEPS.length;
@@ -284,18 +303,31 @@ function renderStep(){
   document.getElementById('btn-back').style.visibility=step===0?'hidden':'visible';
   document.getElementById('btn-next').textContent=step===total-1?'✓ Create Sprint':'Continue';
   const k=STEPS[step];
+  const n=fd.sprint.challengeCount;
   let html='';
   if(k==='sprint'){
+    const dw=fd.sprint.durationWeeks;
     html=`<div class="step show">
-      <div class="s-title clash">Name your sprint</div>
-      <div class="s-desc">Give this sprint a name like "Spring 2026" or "Q2 Challenge".</div>
+      <div class="s-title clash">New Sprint</div>
       <div class="fg"><label class="fl">Sprint name</label><input class="fi" id="f0" placeholder="e.g. Spring 2026" value="${esc(fd.sprint.name)}" autofocus></div>
-      <div class="fg"><label class="fl">Voting deadline <span style="color:var(--t3);font-weight:400">(optional)</span></label><input class="fi" type="datetime-local" id="f1" value="${esc(fd.sprint.deadline)}"></div>
+      <div class="fg">
+        <label class="fl">Number of challenges</label>
+        <div class="chip-row">
+          ${[1,2,3].map(i=>`<button type="button" class="chip${n===i?' active':''}" onclick="setCount(${i})">${i} challenge${i>1?'s':''}</button>`).join('')}
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Duration <span style="color:var(--t3);font-weight:400">(optional)</span></label>
+        <div class="chip-row">
+          ${[1,2,3,4,6].map(w=>`<button type="button" class="chip${dw===w?' active':''}" onclick="setDuration(${w})">${w} wk${w>1?'s':''}</button>`).join('')}
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Custom deadline <span style="color:var(--t3);font-weight:400">(optional)</span></label><input class="fi" type="datetime-local" id="f1" value="${esc(fd.sprint.deadline)}"></div>
     </div>`;
   }else if(['c1','c2','c3'].includes(k)){
-    const n=parseInt(k[1]);const col=COLORS[n-1];const d=fd[k];
+    const ci=parseInt(k[1]);const col=COLORS[ci-1];const d=fd[k];
     html=`<div class="step show">
-      <div class="s-title clash" style="color:${col}">Challenge ${n}</div>
+      <div class="s-title clash" style="color:${col}">Challenge ${ci}</div>
       <div class="s-desc">Teams will read this description when deciding their vote.</div>
       <div class="fg"><label class="fl">Title</label><input class="fi" id="f0" placeholder="e.g. Launch Smitten in Malta" value="${esc(d.title)}"></div>
       <div class="fg"><label class="fl">Description</label><textarea class="fta" id="f1" placeholder="What's the challenge? What does winning look like?">${esc(d.desc)}</textarea></div>
@@ -306,7 +338,7 @@ function renderStep(){
     html=`<div class="step show">
       <div class="s-title clash">Room names</div>
       <div class="s-desc">What is each team's workspace called? Shown on the team reveal screen.</div>
-      ${[1,2,3].map(n=>`<div class="fg"><label class="fl" style="color:${COLORS[n-1]}">Team ${n} room</label><input class="fi" id="f${n-1}" placeholder="e.g. Dev Room" value="${esc(r[`r${n}`])}"></div>`).join('')}
+      ${[1,2,3].slice(0,n).map(i=>`<div class="fg"><label class="fl" style="color:${COLORS[i-1]}">Team ${i} room</label><input class="fi" id="f${i-1}" placeholder="e.g. Dev Room" value="${esc(r[`r${i}`])}"></div>`).join('')}
     </div>`;
   }
   document.getElementById('m-body').innerHTML=html;
@@ -317,7 +349,7 @@ function saveStep(){
   const k=STEPS[step];
   if(k==='sprint'){fd.sprint.name=val('f0');fd.sprint.deadline=val('f1');}
   else if(['c1','c2','c3'].includes(k)){fd[k].title=val('f0');fd[k].desc=val('f1');fd[k].constraint=val('f2')}
-  else if(k==='rooms'){fd.rooms.r1=val('f0');fd.rooms.r2=val('f1');fd.rooms.r3=val('f2')}
+  else if(k==='rooms'){const n=fd.sprint.challengeCount;if(n>=1)fd.rooms.r1=val('f0');if(n>=2)fd.rooms.r2=val('f1');if(n>=3)fd.rooms.r3=val('f2');}
 }
 function val(id){return document.getElementById(id)?.value.trim()||''}
 function nextStep(){saveStep();if(step===STEPS.length-1){createSprint();return}step++;renderStep()}
@@ -325,16 +357,11 @@ function prevStep(){saveStep();if(step>0){step--;renderStep()}}
 
 async function createSprint(){
   const btn=document.getElementById('btn-next');btn.disabled=true;btn.textContent='Creating…';
-  const challenges=[
-    {id:1,title:fd.c1.title,description:fd.c1.desc,constraint:fd.c1.constraint},
-    {id:2,title:fd.c2.title,description:fd.c2.desc,constraint:fd.c2.constraint},
-    {id:3,title:fd.c3.title,description:fd.c3.desc,constraint:fd.c3.constraint},
-  ];
-  const rooms=[
-    {teamId:1,shortTag:fd.c1.title.split(' ').slice(0,2).join(' '),room:fd.rooms.r1||'Room 1',icon:'🚀'},
-    {teamId:2,shortTag:fd.c2.title.split(' ').slice(0,2).join(' '),room:fd.rooms.r2||'Room 2',icon:'🌿'},
-    {teamId:3,shortTag:fd.c3.title.split(' ').slice(0,2).join(' '),room:fd.rooms.r3||'Room 3',icon:'✨'},
-  ];
+  const n=fd.sprint.challengeCount;
+  const cKeys=['c1','c2','c3'].slice(0,n);
+  const challenges=cKeys.map((k,i)=>({id:i+1,title:fd[k].title,description:fd[k].desc,constraint:fd[k].constraint}));
+  const icons=['rocket','plant','star'];
+  const rooms=cKeys.map((k,i)=>({teamId:i+1,shortTag:fd[k].title.split(' ').slice(0,2).join(' '),room:fd.rooms[`r${i+1}`]||`Room ${i+1}`,icon:icons[i]}));
   await db.from('sprints').update({status:'archived'}).eq('status','active');
   const endsAt=fd.sprint.deadline?new Date(fd.sprint.deadline).toISOString():null;
   const{data,error}=await db.from('sprints').insert({name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms,ends_at:endsAt}).select().single();
