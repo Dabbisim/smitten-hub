@@ -257,6 +257,7 @@ function card(s,votes){
       <a class="alink" href="admin.html?sprint=${s.id}" target="_blank">🛠 Admin</a>
       <a class="alink" href="reveal.html?sprint=${s.id}" target="_blank">🎭 Reveal</a>
       <a class="alink" href="teams.html?sprint=${s.id}" target="_blank">👥 Teams</a>
+      <button class="alink" onclick="openEditModal('${s.id}')">✏️ Edit</button>
       ${ia?`<button class="alink danger" onclick="archiveSprint('${s.id}')">📦 Archive</button>`:`<button class="alink" onclick="restoreSprint('${s.id}')">♻️ Restore</button><button class="alink danger" onclick="deleteSprint('${s.id}')">🗑 Delete</button>`}
     </div>
   </div>`;
@@ -282,13 +283,38 @@ async function deleteSprint(id){
 // ── modal form ────────────────────────────────────────────
 let STEPS=['sprint','c1','c2','c3','rooms'];
 let step=0;
+let editingId=null;
 const fd={sprint:{name:'',deadline:'',challengeCount:3,durationWeeks:0},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}};
 
 function rebuildSteps(){const n=fd.sprint.challengeCount;const cs=Array.from({length:n},(_,i)=>`c${i+1}`);STEPS=['sprint',...cs,'rooms'];for(const k of cs){if(!fd[k])fd[k]={title:'',desc:'',constraint:''}}}
 
-function openModal(){
-  step=0;
+function resetFd(){
   Object.assign(fd,{sprint:{name:'',deadline:'',challengeCount:3,durationWeeks:0},c1:{title:'',desc:'',constraint:''},c2:{title:'',desc:'',constraint:''},c3:{title:'',desc:'',constraint:''},rooms:{r1:'',r2:'',r3:''}});
+  for(const k in fd){if(/^c\d+$/.test(k)&&!['c1','c2','c3'].includes(k))delete fd[k];}
+  for(const k in fd.rooms){if(!['r1','r2','r3'].includes(k))delete fd.rooms[k];}
+}
+
+function openModal(){
+  step=0;editingId=null;
+  document.getElementById('m-title').textContent='New Sprint';
+  resetFd();
+  rebuildSteps();renderStep();document.getElementById('overlay').classList.add('open');
+}
+
+function openEditModal(id){
+  const s=sprints.find(x=>x.id===id);
+  if(!s){alert('Sprint not found');return}
+  step=0;editingId=id;
+  document.getElementById('m-title').textContent='Edit Sprint';
+  resetFd();
+  const ch=s.challenges||[];const rm=s.rooms||[];
+  fd.sprint.name=s.name||'';
+  fd.sprint.challengeCount=Math.max(1,ch.length||3);
+  fd.sprint.durationWeeks=0;
+  if(s.ends_at){const d=new Date(s.ends_at);const off=d.getTimezoneOffset()*60000;fd.sprint.deadline=new Date(d.getTime()-off).toISOString().slice(0,16);}
+  else fd.sprint.deadline='';
+  ch.forEach((c,i)=>{fd[`c${i+1}`]={title:c.title||'',desc:c.description||'',constraint:c.constraint||''}});
+  rm.forEach((r,i)=>{fd.rooms[`r${i+1}`]=r.room||''});
   rebuildSteps();renderStep();document.getElementById('overlay').classList.add('open');
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open')}
@@ -313,7 +339,7 @@ function renderStep(){
   const total=STEPS.length;
   document.getElementById('pips').innerHTML=STEPS.map((_,i)=>`<div class="pip ${i<step?'done':i===step?'cur':''}"></div>`).join('');
   document.getElementById('btn-back').style.visibility=step===0?'hidden':'visible';
-  document.getElementById('btn-next').textContent=step===total-1?'✓ Create Sprint':'Continue';
+  document.getElementById('btn-next').textContent=step===total-1?(editingId?'✓ Save Changes':'✓ Create Sprint'):'Continue';
   const k=STEPS[step];
   const n=fd.sprint.challengeCount;
   let html='';
@@ -375,16 +401,23 @@ function nextStep(){saveStep();if(step===STEPS.length-1){createSprint();return}s
 function prevStep(){saveStep();if(step>0){step--;renderStep()}}
 
 async function createSprint(){
-  const btn=document.getElementById('btn-next');btn.disabled=true;btn.textContent='Creating…';
+  const btn=document.getElementById('btn-next');btn.disabled=true;btn.textContent=editingId?'Saving…':'Creating…';
   const n=fd.sprint.challengeCount;
   const cKeys=Array.from({length:n},(_,i)=>`c${i+1}`);
   const challenges=cKeys.map((k,i)=>({id:i+1,title:fd[k].title,description:fd[k].desc,constraint:fd[k].constraint}));
   const icons=['rocket','plant','star'];
   const rooms=cKeys.map((k,i)=>({teamId:i+1,shortTag:fd[k].title.split(' ').slice(0,2).join(' '),room:fd.rooms[`r${i+1}`]||`Room ${i+1}`,icon:icons[i%icons.length]}));
-  await db.from('sprints').update({status:'archived'}).eq('status','active');
   const endsAt=fd.sprint.deadline?new Date(fd.sprint.deadline).toISOString():null;
-  const{data,error}=await db.from('sprints').insert({name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms,ends_at:endsAt}).select().single();
-  if(error){console.error(error);btn.disabled=false;btn.textContent='✓ Create Sprint';alert('Error: '+error.message);return}
+  let error;
+  if(editingId){
+    const res=await db.from('sprints').update({name:fd.sprint.name||'New Sprint',challenges,rooms,ends_at:endsAt}).eq('id',editingId);
+    error=res.error;
+  }else{
+    await db.from('sprints').update({status:'archived'}).eq('status','active');
+    const res=await db.from('sprints').insert({name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms,ends_at:endsAt}).select().single();
+    error=res.error;
+  }
+  if(error){console.error(error);btn.disabled=false;btn.textContent=editingId?'✓ Save Changes':'✓ Create Sprint';alert('Error: '+error.message);return}
   closeModal();loadSprints();
 }
 
