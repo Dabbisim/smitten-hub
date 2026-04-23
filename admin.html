@@ -599,6 +599,22 @@
     .builder-grid { grid-template-columns: 1fr; }
   }
 
+  /* ── RETROS ── */
+  .retros-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:.85rem; }
+  .retros-stats { display:flex; gap:1.25rem; font-size:0.8rem; color:var(--text-2); }
+  .retros-stats .ritem { display:flex; align-items:baseline; gap:.35em; }
+  .retros-stats strong { color:var(--text); font-size:1rem; font-weight:700; font-family:'Clash Display',sans-serif; letter-spacing:-.01em; }
+  .retros-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1rem; margin-bottom:2rem; }
+  .retro-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.1rem 1.25rem; display:flex; flex-direction:column; gap:.7rem; backdrop-filter:blur(10px); }
+  .retro-head { display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:.75rem; border-bottom:1px solid var(--border); gap:.75rem; }
+  .retro-name { font-family:'Clash Display',sans-serif; font-weight:600; font-size:1rem; letter-spacing:-.01em; }
+  .retro-date { font-size:0.7rem; color:var(--text-3); margin-top:.2rem; letter-spacing:.02em; }
+  .retro-mood { font-size:1.7rem; line-height:1; filter:drop-shadow(0 0 14px rgba(255,255,255,0.2)); flex-shrink:0; }
+  .retro-body { display:flex; flex-direction:column; gap:.75rem; }
+  .retro-part-label { font-size:0.65rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:.3rem; display:flex; align-items:center; gap:.3em; }
+  .retro-part-text { font-size:0.86rem; color:var(--text-2); line-height:1.5; white-space:pre-wrap; word-wrap:break-word; }
+  .retros-empty { grid-column:1/-1; text-align:center; color:var(--text-3); padding:2rem; font-size:0.88rem; }
+
   /* ── GROUPED BY CHALLENGE ── */
   .grouped-grid {
     display: grid;
@@ -817,6 +833,15 @@
     <div style="grid-column:1/-1;text-align:center;color:var(--text-3);padding:2rem;">Loading…</div>
   </div>
 
+  <!-- Retros -->
+  <div class="section-title" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+    <span>💬 Retros</span>
+    <div class="retros-stats" id="retros-stats"></div>
+  </div>
+  <div class="retros-grid" id="retros-grid">
+    <div class="retros-empty">Loading…</div>
+  </div>
+
   <!-- Actions -->
   <div class="actions">
     <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
@@ -925,6 +950,7 @@ async function switchSprint(id) {
     if (el) el.textContent = c.title;
   });
   loadVotes();
+  loadRetros();
   subscribeRealtime();
 }
 
@@ -952,6 +978,7 @@ async function showDashboard() {
   });
 
   loadVotes();
+  loadRetros();
   subscribeRealtime();
 }
 
@@ -1024,6 +1051,64 @@ async function loadVotes() {
   }
   render();
 }
+
+async function loadRetros() {
+  const wrap = document.getElementById('retros-grid');
+  const statsEl = document.getElementById('retros-stats');
+  wrap.innerHTML = '<div class="retros-empty">Loading…</div>';
+  statsEl.innerHTML = '';
+  try {
+    let q = db.from('retros').select('*').order('created_at', { ascending: false });
+    if (currentSprintId) q = q.eq('sprint_id', currentSprintId);
+    const { data, error } = await q;
+    if (error) throw error;
+    const rows = data || [];
+    if (!rows.length) {
+      wrap.innerHTML = '<div class="retros-empty">No retros submitted yet for this sprint.</div>';
+      statsEl.innerHTML = '';
+      return;
+    }
+    const moods = rows.filter(r => r.mood).map(r => r.mood);
+    const avg = moods.length ? (moods.reduce((a,b)=>a+b,0)/moods.length) : null;
+    const moodEmoji = avg ? ['😭','😕','😐','😊','🤩'][Math.round(avg)-1] : '—';
+    statsEl.innerHTML = `
+      <div class="ritem"><strong>${rows.length}</strong> <span>submission${rows.length===1?'':'s'}</span></div>
+      ${avg ? `<div class="ritem"><strong>${moodEmoji} ${avg.toFixed(1)}</strong> <span>avg mood</span></div>` : ''}
+    `;
+    wrap.innerHTML = rows.map(r => renderRetroCard(r)).join('');
+  } catch (e) {
+    console.error('Retro load error:', e);
+    wrap.innerHTML = '<div class="retros-empty">Error loading retros.</div>';
+  }
+}
+
+function renderRetroCard(r) {
+  const moods = {1:'😭',2:'😕',3:'😐',4:'😊',5:'🤩'};
+  const moodEmoji = moods[r.mood] || '';
+  const d = new Date(r.created_at);
+  const date = d.toLocaleDateString('en-GB', {day:'numeric',month:'short'}) + ' · ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+  const parts = [];
+  if (r.loved)    parts.push({icon:'💚',label:'Loved',color:'#B8FF4A',text:r.loved});
+  if (r.annoyed)  parts.push({icon:'🔥',label:'Annoyed',color:'#FF5C8A',text:r.annoyed});
+  if (r.learned)  parts.push({icon:'💡',label:'Learned',color:'#00E5FF',text:r.learned});
+  if (r.next_try) parts.push({icon:'🚀',label:'Next time',color:'#FFB800',text:r.next_try});
+  const body = parts.length
+    ? parts.map(p => `<div><div class="retro-part-label" style="color:${p.color}"><span>${p.icon}</span> ${p.label}</div><div class="retro-part-text">${escapeRetro(p.text)}</div></div>`).join('')
+    : '<div style="color:var(--text-3);font-size:0.82rem;font-style:italic;">Mood rating only — no written feedback.</div>';
+  return `
+    <div class="retro-card">
+      <div class="retro-head">
+        <div>
+          <div class="retro-name">${escapeRetro(r.name)}</div>
+          <div class="retro-date">${date}</div>
+        </div>
+        <div class="retro-mood">${moodEmoji}</div>
+      </div>
+      <div class="retro-body">${body}</div>
+    </div>`;
+}
+
+function escapeRetro(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);}
 
 function subscribeRealtime() {
   if (channel) return;

@@ -552,7 +552,7 @@ body::after {
   <div class="slide active" id="s0">
     <div class="slide-glow"></div>
     <div class="welcome-eyebrow">Smitten</div>
-    <h1 class="welcome-title">The<br><em>Challenge</em><br>Reveal.</h1>
+    <h1 class="welcome-title">The<br><em>Challenge</em><br>Reveal</h1>
     <p class="welcome-sub">Three bold bets. Three weeks. Three teams.<br>Let's figure out what we're building next.</p>
     <div class="welcome-hint">
       <span class="hint-key">→</span>
@@ -568,7 +568,7 @@ body::after {
       <span class="eyebrow-line"></span>
       Challenge 01
     </div>
-    <h2 class="challenge-title">Launch Smitten<br>in Malta.</h2>
+    <h2 class="challenge-title">Launch Smitten<br>in Malta</h2>
     <p class="challenge-desc">
       Can we replicate the Iceland magic in a brand new market? Malta is strikingly similar — 570k population, island nation, tight-knit social scene, flooded with tourists. The challenge: make Smitten the dating app for Maltese locals and make it actually stick.
     </p>
@@ -586,7 +586,7 @@ body::after {
       <span class="eyebrow-line"></span>
       Challenge 02
     </div>
-    <h2 class="challenge-title">Organic<br>Growth Hacks.</h2>
+    <h2 class="challenge-title">Organic<br>Growth Hacks</h2>
     <p class="challenge-desc">
       What can we build <em style="font-family:'Fraunces',serif;font-style:italic;color:rgba(255,184,0,0.9)">outside</em> of Smitten to drive organic growth, increase runway, and boost revenue? Viral tools, content plays, communities, utilities — anything that funnels people our way without living inside the app.
     </p>
@@ -604,7 +604,7 @@ body::after {
       <span class="eyebrow-line"></span>
       Challenge 03
     </div>
-    <h2 class="challenge-title">AI Dating<br>Profile Agent.</h2>
+    <h2 class="challenge-title">AI Dating<br>Profile Agent</h2>
     <p class="challenge-desc">
       Build a standalone AI agent that creates the best, most compelling dating profiles on the internet. Works across Smitten, Tinder, Hinge, Bumble — its own product entirely. Not a Smitten feature.
     </p>
@@ -618,7 +618,7 @@ body::after {
   <div class="slide" id="sF">
     <div class="slide-glow"></div>
     <div class="final-eyebrow">Now the fun part</div>
-    <h2 class="final-title">Let's make<br>it <em>fun.</em></h2>
+    <h2 class="final-title">Let's make<br>it <em>fun</em></h2>
     <p class="final-sub">Vote on the challenge you'd most want to work on. Tomorrow morning we'll reveal the teams and rearrange seating — each room becomes its own challenge war room.</p>
     <div class="final-cards">
       <div class="final-card">
@@ -839,7 +839,7 @@ document.getElementById('progress-bar').style.width = '0%';
         const descEl  = document.querySelector(`#s${n} .challenge-desc`);
         const conEl   = document.querySelector(`#s${n} .constraint-text`);
         const conBox  = document.querySelector(`#s${n} .constraint-box`);
-        if (titleEl) titleEl.innerHTML = c.title.replace(/\s(\S+)$/, '<br>$1') + '.';
+        if (titleEl) titleEl.innerHTML = c.title.replace(/\s(\S+)$/, '<br>$1');
         if (descEl)  descEl.textContent = c.description || '';
         if (c.constraint) {
           if (conEl) conEl.textContent = c.constraint;

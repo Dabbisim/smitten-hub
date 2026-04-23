@@ -404,7 +404,7 @@ h1.page-title em {
 
 <main id="form-view">
   <div class="eyebrow"><span></span>Sprint retro<span></span></div>
-  <h1 class="page-title">How did<br>it <em>go?</em></h1>
+  <h1 class="page-title">How did<br>it <em>go</em></h1>
   <p class="page-sub">Quick retro — 2 minutes, no filter, no wrong answers. We use this to make the next sprint better for everyone.</p>
   <div class="sprint-tag" id="sprint-tag">Loading sprint…</div>
 
@@ -480,9 +480,8 @@ h1.page-title em {
 
 <div id="done" class="hidden">
   <div class="done-mark"></div>
-  <h2 class="done-title">Thanks for the <em>honesty.</em></h2>
+  <h2 class="done-title">Thanks for the <em>honesty</em></h2>
   <p class="done-sub">Your retro is saved. We'll read it, learn from it, and do better next sprint.</p>
-  <a href="#" class="done-btn" id="done-another">Submit another →</a>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -546,6 +545,10 @@ async function init() {
   if (data) {
     currentSprintId = data.id;
     document.getElementById('sprint-tag').textContent = data.name + (data.status==='archived' ? ' · archived' : '');
+    if (localStorage.getItem('retro_submitted_' + currentSprintId) === '1') {
+      showDone();
+      return;
+    }
   } else {
     document.getElementById('sprint-tag').textContent = 'No sprint found';
   }
@@ -568,11 +571,6 @@ async function init() {
   refresh();
 
   submitBtn.addEventListener('click', submit);
-
-  // Another
-  document.getElementById('done-another').addEventListener('click', e => {
-    e.preventDefault(); location.reload();
-  });
 }
 
 async function submit() {
@@ -610,6 +608,7 @@ async function submit() {
     return;
   }
 
+  localStorage.setItem('retro_submitted_' + currentSprintId, '1');
   showDone();
 }
 
