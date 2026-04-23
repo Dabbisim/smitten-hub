@@ -223,11 +223,13 @@ body::after {
 .challenge-desc {
   font-family: 'DM Sans', sans-serif;
   font-size: clamp(0.92rem, 1.6vw, 1.15rem);
-  font-weight: 300;
-  line-height: 1.7;
-  color: rgba(255,255,255,0.6);
-  max-width: 640px;
+  font-weight: 400;
+  line-height: 1.6;
+  max-width: 720px;
   margin-bottom: 2.2rem;
+  padding: 1.1rem 1.5rem;
+  border: 1px solid;
+  border-radius: 16px;
   opacity: 0;
 }
 .slide.active .challenge-desc { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.3s forwards; }
@@ -267,6 +269,7 @@ body::after {
 #s1 .challenge-eyebrow { color: var(--c1); }
 #s1 .eyebrow-line { background: var(--c1); }
 #s1 .watermark-num { -webkit-text-stroke-color: rgba(0,229,255,0.06); }
+#s1 .challenge-desc { background: rgba(0,229,255,0.05); border-color: rgba(0,229,255,0.2); color: rgba(0,229,255,0.82); }
 #s1 .constraint-box { background: rgba(0,229,255,0.05); border-color: rgba(0,229,255,0.2); color: var(--c1); }
 #s1 .constraint-label { color: var(--c1); }
 #s1 .constraint-text { color: rgba(0,229,255,0.75); }
@@ -276,6 +279,7 @@ body::after {
 #s2 .challenge-eyebrow { color: var(--c2); }
 #s2 .eyebrow-line { background: var(--c2); }
 #s2 .watermark-num { -webkit-text-stroke-color: rgba(255,184,0,0.06); }
+#s2 .challenge-desc { background: rgba(255,184,0,0.05); border-color: rgba(255,184,0,0.2); color: rgba(255,184,0,0.82); }
 #s2 .constraint-box { background: rgba(255,184,0,0.05); border-color: rgba(255,184,0,0.2); }
 #s2 .constraint-label { color: var(--c2); }
 #s2 .constraint-text { color: rgba(255,184,0,0.75); }
@@ -285,6 +289,7 @@ body::after {
 #s3 .challenge-eyebrow { color: var(--c3); }
 #s3 .eyebrow-line { background: var(--c3); }
 #s3 .watermark-num { -webkit-text-stroke-color: rgba(255,92,138,0.06); }
+#s3 .challenge-desc { background: rgba(255,92,138,0.05); border-color: rgba(255,92,138,0.2); color: rgba(255,92,138,0.82); }
 #s3 .constraint-box { background: rgba(255,92,138,0.05); border-color: rgba(255,92,138,0.2); }
 #s3 .constraint-label { color: var(--c3); }
 #s3 .constraint-text { color: rgba(255,92,138,0.75); }
@@ -833,9 +838,15 @@ document.getElementById('progress-bar').style.width = '0%';
         const titleEl = document.querySelector(`#s${n} .challenge-title`);
         const descEl  = document.querySelector(`#s${n} .challenge-desc`);
         const conEl   = document.querySelector(`#s${n} .constraint-text`);
+        const conBox  = document.querySelector(`#s${n} .constraint-box`);
         if (titleEl) titleEl.innerHTML = c.title.replace(/\s(\S+)$/, '<br>$1') + '.';
         if (descEl)  descEl.textContent = c.description || '';
-        if (conEl && c.constraint) conEl.textContent = c.constraint;
+        if (c.constraint) {
+          if (conEl) conEl.textContent = c.constraint;
+          if (conBox) conBox.style.display = '';
+        } else if (conBox) {
+          conBox.style.display = 'none';
+        }
       });
     }
     // Patch welcome + final slide content if configured
