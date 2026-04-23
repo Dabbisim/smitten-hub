@@ -200,7 +200,7 @@ body::after {
 .big-stat {
   font-family: 'Clash Display', sans-serif;
   font-weight: 700;
-  font-size: clamp(8rem, 28vw, 22rem);
+  font-size: clamp(6rem, 20vw, 17rem);
   line-height: 1;
   letter-spacing: -0.06em;
   background: linear-gradient(135deg, #fff 0%, var(--c3) 100%);
@@ -208,6 +208,8 @@ body::after {
   background-clip: text;
   color: transparent;
   opacity: 0;
+  max-width: 92vw;
+  padding: 0 2vw;
 }
 .slide.active .big-stat { animation: numTick 1s cubic-bezier(0.16,1,0.3,1) 0.2s forwards; }
 .stat-caption {
