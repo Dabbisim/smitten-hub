@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sprint Retro · Smitten</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,300;1,400&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #06060A;
+  --surface: rgba(14,14,22,0.85);
+  --surface-2: rgba(22,22,34,0.85);
+  --border: rgba(255,255,255,0.08);
+  --border-bright: rgba(255,255,255,0.14);
+  --text: #ffffff;
+  --text-2: rgba(255,255,255,0.6);
+  --text-3: rgba(255,255,255,0.3);
+  --love:  #B8FF4A;   /* lime */
+  --hate:  #FF5C8A;   /* pink */
+  --learn: #00E5FF;   /* cyan */
+  --next:  #FFB800;   /* amber */
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── BG ── */
+#constellation { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(140px); opacity: 0.22; }
+.o1 { width: 500px; height: 500px; background: rgba(184,255,74,0.18); top: -10%; right: -5%; animation: d1 28s ease-in-out infinite; }
+.o2 { width: 400px; height: 400px; background: rgba(255,92,138,0.15); bottom: -10%; left: -5%; animation: d2 32s ease-in-out infinite; }
+.o3 { width: 350px; height: 350px; background: rgba(0,229,255,0.15); top: 40%; left: 35%; animation: d3 24s ease-in-out infinite; }
+@keyframes d1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-40px,30px)} }
+@keyframes d2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-20px)} }
+@keyframes d3 { 0%,100%{transform:translate(-50%,-50%)} 50%{transform:translate(-45%,-55%)} }
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 4rem) clamp(1.25rem, 5vw, 2.5rem) 6rem;
+}
+
+/* ── HEADER ── */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--hate);
+  margin-bottom: 1.5rem;
+}
+.eyebrow::before, .eyebrow::after {
+  content: '';
+  display: block;
+  width: 36px; height: 1.5px;
+  background: currentColor;
+  border-radius: 2px;
+  box-shadow: 0 0 8px currentColor, 0 0 18px rgba(255,92,138,0.5);
+}
+
+h1.page-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 4.2rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+}
+h1.page-title em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--hate);
+}
+
+.page-sub {
+  font-size: clamp(1rem, 1.6vw, 1.15rem);
+  color: var(--text-2);
+  line-height: 1.5;
+  max-width: 540px;
+  font-weight: 300;
+}
+
+.sprint-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 1.5rem;
+  padding: 0.45rem 0.95rem;
+  background: rgba(184,255,74,0.08);
+  border: 1px solid rgba(184,255,74,0.25);
+  border-radius: 99px;
+  font-size: 0.8rem;
+  color: var(--love);
+  font-weight: 500;
+}
+.sprint-tag::before { content: '●'; color: var(--love); font-size: 0.6rem; }
+
+/* ── FORM ── */
+.form {
+  margin-top: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field-name {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem 1.5rem;
+  backdrop-filter: blur(16px);
+  transition: border-color .2s;
+}
+.field-name:focus-within { border-color: var(--border-bright); }
+.field-name label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 0.6rem;
+}
+.field-name input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'Clash Display', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 500;
+  outline: none;
+  letter-spacing: -0.01em;
+}
+.field-name input::placeholder { color: var(--text-3); }
+
+.q-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  backdrop-filter: blur(16px);
+  transition: border-color .25s, transform .25s, box-shadow .25s;
+  position: relative;
+  overflow: hidden;
+}
+.q-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent);
+  opacity: 0.7;
+}
+.q-card:hover { transform: translateY(-2px); }
+.q-card:focus-within {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-focus);
+}
+.q-card.love    { --accent: var(--love);  --accent-border: rgba(184,255,74,0.4);  --accent-focus: rgba(184,255,74,0.08); }
+.q-card.hate    { --accent: var(--hate);  --accent-border: rgba(255,92,138,0.4);  --accent-focus: rgba(255,92,138,0.08); }
+.q-card.learn   { --accent: var(--learn); --accent-border: rgba(0,229,255,0.4);   --accent-focus: rgba(0,229,255,0.08); }
+.q-card.next    { --accent: var(--next);  --accent-border: rgba(255,184,0,0.4);   --accent-focus: rgba(255,184,0,0.08); }
+
+.q-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+.q-emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 20px var(--accent));
+}
+.q-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.q-hint {
+  font-size: 0.82rem;
+  color: var(--text-3);
+  margin-top: 0.2rem;
+  font-weight: 400;
+}
+.q-card textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  outline: none;
+  padding: 0;
+}
+.q-card textarea::placeholder { color: var(--text-3); font-weight: 300; }
+
+/* ── MOOD SLIDER ── */
+.mood-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 1.75rem;
+  backdrop-filter: blur(16px);
+  text-align: center;
+}
+.mood-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 1.2rem;
+}
+.mood-emojis {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.mood-btn {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 64px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  font-size: clamp(1.5rem, 4vw, 1.85rem);
+  cursor: pointer;
+  transition: transform .2s cubic-bezier(0.16,1,0.3,1), background .2s, border-color .2s, box-shadow .2s;
+  line-height: 1;
+  filter: grayscale(0.6) brightness(0.85);
+}
+.mood-btn:hover { transform: translateY(-3px) scale(1.08); filter: grayscale(0) brightness(1); background: rgba(255,255,255,0.06); }
+.mood-btn.active {
+  transform: scale(1.18);
+  filter: grayscale(0) brightness(1.15);
+  background: rgba(255,255,255,0.08);
+  border-color: var(--border-bright);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.08), 0 0 30px rgba(184,255,74,0.18);
+}
+.mood-desc {
+  margin-top: 1rem;
+  min-height: 1.3em;
+  font-size: 0.85rem;
+  color: var(--text-3);
+  font-style: italic;
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+}
+
+/* ── SUBMIT ── */
+.submit-wrap {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+.btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 1.1rem 2.5rem;
+  background: var(--love);
+  color: #0a0a0a;
+  border: none;
+  border-radius: 99px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: transform .25s cubic-bezier(0.16,1,0.3,1), box-shadow .25s, opacity .2s;
+}
+.btn-submit:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); box-shadow: 0 18px 40px -12px rgba(184,255,74,0.4); }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-submit .arrow { transition: transform .2s; }
+.btn-submit:hover:not(:disabled) .arrow { transform: translateX(4px); }
+.submit-note { font-size: 0.78rem; color: var(--text-3); }
+
+/* ── DONE ── */
+#done {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+.done-mark {
+  width: 90px; height: 90px;
+  border-radius: 50%;
+  background: rgba(184,255,74,0.1);
+  border: 2px solid var(--love);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.75rem;
+  animation: pop .7s cubic-bezier(0.16,1,0.3,1) backwards;
+}
+@keyframes pop { from { opacity:0; transform: scale(0.4); } }
+.done-mark::after { content: '✓'; font-size: 3rem; color: var(--love); font-weight: 700; line-height: 1; }
+.done-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+.done-title em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; color: var(--love); }
+.done-sub { font-size: 1rem; color: var(--text-2); max-width: 440px; line-height: 1.5; }
+.done-btn {
+  margin-top: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  border-radius: 99px;
+  font-size: 0.88rem;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.done-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: var(--border-bright); }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed;
+  width: 9px; height: 9px;
+  pointer-events: none;
+  z-index: 50;
+  top: 50%; left: 50%;
+  border-radius: 2px;
+}
+
+/* Error banner */
+.err {
+  background: rgba(255,92,138,0.1);
+  border: 1px solid rgba(255,92,138,0.3);
+  color: var(--hate);
+  padding: 0.85rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  margin-top: 0.5rem;
+  display: none;
+}
+.err.show { display: block; }
+
+.hidden { display: none !important; }
+
+@media (max-width: 640px) {
+  h1.page-title { font-size: 2.4rem; }
+  main { padding-bottom: 4rem; }
+  .q-card { padding: 1.25rem; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="constellation"></canvas>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+
+<main id="form-view">
+  <div class="eyebrow"><span></span>Sprint retro<span></span></div>
+  <h1 class="page-title">How did<br>it <em>go?</em></h1>
+  <p class="page-sub">Quick retro — 2 minutes, no filter, no wrong answers. We use this to make the next sprint better for everyone.</p>
+  <div class="sprint-tag" id="sprint-tag">Loading sprint…</div>
+
+  <section class="form">
+    <div class="field-name">
+      <label for="name-input">Your name</label>
+      <input id="name-input" type="text" placeholder="Type your name…" autocomplete="name">
+    </div>
+
+    <div class="q-card love">
+      <div class="q-head">
+        <span class="q-emoji">💚</span>
+        <div>
+          <div class="q-title">What did you love?</div>
+          <div class="q-hint">The highlight, the proud moment, the best bit.</div>
+        </div>
+      </div>
+      <textarea id="q-love" placeholder="The thing that made this sprint worth it…"></textarea>
+    </div>
+
+    <div class="q-card hate">
+      <div class="q-head">
+        <span class="q-emoji">🔥</span>
+        <div>
+          <div class="q-title">What annoyed you?</div>
+          <div class="q-hint">Friction, blockers, the stuff that dragged you down. Be honest.</div>
+        </div>
+      </div>
+      <textarea id="q-hate" placeholder="What drove you crazy this time around…"></textarea>
+    </div>
+
+    <div class="q-card learn">
+      <div class="q-head">
+        <span class="q-emoji">💡</span>
+        <div>
+          <div class="q-title">What did you learn?</div>
+          <div class="q-hint">About the problem, the team, the craft — or yourself.</div>
+        </div>
+      </div>
+      <textarea id="q-learn" placeholder="Your biggest takeaway…"></textarea>
+    </div>
+
+    <div class="q-card next">
+      <div class="q-head">
+        <span class="q-emoji">🚀</span>
+        <div>
+          <div class="q-title">What should we do differently next time?</div>
+          <div class="q-hint">One concrete thing that would've made this sprint better.</div>
+        </div>
+      </div>
+      <textarea id="q-next" placeholder="If you had a magic wand…"></textarea>
+    </div>
+
+    <div class="mood-card">
+      <div class="mood-label">Overall vibe</div>
+      <div class="mood-emojis" id="mood-emojis">
+        <button type="button" class="mood-btn" data-mood="1" data-desc="Rough. Let's fix this.">😭</button>
+        <button type="button" class="mood-btn" data-mood="2" data-desc="Kinda off.">😕</button>
+        <button type="button" class="mood-btn" data-mood="3" data-desc="It was fine.">😐</button>
+        <button type="button" class="mood-btn" data-mood="4" data-desc="Pretty good!">😊</button>
+        <button type="button" class="mood-btn" data-mood="5" data-desc="Loved it. More please.">🤩</button>
+      </div>
+      <div class="mood-desc" id="mood-desc">Tap an emoji to rate the vibe</div>
+    </div>
+
+    <div class="submit-wrap">
+      <button type="button" class="btn-submit" id="btn-submit" disabled>Send my retro <span class="arrow">→</span></button>
+      <div class="submit-note">Only your name is required. Everything else is optional.</div>
+      <div class="err" id="err"></div>
+    </div>
+  </section>
+</main>
+
+<div id="done" class="hidden">
+  <div class="done-mark"></div>
+  <h2 class="done-title">Thanks for the <em>honesty.</em></h2>
+  <p class="done-sub">Your retro is saved. We'll read it, learn from it, and do better next sprint.</p>
+  <a href="#" class="done-btn" id="done-another">Submit another →</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL  = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
+
+let db = null;
+let currentSprintId = null;
+let selectedMood = null;
+
+// ─── Constellation bg ───
+(function () {
+  const canvas = document.getElementById('constellation');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts;
+  const N = 55, CONN = 160;
+  const resize = () => {
+    W = canvas.width  = innerWidth;
+    H = canvas.height = innerHeight;
+    pts = Array.from({length: N}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.2, vy: (Math.random()-0.5)*0.2
+    }));
+  };
+  const tick = () => {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of pts) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+    }
+    for (let i = 0; i < N; i++) for (let j = i+1; j < N; j++) {
+      const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+      const d = Math.hypot(dx, dy);
+      if (d < CONN) {
+        ctx.strokeStyle = `rgba(255,255,255,${0.05*(1-d/CONN)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[j].x, pts[j].y); ctx.stroke();
+      }
+    }
+    for (const p of pts) { ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.arc(p.x,p.y,1,0,Math.PI*2); ctx.fill(); }
+    requestAnimationFrame(tick);
+  };
+  addEventListener('resize', resize); resize(); tick();
+})();
+
+// ─── Init ───
+async function init() {
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Restore name
+  const storedName = localStorage.getItem('voter_name') || localStorage.getItem('retro_name');
+  if (storedName) document.getElementById('name-input').value = storedName;
+
+  // Load sprint
+  const sprintId = new URLSearchParams(location.search).get('sprint');
+  let q = db.from('sprints').select('id,name,status');
+  q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
+  const { data, error } = await q;
+  if (data) {
+    currentSprintId = data.id;
+    document.getElementById('sprint-tag').textContent = data.name + (data.status==='archived' ? ' · archived' : '');
+  } else {
+    document.getElementById('sprint-tag').textContent = 'No sprint found';
+  }
+
+  // Mood emojis
+  document.querySelectorAll('.mood-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedMood = parseInt(btn.dataset.mood);
+      document.getElementById('mood-desc').textContent = btn.dataset.desc;
+    });
+  });
+
+  // Name input enables submit
+  const nameInput = document.getElementById('name-input');
+  const submitBtn = document.getElementById('btn-submit');
+  const refresh = () => { submitBtn.disabled = !nameInput.value.trim() || !currentSprintId; };
+  nameInput.addEventListener('input', refresh);
+  refresh();
+
+  submitBtn.addEventListener('click', submit);
+
+  // Another
+  document.getElementById('done-another').addEventListener('click', e => {
+    e.preventDefault(); location.reload();
+  });
+}
+
+async function submit() {
+  const submitBtn = document.getElementById('btn-submit');
+  const err = document.getElementById('err');
+  err.classList.remove('show');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+
+  const name = document.getElementById('name-input').value.trim();
+  const loved = document.getElementById('q-love').value.trim();
+  const annoyed = document.getElementById('q-hate').value.trim();
+  const learned = document.getElementById('q-learn').value.trim();
+  const next_try = document.getElementById('q-next').value.trim();
+
+  localStorage.setItem('retro_name', name);
+
+  const payload = {
+    sprint_id: currentSprintId,
+    name,
+    loved: loved || null,
+    annoyed: annoyed || null,
+    learned: learned || null,
+    next_try: next_try || null,
+    mood: selectedMood || null,
+  };
+
+  const { error } = await db.from('retros').insert(payload);
+  if (error) {
+    console.error(error);
+    err.textContent = 'Something went wrong: ' + error.message;
+    err.classList.add('show');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Send my retro <span class="arrow">→</span>';
+    return;
+  }
+
+  showDone();
+}
+
+function showDone() {
+  document.getElementById('form-view').classList.add('hidden');
+  const done = document.getElementById('done');
+  done.classList.remove('hidden');
+  launchConfetti();
+}
+
+function launchConfetti() {
+  const colors = ['#B8FF4A','#FF5C8A','#00E5FF','#FFB800','#ffffff'];
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.background = colors[i % colors.length];
+    p.style.left = (50 + (Math.random()-0.5)*10) + '%';
+    p.style.top = '50%';
+    document.body.appendChild(p);
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 200 + Math.random() * 420;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 100;
+    p.animate([
+      { transform: 'translate(-50%,-50%) rotate(0deg)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${(Math.random()-0.5)*720}deg)`, opacity: 0 }
+    ], { duration: 1100 + Math.random()*600, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'forwards' });
+    setTimeout(() => p.remove(), 2000);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
