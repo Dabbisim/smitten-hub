@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demo Day · Smitten</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,300;1,400&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #06060A;
+  --text: #ffffff;
+  --text-dim: rgba(255,255,255,0.55);
+  --text-faint: rgba(255,255,255,0.2);
+  --border: rgba(255,255,255,0.08);
+  --c1: #00E5FF;   /* cyan */
+  --c2: #FFB800;   /* amber */
+  --c3: #FF5C8A;   /* rose */
+  --c4: #B8FF4A;   /* lime */
+  --c5: #A78BFA;   /* violet */
+  --gold: #FFD76B;
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--bg); cursor: none; }
+body { font-family: 'DM Sans', sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+
+/* ── CUSTOM CURSOR ── */
+#cursor {
+  position: fixed; z-index: 9999;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--c3);
+  pointer-events: none;
+  transition: width .25s, height .25s, background .5s, opacity .2s;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+}
+#cursor.big { width: 48px; height: 48px; }
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ── STAGE LIGHTS (unique to demo-day) ── */
+.stage-lights {
+  position: fixed; inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.spotlight {
+  position: absolute;
+  width: 80vw; height: 80vw;
+  max-width: 900px; max-height: 900px;
+  border-radius: 50%;
+  filter: blur(180px);
+  opacity: 0.2;
+  animation: drift 22s ease-in-out infinite;
+}
+.spot-1 { background: radial-gradient(circle, rgba(255,92,138,1), transparent 60%); top: -25%; left: -15%; }
+.spot-2 { background: radial-gradient(circle, rgba(255,184,0,0.9), transparent 60%); bottom: -25%; right: -15%; animation-delay: -7s; animation-duration: 28s; }
+.spot-3 { background: radial-gradient(circle, rgba(167,139,250,0.8), transparent 60%); top: 35%; left: 40%; animation-delay: -14s; animation-duration: 32s; opacity: 0.15; }
+@keyframes drift {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(40px,-30px) scale(1.05); }
+  66%     { transform: translate(-30px,20px) scale(0.98); }
+}
+
+#constellation { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.55; }
+
+/* ── DECK ── */
+.deck { position: fixed; inset: 0; z-index: 1; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5vw;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+  text-align: center;
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+/* ── SHARED ELEMENTS ── */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  font-size: clamp(0.7rem, 1.1vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--c3);
+  margin-bottom: 2.5vh;
+  opacity: 0;
+}
+.eyebrow::before, .eyebrow::after {
+  content: ''; display: block;
+  width: 44px; height: 1.5px;
+  background: currentColor; opacity: 0.6;
+  box-shadow: 0 0 8px currentColor;
+}
+.slide.active .eyebrow { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.1s forwards; }
+
+.title {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  line-height: 0.88;
+  letter-spacing: -0.045em;
+  color: var(--text);
+  opacity: 0;
+}
+.title em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--c3);
+  text-shadow: 0 0 60px currentColor, 0 0 120px rgba(255,92,138,0.3);
+  letter-spacing: -0.01em;
+}
+.slide.active .title { animation: slideUp 1s cubic-bezier(0.16,1,0.3,1) 0.25s forwards; }
+
+.sub {
+  font-size: clamp(1rem, 1.7vw, 1.3rem);
+  color: var(--text-dim);
+  max-width: 780px;
+  line-height: 1.5;
+  margin-top: 3vh;
+  opacity: 0;
+  font-weight: 300;
+}
+.slide.active .sub { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.5s forwards; }
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes pulseGlow {
+  0%,100% { box-shadow: 0 0 30px rgba(255,92,138,0.35), 0 0 80px rgba(255,92,138,0.15); }
+  50%     { box-shadow: 0 0 50px rgba(255,92,138,0.55), 0 0 120px rgba(255,92,138,0.25); }
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 0 — WELCOME
+───────────────────────────────────────────── */
+#s0 .title {
+  font-size: clamp(4rem, 14vw, 14rem);
+  background: linear-gradient(90deg, #fff 10%, var(--gold) 35%, #fff 60%, var(--c3) 85%, #fff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite, slideUp 1s cubic-bezier(0.16,1,0.3,1) 0.25s forwards;
+}
+#s0 .title em {
+  background: none;
+  -webkit-background-clip: initial;
+  color: var(--c3);
+  -webkit-text-fill-color: var(--c3);
+  text-shadow: 0 0 60px var(--c3), 0 0 120px rgba(255,92,138,0.4);
+}
+.sprint-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 4vh;
+  padding: 0.5rem 1.1rem;
+  background: rgba(255,215,107,0.08);
+  border: 1px solid rgba(255,215,107,0.3);
+  border-radius: 99px;
+  font-size: 0.82rem;
+  color: var(--gold);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  opacity: 0;
+}
+.sprint-chip::before { content: '●'; font-size: 0.6rem; animation: fadeIn 0.5s infinite alternate; }
+.slide.active .sprint-chip { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+
+.press-hint {
+  margin-top: 7vh;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+.hint-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px; height: 27px;
+  border: 1px solid var(--text-faint);
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+.slide.active .press-hint { animation: fadeIn 1s ease 1.1s forwards; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 1 — LINEUP
+───────────────────────────────────────────── */
+#s1 .title { font-size: clamp(2.6rem, 6vw, 4.8rem); }
+#s1 .title em { color: var(--gold); text-shadow: 0 0 50px var(--gold), 0 0 110px rgba(255,215,107,0.3); }
+
+.lineup {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  max-width: 1200px;
+  width: 100%;
+  margin-top: 6vh;
+}
+.act {
+  position: relative;
+  padding: 2rem 1.5rem;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  text-align: left;
+  opacity: 0;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  transition: transform .4s cubic-bezier(0.16,1,0.3,1), border-color .3s;
+}
+.act:hover { transform: translateY(-6px); }
+.act::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(var(--act-rgb),0.12) 0%, transparent 60%);
+  pointer-events: none;
+  opacity: 0.9;
+}
+.act::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--act-color);
+  box-shadow: 0 0 24px var(--act-color);
+}
+.slide.active .act { animation: scaleIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .act:nth-child(1) { animation-delay: 0.5s; }
+.slide.active .act:nth-child(2) { animation-delay: 0.65s; }
+.slide.active .act:nth-child(3) { animation-delay: 0.8s; }
+.slide.active .act:nth-child(4) { animation-delay: 0.95s; }
+.slide.active .act:nth-child(5) { animation-delay: 1.1s; }
+
+.act-no {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--act-color);
+  margin-bottom: 1.2rem;
+  display: flex; align-items: center; gap: .6em;
+  position: relative; z-index: 1;
+}
+.act-no-bullet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(var(--act-rgb),0.12);
+  border: 1px solid var(--act-color);
+  color: var(--act-color);
+  font-family: 'Clash Display', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.act-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.3rem, 2.1vw, 1.75rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 1rem;
+  min-height: 2.2em;
+  position: relative; z-index: 1;
+}
+.act-meta {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: space-between;
+  position: relative; z-index: 1;
+}
+.act-meta strong {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--act-color);
+}
+
+#s1 .sub { margin-top: 2vh; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 2 — KICKOFF
+───────────────────────────────────────────── */
+#s2 .title { font-size: clamp(3.5rem, 10vw, 8.5rem); }
+#s2 .title em {
+  color: var(--gold);
+  text-shadow: 0 0 80px var(--gold), 0 0 160px rgba(255,215,107,0.35);
+}
+#s2 .eyebrow { color: var(--gold); }
+.curtain-cta {
+  margin-top: 6vh;
+  padding: 1.2rem 3rem;
+  background: linear-gradient(135deg, var(--gold), #FFC947);
+  color: #0a0a0a;
+  border: none;
+  border-radius: 99px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  opacity: 0;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), box-shadow 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  animation-fill-mode: forwards;
+}
+.slide.active .curtain-cta { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s forwards, pulseGlow 3.5s ease-in-out 2s infinite; }
+.curtain-cta:hover { transform: translateY(-3px) scale(1.03); }
+.cta-note {
+  margin-top: 3vh;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  letter-spacing: 0.06em;
+  opacity: 0;
+}
+.slide.active .cta-note { animation: fadeIn 1s ease 1.2s forwards; }
+
+/* ─────────────────────────────────────────────
+   NAV / COUNTER / FULLSCREEN
+───────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  bottom: 2.5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.nav-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+}
+.nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: var(--text); }
+.nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.nav-dots { display: flex; gap: 0.4rem; }
+.nav-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-faint);
+  border: none; cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+.nav-dot.active { width: 24px; border-radius: 6px; background: var(--gold); }
+.nav-dot:hover { background: var(--text-dim); }
+
+.counter {
+  position: fixed;
+  top: 2.5vh; right: 3vw;
+  z-index: 100;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--text-faint);
+  font-feature-settings: "tnum";
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.counter-current { color: var(--gold); font-weight: 600; }
+
+#btn-fullscreen {
+  position: fixed; top: 2.5vh; left: 3vw; z-index: 100;
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+#btn-fullscreen:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+#btn-fullscreen svg { width: 18px; height: 18px; }
+
+.progress-bar-wrap { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 100; background: transparent; }
+.progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--c3), var(--gold)); transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+
+/* ── CONFETTI ── */
+.confetti-piece {
+  position: fixed; width: 10px; height: 10px;
+  pointer-events: none; z-index: 50;
+  top: 50%; left: 50%;
+  border-radius: 2px;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  html, body { cursor: default; }
+  #cursor { display: none; }
+  .slide { padding: 8vw 6vw; }
+  #s0 .title { font-size: clamp(3.5rem, 18vw, 6.5rem); }
+  #s2 .title { font-size: clamp(3rem, 15vw, 5.5rem); }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<div class="stage-lights">
+  <div class="spotlight spot-1"></div>
+  <div class="spotlight spot-2"></div>
+  <div class="spotlight spot-3"></div>
+</div>
+<canvas id="constellation"></canvas>
+
+<div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+<button id="btn-fullscreen" title="Toggle fullscreen">
+  <svg id="fs-icon-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M21 7V3h-4M3 17v4h4M21 17v4h-4"/></svg>
+  <svg id="fs-icon-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M8 3v4H4M16 3v4h4M8 21v-4H4M16 21v-4h4"/></svg>
+</button>
+
+<div class="counter">
+  <span class="counter-current" id="count-current">1</span>
+  <span>/</span>
+  <span id="count-total">3</span>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn" id="btn-prev" onclick="go(-1)" disabled>←</button>
+  <div class="nav-dots" id="nav-dots"></div>
+  <button class="nav-btn" id="btn-next" onclick="go(1)">→</button>
+</nav>
+
+<!-- ═══════ DECK ═══════ -->
+<div class="deck">
+
+  <!-- 0 · WELCOME -->
+  <div class="slide active" id="s0">
+    <div class="eyebrow"><span></span>Smitten presents<span></span></div>
+    <h1 class="title">Demo <em>Day</em></h1>
+    <p class="sub" id="s0-sub">Three teams. Three bets. Nine minutes to wow us.</p>
+    <div class="sprint-chip" id="sprint-chip">Loading…</div>
+    <div class="press-hint"><span class="hint-key">→</span><span>press to begin</span></div>
+  </div>
+
+  <!-- 1 · LINEUP -->
+  <div class="slide" id="s1">
+    <div class="eyebrow"><span></span>Today's lineup<span></span></div>
+    <h2 class="title">On the <em>stage</em></h2>
+    <div class="lineup" id="lineup">
+      <div style="grid-column:1/-1;color:var(--text-dim);font-style:italic;padding:2rem">Loading the lineup…</div>
+    </div>
+    <p class="sub" id="s1-sub">Pitch, prototype, applause. In that order.</p>
+  </div>
+
+  <!-- 2 · KICKOFF -->
+  <div class="slide" id="s2">
+    <div class="eyebrow"><span></span>Time to ship<span></span></div>
+    <h2 class="title">Let the <em>show</em><br>begin</h2>
+    <button class="curtain-cta" id="curtain-cta">🎬 Start the show</button>
+    <div class="cta-note">Hit the button for a little celebration · press ESC to exit</div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ═══════════════════════════════════════════════
+//  SLIDE ENGINE
+// ═══════════════════════════════════════════════
+
+const SLIDES = ['s0','s1','s2'];
+let current = 0;
+
+function buildDots() {
+  const wrap = document.getElementById('nav-dots');
+  wrap.innerHTML = '';
+  SLIDES.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'nav-dot' + (i === current ? ' active' : '');
+    d.onclick = () => goTo(i);
+    wrap.appendChild(d);
+  });
+  document.getElementById('count-total').textContent = SLIDES.length;
+}
+
+function goTo(idx) {
+  if (idx < 0 || idx >= SLIDES.length) return;
+  document.getElementById(SLIDES[current]).classList.remove('active');
+  current = idx;
+  const slide = document.getElementById(SLIDES[current]);
+  slide.classList.add('active');
+  slide.querySelectorAll('.eyebrow, .title, .sub, .sprint-chip, .press-hint, .act, .curtain-cta, .cta-note').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  });
+  document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  document.getElementById('count-current').textContent = current + 1;
+  const pct = ((current) / (SLIDES.length - 1)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === SLIDES.length - 1;
+}
+
+function go(dir) { goTo(current + dir); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') goTo(0);
+  else if (e.key === 'End')  goTo(SLIDES.length - 1);
+  else if (e.key === 'f' || e.key === 'F') { document.getElementById('btn-fullscreen').click(); }
+});
+
+document.querySelector('.deck').addEventListener('click', e => {
+  if (e.target.closest('.nav') || e.target.closest('.nav-btn') || e.target.closest('.nav-dot') || e.target.closest('.curtain-cta')) return;
+  go(1);
+});
+
+let touchX = 0;
+document.addEventListener('touchstart', e => touchX = e.touches[0].clientX, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+// ═══════════════════════════════════════════════
+//  FULLSCREEN
+// ═══════════════════════════════════════════════
+const btnFS = document.getElementById('btn-fullscreen');
+const fsEnter = document.getElementById('fs-icon-enter');
+const fsExit  = document.getElementById('fs-icon-exit');
+function updateFSIcon() {
+  const isFS = !!document.fullscreenElement;
+  fsEnter.style.display = isFS ? 'none' : '';
+  fsExit.style.display  = isFS ? '' : 'none';
+}
+btnFS.addEventListener('click', () => {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen().catch(()=>{});
+});
+document.addEventListener('fullscreenchange', updateFSIcon);
+
+// ═══════════════════════════════════════════════
+//  CUSTOM CURSOR
+// ═══════════════════════════════════════════════
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; });
+document.addEventListener('mouseenter', () => cursor.style.opacity = '1');
+document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
+document.querySelectorAll('button, a, .nav-dot, #btn-fullscreen').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+});
+
+// ═══════════════════════════════════════════════
+//  CONSTELLATION
+// ═══════════════════════════════════════════════
+(function () {
+  const canvas = document.getElementById('constellation');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts;
+  const N = 50, CONN = 180;
+  const resize = () => {
+    W = canvas.width = innerWidth; H = canvas.height = innerHeight;
+    pts = Array.from({length: N}, () => ({ x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-0.5)*0.25, vy: (Math.random()-0.5)*0.25 }));
+  };
+  const tick = () => {
+    ctx.clearRect(0,0,W,H);
+    for (const p of pts) { p.x+=p.vx; p.y+=p.vy; if (p.x<0||p.x>W) p.vx*=-1; if (p.y<0||p.y>H) p.vy*=-1; }
+    for (let i=0;i<N;i++) for (let j=i+1;j<N;j++) {
+      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.hypot(dx,dy);
+      if (d<CONN) {
+        ctx.strokeStyle = `rgba(255,255,255,${0.05*(1-d/CONN)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y); ctx.stroke();
+      }
+    }
+    for (const p of pts) { ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.beginPath(); ctx.arc(p.x,p.y,1,0,Math.PI*2); ctx.fill(); }
+    requestAnimationFrame(tick);
+  };
+  addEventListener('resize', resize); resize(); tick();
+})();
+
+// ═══════════════════════════════════════════════
+//  LOAD SPRINT + POPULATE LINEUP
+// ═══════════════════════════════════════════════
+const SUPABASE_URL = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
+const COLORS = [
+  {hex:'#00E5FF',rgb:'0,229,255'},
+  {hex:'#FFB800',rgb:'255,184,0'},
+  {hex:'#FF5C8A',rgb:'255,92,138'},
+  {hex:'#B8FF4A',rgb:'184,255,74'},
+  {hex:'#A78BFA',rgb:'167,139,250'}
+];
+
+function escapeH(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m])}
+
+async function loadSprint() {
+  const sprintId = new URLSearchParams(location.search).get('sprint');
+  try {
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let q = db.from('sprints').select('id,name,challenges,status');
+    q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
+    const { data: sprint } = await q;
+    if (!sprint) {
+      document.getElementById('sprint-chip').textContent = 'No sprint found';
+      return;
+    }
+    document.getElementById('sprint-chip').textContent = sprint.name;
+    const challenges = sprint.challenges || [];
+
+    // Fetch vote counts per team for this sprint (requires auth for RLS)
+    let teamCounts = {};
+    try {
+      let vq = db.from('votes').select('team_assignment,first_choice');
+      if (sprint.id) vq = vq.eq('sprint_id', sprint.id);
+      const { data: votes } = await vq;
+      (votes || []).forEach(v => {
+        const team = v.team_assignment ?? v.first_choice;
+        if (!team) return;
+        teamCounts[team] = (teamCounts[team] || 0) + 1;
+      });
+    } catch (e) { /* RLS denied — fall back to no counts */ }
+
+    const lineup = document.getElementById('lineup');
+    lineup.innerHTML = challenges.map((c, i) => {
+      const color = COLORS[i % COLORS.length];
+      const id = c.id ?? (i + 1);
+      const count = teamCounts[id] || 0;
+      const countLabel = count > 0 ? `<strong>${count}</strong> on stage` : 'Team assembling';
+      return `
+        <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb}">
+          <div class="act-no"><span class="act-no-bullet">${String(i+1).padStart(2,'0')}</span>Challenge ${String(i+1).padStart(2,'0')}</div>
+          <div class="act-title">${escapeH(c.title || 'Untitled')}</div>
+          <div class="act-meta"><span>Team ${i+1}</span><span>${countLabel}</span></div>
+        </div>`;
+    }).join('');
+
+    // Tweak subtitle copy based on count
+    const n = challenges.length;
+    if (n > 0) {
+      const teamsWord = n === 1 ? 'team' : 'teams';
+      document.getElementById('s0-sub').textContent = `${n} ${teamsWord}. ${n} bet${n===1?'':'s'}. Time to show what we've built.`;
+    }
+  } catch(e) {
+    console.warn('Sprint load failed:', e);
+    document.getElementById('sprint-chip').textContent = 'Sprint unavailable';
+  }
+}
+
+loadSprint();
+buildDots();
+
+// ═══════════════════════════════════════════════
+//  CURTAIN CTA — confetti burst
+// ═══════════════════════════════════════════════
+document.getElementById('curtain-cta').addEventListener('click', launchConfetti);
+
+function launchConfetti() {
+  const colors = ['#FFD76B','#FF5C8A','#00E5FF','#FFB800','#B8FF4A','#ffffff'];
+  for (let i = 0; i < 140; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.background = colors[i % colors.length];
+    p.style.left = (50 + (Math.random()-0.5)*12) + '%';
+    p.style.top = '50%';
+    document.body.appendChild(p);
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 280 + Math.random() * 600;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 180;
+    p.animate([
+      { transform: 'translate(-50%,-50%) rotate(0deg)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${(Math.random()-0.5)*900}deg)`, opacity: 0 }
+    ], { duration: 1600 + Math.random()*900, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'forwards' });
+    setTimeout(() => p.remove(), 2800);
+  }
+}
+</script>
+</body>
+</html>
