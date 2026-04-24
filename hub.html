@@ -233,10 +233,15 @@ function showGate(){
 
 async function sendMagicLink(e){
   e?.preventDefault();
-  const email = document.getElementById('email-input').value.trim();
+  const email = document.getElementById('email-input').value.trim().toLowerCase();
   const msg = document.getElementById('auth-msg');
   const btn = document.getElementById('auth-btn');
   if (!email) { msg.style.color='var(--c3)'; msg.textContent = 'Enter your email'; return; }
+  if (email !== ADMIN_EMAIL.toLowerCase()) {
+    msg.style.color = 'var(--c3)';
+    msg.textContent = 'This email is not allowed.';
+    return;
+  }
   btn.disabled = true; btn.textContent = 'Sending…';
   const { error } = await db.auth.signInWithOtp({
     email,
