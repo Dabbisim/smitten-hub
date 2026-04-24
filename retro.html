@@ -163,6 +163,64 @@ h1.page-title em {
 }
 .field-name input::placeholder { color: var(--text-3); }
 
+.field-challenge {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 1.25rem 1.5rem;
+  backdrop-filter: blur(16px);
+}
+.field-challenge .fl-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 0.85rem;
+}
+.challenge-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.ch-chip {
+  width: 100%;
+  text-align: left;
+  padding: 0.9rem 1.1rem;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-2);
+  font-family: 'Clash Display', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .2s, border-color .2s, color .2s, transform .15s;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  letter-spacing: -0.01em;
+}
+.ch-chip:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+.ch-chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--chip-color,#fff); flex-shrink: 0; transition: box-shadow .2s; }
+.ch-chip.active {
+  background: rgba(var(--chip-rgb),0.08);
+  border-color: var(--chip-color);
+  color: var(--text);
+}
+.ch-chip.active .dot { box-shadow: 0 0 0 4px rgba(var(--chip-rgb),0.18); }
+.ch-chip .num {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-left: auto;
+}
+.ch-chip.active .num { color: var(--chip-color); }
+
 .q-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -409,9 +467,11 @@ h1.page-title em {
   <div class="sprint-tag" id="sprint-tag">Loading sprint…</div>
 
   <section class="form">
-    <div class="field-name">
-      <label for="name-input">Your name</label>
-      <input id="name-input" type="text" placeholder="Type your name…" autocomplete="name">
+    <div class="field-challenge">
+      <div class="fl-label">Which challenge were you part of?</div>
+      <div class="challenge-chips" id="challenge-chips">
+        <div style="color:var(--text-3);font-size:0.9rem;font-style:italic;padding:.5rem 0">Loading challenges…</div>
+      </div>
     </div>
 
     <div class="q-card love">
@@ -472,7 +532,7 @@ h1.page-title em {
 
     <div class="submit-wrap">
       <button type="button" class="btn-submit" id="btn-submit" disabled>Send my retro <span class="arrow">→</span></button>
-      <div class="submit-note">Only your name is required. Everything else is optional.</div>
+      <div class="submit-note">Pick your challenge to submit. Everything else is optional — answer only what you feel.</div>
       <div class="err" id="err"></div>
     </div>
   </section>
@@ -489,9 +549,18 @@ h1.page-title em {
 const SUPABASE_URL  = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
 
+const COLORS = [
+  {hex:'#00E5FF',rgb:'0,229,255'},
+  {hex:'#FFB800',rgb:'255,184,0'},
+  {hex:'#FF5C8A',rgb:'255,92,138'},
+  {hex:'#B8FF4A',rgb:'184,255,74'},
+  {hex:'#A78BFA',rgb:'167,139,250'}
+];
 let db = null;
 let currentSprintId = null;
 let selectedMood = null;
+let selectedChallenge = null;
+let sprintChallenges = [];
 
 // ─── Constellation bg ───
 (function () {
@@ -533,22 +602,20 @@ let selectedMood = null;
 async function init() {
   db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Restore name
-  const storedName = localStorage.getItem('voter_name') || localStorage.getItem('retro_name');
-  if (storedName) document.getElementById('name-input').value = storedName;
-
-  // Load sprint
+  // Load sprint with challenges
   const sprintId = new URLSearchParams(location.search).get('sprint');
-  let q = db.from('sprints').select('id,name,status');
+  let q = db.from('sprints').select('id,name,status,challenges');
   q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
   const { data, error } = await q;
   if (data) {
     currentSprintId = data.id;
+    sprintChallenges = data.challenges || [];
     document.getElementById('sprint-tag').textContent = data.name + (data.status==='archived' ? ' · archived' : '');
     if (localStorage.getItem('retro_submitted_' + currentSprintId) === '1') {
       showDone();
       return;
     }
+    renderChallengeChips();
   } else {
     document.getElementById('sprint-tag').textContent = 'No sprint found';
   }
@@ -563,15 +630,43 @@ async function init() {
     });
   });
 
-  // Name input enables submit
-  const nameInput = document.getElementById('name-input');
   const submitBtn = document.getElementById('btn-submit');
-  const refresh = () => { submitBtn.disabled = !nameInput.value.trim() || !currentSprintId; };
-  nameInput.addEventListener('input', refresh);
-  refresh();
-
+  refreshSubmit();
   submitBtn.addEventListener('click', submit);
 }
+
+function renderChallengeChips() {
+  const wrap = document.getElementById('challenge-chips');
+  if (!sprintChallenges.length) {
+    wrap.innerHTML = '<div style="color:var(--text-3);font-size:0.9rem;font-style:italic;padding:.5rem 0">This sprint has no challenges.</div>';
+    return;
+  }
+  wrap.innerHTML = sprintChallenges.map((c, i) => {
+    const color = COLORS[i % COLORS.length];
+    const id = c.id ?? (i + 1);
+    const num = 'Challenge ' + String(i + 1).padStart(2, '0');
+    return `<button type="button" class="ch-chip" data-challenge-id="${id}" style="--chip-color:${color.hex};--chip-rgb:${color.rgb}">
+      <span class="dot"></span>
+      <span>${escapeH(c.title || 'Untitled')}</span>
+      <span class="num">${num}</span>
+    </button>`;
+  }).join('');
+  wrap.querySelectorAll('.ch-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      wrap.querySelectorAll('.ch-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedChallenge = parseInt(btn.dataset.challengeId);
+      refreshSubmit();
+    });
+  });
+}
+
+function refreshSubmit() {
+  const submitBtn = document.getElementById('btn-submit');
+  submitBtn.disabled = !currentSprintId || !selectedChallenge;
+}
+
+function escapeH(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m])}
 
 async function submit() {
   const submitBtn = document.getElementById('btn-submit');
@@ -580,17 +675,15 @@ async function submit() {
   submitBtn.disabled = true;
   submitBtn.textContent = 'Sending…';
 
-  const name = document.getElementById('name-input').value.trim();
   const loved = document.getElementById('q-love').value.trim();
   const annoyed = document.getElementById('q-hate').value.trim();
   const learned = document.getElementById('q-learn').value.trim();
   const next_try = document.getElementById('q-next').value.trim();
 
-  localStorage.setItem('retro_name', name);
-
   const payload = {
     sprint_id: currentSprintId,
-    name,
+    challenge_id: selectedChallenge,
+    name: null,
     loved: loved || null,
     annoyed: annoyed || null,
     learned: learned || null,

@@ -1087,6 +1087,8 @@ async function loadRetros() {
   }
 }
 
+const CHALLENGE_COLORS = ['#00E5FF','#FFB800','#FF5C8A','#B8FF4A','#A78BFA'];
+
 function renderRetroCard(r) {
   const moods = {1:'😭',2:'😕',3:'😐',4:'😊',5:'🤩'};
   const moodEmoji = moods[r.mood] || '';
@@ -1100,24 +1102,43 @@ function renderRetroCard(r) {
   const body = parts.length
     ? parts.map(p => `<div><div class="retro-part-label" style="color:${p.color}"><span>${p.icon}</span> ${p.label}</div><div class="retro-part-text">${escapeRetro(p.text)}</div></div>`).join('')
     : '<div style="color:var(--text-3);font-size:0.82rem;font-style:italic;">Mood rating only — no written feedback.</div>';
+
+  // Compute label: challenge if present, else fall back to name (legacy retros)
+  let label, labelColor, subtext;
+  if (r.challenge_id) {
+    const ch = (CHALLENGES || []).find(c => c.id === r.challenge_id);
+    const idx = ch ? CHALLENGES.indexOf(ch) : (r.challenge_id - 1);
+    labelColor = CHALLENGE_COLORS[idx % CHALLENGE_COLORS.length] || '#ffffff';
+    label = ch ? ch.title : `Challenge ${String(r.challenge_id).padStart(2,'0')}`;
+    subtext = `Challenge ${String(r.challenge_id).padStart(2,'0')} · ${date}`;
+  } else if (r.name) {
+    label = escapeRetro(r.name);
+    labelColor = 'var(--text)';
+    subtext = date;
+  } else {
+    label = 'Anonymous';
+    labelColor = 'var(--text-3)';
+    subtext = date;
+  }
+
   return `
     <div class="retro-card" data-retro-id="${r.id}">
       <div class="retro-head">
-        <div>
-          <div class="retro-name">${escapeRetro(r.name)}</div>
-          <div class="retro-date">${date}</div>
+        <div style="min-width:0">
+          <div class="retro-name" style="color:${labelColor}">${label}</div>
+          <div class="retro-date">${subtext}</div>
         </div>
         <div class="retro-head-right">
           ${moodEmoji ? `<div class="retro-mood">${moodEmoji}</div>` : ''}
-          <button class="retro-delete" title="Delete retro" onclick="deleteRetro('${r.id}', '${escapeRetro(r.name).replace(/'/g,'&#39;')}')">✕</button>
+          <button class="retro-delete" title="Delete retro" onclick="deleteRetro('${r.id}')">✕</button>
         </div>
       </div>
       <div class="retro-body">${body}</div>
     </div>`;
 }
 
-async function deleteRetro(id, name) {
-  if (!confirm(`Delete ${name}'s retro? This cannot be undone.`)) return;
+async function deleteRetro(id) {
+  if (!confirm(`Delete this retro? This cannot be undone.`)) return;
   // Optimistic: remove the card immediately for snappy feedback
   const card = document.querySelector(`.retro-card[data-retro-id="${id}"]`);
   if (card) {
