@@ -836,7 +836,7 @@ function rebuildChallengeSlides(challenges) {
     const descEl  = slide.querySelector('.challenge-desc');
     const conEl   = slide.querySelector('.constraint-text');
     const conBox  = slide.querySelector('.constraint-box');
-    if (titleEl) titleEl.innerHTML = (c.title || '').replace(/\s(\S+)$/, '<br>$1');
+    if (titleEl) titleEl.innerHTML = (c.title || '').replace(/\.+$/, '').replace(/\s(\S+)$/, '<br>$1');
     if (descEl)  descEl.textContent = c.description || '';
     if (c.constraint) {
       if (conEl) conEl.textContent = c.constraint;
