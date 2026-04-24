@@ -728,7 +728,7 @@ body::after {
 <div class="counter">
   <span class="counter-current" id="count-current">1</span>
   <span>/</span>
-  <span id="count-total">14</span>
+  <span id="count-total">13</span>
 </div>
 
 <nav class="nav">
@@ -823,23 +823,6 @@ body::after {
     <div class="goal-banner">Our goal: <strong>40%</strong> · Best in class (Hinge): <strong>30%</strong></div>
   </div>
 
-  <!-- 7 · INTENT + EMOTION -->
-  <div class="slide" id="s7">
-    <div class="glow"></div>
-    <div class="eyebrow"><span></span>For users<span></span></div>
-    <h2 class="title" style="font-size:clamp(1.8rem,3.5vw,2.6rem);color:var(--text-dim);font-weight:500">Two simple truths</h2>
-    <div class="dual-labels">
-      <div class="dual-item">
-        <div class="dual-lbl">Intent</div>
-        <div class="dual-val">Having <em>conversations</em> with your matches</div>
-      </div>
-      <div class="dual-item">
-        <div class="dual-lbl">Emotional outcome</div>
-        <div class="dual-val">Emotional <em>connection</em></div>
-      </div>
-    </div>
-  </div>
-
   <!-- 8 · FUN, REDEFINED -->
   <div class="slide" id="s8">
     <div class="glow"></div>
@@ -931,7 +914,7 @@ body::after {
 //  SLIDE ENGINE
 // ═══════════════════════════════════════════════
 
-const SLIDES = Array.from({length:14}, (_,i)=>'s'+i);
+const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s8','s9','s10','s11','s12','s13'];
 let current = 0;
 
 function buildDots() {
