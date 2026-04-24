@@ -316,6 +316,35 @@ body::after {
   font-weight: 600;
   color: var(--act-color);
 }
+.act-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  position: relative; z-index: 1;
+}
+.member-chip {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  background: rgba(var(--act-rgb), 0.1);
+  border: 1px solid rgba(var(--act-rgb), 0.25);
+  border-radius: 99px;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  transition: background .2s;
+}
+.member-chip:hover { background: rgba(var(--act-rgb), 0.18); }
+.act-members-empty {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-faint);
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  position: relative; z-index: 1;
+}
 
 #s1 .sub { margin-top: 2vh; }
 
@@ -491,7 +520,6 @@ body::after {
     <div class="lineup" id="lineup">
       <div style="grid-column:1/-1;color:var(--text-dim);font-style:italic;padding:2rem">Loading the lineup…</div>
     </div>
-    <p class="sub" id="s1-sub">Pitch, prototype, applause. In that order.</p>
   </div>
 
   <!-- 2 · KICKOFF -->
@@ -651,32 +679,36 @@ async function loadSprint() {
       return;
     }
     document.getElementById('sprint-chip').textContent = sprint.name;
-    const challenges = sprint.challenges || [];
+    // Reverse the challenge order for presentation (biggest bet goes last)
+    const challenges = (sprint.challenges || []).slice().reverse();
 
-    // Fetch vote counts per team for this sprint (requires auth for RLS)
-    let teamCounts = {};
+    // Fetch team members (requires admin session for RLS)
+    let teamMembers = {};
     try {
-      let vq = db.from('votes').select('team_assignment,first_choice');
+      let vq = db.from('votes').select('voter_name,team_assignment,first_choice').order('voter_name',{ascending:true});
       if (sprint.id) vq = vq.eq('sprint_id', sprint.id);
       const { data: votes } = await vq;
       (votes || []).forEach(v => {
         const team = v.team_assignment ?? v.first_choice;
         if (!team) return;
-        teamCounts[team] = (teamCounts[team] || 0) + 1;
+        (teamMembers[team] = teamMembers[team] || []).push(v.voter_name);
       });
-    } catch (e) { /* RLS denied — fall back to no counts */ }
+    } catch (e) { /* RLS denied — fall back to empty */ }
 
     const lineup = document.getElementById('lineup');
     lineup.innerHTML = challenges.map((c, i) => {
       const color = COLORS[i % COLORS.length];
       const id = c.id ?? (i + 1);
-      const count = teamCounts[id] || 0;
-      const countLabel = count > 0 ? `<strong>${count}</strong> on stage` : 'Team assembling';
+      const members = teamMembers[id] || [];
+      const num = String(i+1).padStart(2,'0');
+      const membersHtml = members.length
+        ? `<div class="act-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
+        : `<div class="act-members-empty">Team assembling…</div>`;
       return `
         <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb}">
-          <div class="act-no"><span class="act-no-bullet">${String(i+1).padStart(2,'0')}</span>Challenge ${String(i+1).padStart(2,'0')}</div>
+          <div class="act-no"><span class="act-no-bullet">${num}</span>Challenge ${num}</div>
           <div class="act-title">${escapeH(c.title || 'Untitled')}</div>
-          <div class="act-meta"><span>Team ${i+1}</span><span>${countLabel}</span></div>
+          ${membersHtml}
         </div>`;
     }).join('');
 
