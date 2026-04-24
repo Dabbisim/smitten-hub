@@ -985,7 +985,6 @@
     <div class="voter-name-tag">Voting as <span id="voter-display-name"></span></div>
     <h2>Rank Your Choices</h2>
     <p>Tap a rank for each challenge</p>
-    <div id="deadline-badge" class="deadline-badge hidden"></div>
   </div>
   <div class="challenge-cards" id="challenge-cards"></div>
   <div class="submit-wrap">
@@ -1213,27 +1212,6 @@ function showChallenges() {
   show('challenges');
   document.getElementById('voter-display-name').textContent = voterName;
 
-  // Show deadline badge if sprint has an end date
-  const badge = document.getElementById('deadline-badge');
-  if (currentSprintEndsAt) {
-    const dl = new Date(currentSprintEndsAt);
-    const now = new Date();
-    const diffMs = dl - now;
-    let label;
-    if (diffMs < 0) {
-      label = 'Voting closed';
-    } else {
-      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      if (diffDays === 0) label = 'Voting closes today';
-      else if (diffDays === 1) label = 'Voting closes tomorrow';
-      else label = `Voting closes in ${diffDays} days`;
-    }
-    badge.textContent = '⏱ ' + label;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
-
   const container = document.getElementById('challenge-cards');
   container.innerHTML = '';
 
@@ -1311,14 +1289,15 @@ function clearRankHighlight(challengeId) {
 function updateSubmitButton() {
   const btn = document.getElementById('vote-submit');
   const hint = document.getElementById('submit-hint');
-  const ranked = Object.keys(rankings).length;
-  if (ranked === 3) {
+  const ranks = Object.values(rankings);
+  const hasAllThree = ranks.includes(1) && ranks.includes(2) && ranks.includes(3);
+  if (hasAllThree) {
     btn.disabled = false;
     hint.textContent = 'Ready to submit!';
     hint.style.color = 'var(--cyan)';
   } else {
     btn.disabled = true;
-    hint.textContent = `Rank all 3 challenges to continue (${ranked}/3)`;
+    hint.textContent = `Pick your top 3 — ${ranks.length}/3 ranked`;
     hint.style.color = '';
   }
 }
