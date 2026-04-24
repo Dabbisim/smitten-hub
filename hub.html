@@ -144,7 +144,9 @@ input[type="datetime-local"].fi{color-scheme:dark}
   <p class="gate-sub">Sign in to manage sprints.</p>
   <form class="pwd-form" id="auth-form">
     <input type="email" class="pwd-input email-input" id="email-input" placeholder="your@email.com" autocomplete="email" required>
-    <button class="pwd-btn" type="submit" id="auth-btn">Send magic link</button>
+    <input type="password" class="pwd-input email-input" id="password-input" placeholder="Password" autocomplete="current-password">
+    <button class="pwd-btn" type="submit" id="auth-btn">Sign in</button>
+    <a href="#" id="magic-link-btn" style="font-size:.78rem;color:var(--t2);text-decoration:none;letter-spacing:.02em">or send me a magic link</a>
     <p class="pwd-err" id="auth-msg"></p>
   </form>
 </div>
@@ -231,6 +233,30 @@ function showGate(){
   document.getElementById('dash').classList.add('hidden');
 }
 
+async function signIn(e){
+  e?.preventDefault();
+  const email = document.getElementById('email-input').value.trim().toLowerCase();
+  const password = document.getElementById('password-input').value;
+  const msg = document.getElementById('auth-msg');
+  const btn = document.getElementById('auth-btn');
+  if (!email) { msg.style.color='var(--c3)'; msg.textContent = 'Enter your email'; return; }
+  if (email !== ADMIN_EMAIL.toLowerCase()) {
+    msg.style.color = 'var(--c3)';
+    msg.textContent = 'This email is not allowed.';
+    return;
+  }
+  if (!password) { msg.style.color='var(--c3)'; msg.textContent = 'Enter your password (or use the magic link link below)'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  if (error) {
+    msg.style.color = 'var(--c3)';
+    msg.textContent = error.message;
+    btn.disabled = false; btn.textContent = 'Sign in';
+    return;
+  }
+  // onAuthStateChange will handle session → dashboard
+}
+
 async function sendMagicLink(e){
   e?.preventDefault();
   const email = document.getElementById('email-input').value.trim().toLowerCase();
@@ -250,12 +276,12 @@ async function sendMagicLink(e){
   if (error) {
     msg.style.color = 'var(--c3)';
     msg.textContent = error.message;
-    btn.disabled = false; btn.textContent = 'Send magic link';
+    btn.disabled = false; btn.textContent = 'Sign in';
     return;
   }
   msg.style.color = 'var(--c1)';
   msg.textContent = '✓ Check your email for a sign-in link.';
-  btn.textContent = 'Link sent';
+  btn.disabled = false; btn.textContent = 'Sign in';
 }
 
 async function signOut(){
@@ -263,7 +289,8 @@ async function signOut(){
   location.reload();
 }
 
-document.getElementById('auth-form').addEventListener('submit', sendMagicLink);
+document.getElementById('auth-form').addEventListener('submit', signIn);
+document.getElementById('magic-link-btn').addEventListener('click', sendMagicLink);
 db.auth.onAuthStateChange((_event, session) => handleSession(session));
 db.auth.getSession().then(({data}) => handleSession(data.session));
 
