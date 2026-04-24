@@ -1218,22 +1218,37 @@ function render() {
 }
 
 function renderStats() {
-  // Count per challenge per rank position
-  const counts = {
-    1: { 1: 0, 2: 0, 3: 0 },
-    2: { 1: 0, 2: 0, 3: 0 },
-    3: { 1: 0, 2: 0, 3: 0 }
-  };
+  // Count per challenge per rank position — handles any number of challenges
+  const counts = {};
+  CHALLENGES.forEach(c => { counts[c.id] = { 1: 0, 2: 0, 3: 0 }; });
   votes.forEach(v => {
-    counts[v.first_choice][1]++;
-    counts[v.second_choice][2]++;
-    counts[v.third_choice][3]++;
+    if (counts[v.first_choice])  counts[v.first_choice][1]++;
+    if (counts[v.second_choice]) counts[v.second_choice][2]++;
+    if (counts[v.third_choice])  counts[v.third_choice][3]++;
   });
-  [1, 2, 3].forEach(c => {
-    document.getElementById(`s${c}-1st`).textContent = counts[c][1];
-    document.getElementById(`s${c}-2nd`).textContent = counts[c][2];
-    document.getElementById(`s${c}-3rd`).textContent = counts[c][3];
-  });
+
+  // Render the existing 3 stat cards. If the sprint has >3 challenges, only
+  // the first 3 are shown in the stat grid; the rest are still counted in
+  // the grouped grid and votes table below.
+  const row = document.getElementById('stats-row') || document.querySelector('.stats-row');
+  if (row) {
+    // Re-render the row dynamically to match CHALLENGES count
+    row.innerHTML = CHALLENGES.map((c, i) => {
+      const k = c.id;
+      const n = i + 1;
+      const cnt = counts[k] || { 1:0, 2:0, 3:0 };
+      return `
+        <div class="stat-card">
+          <div class="stat-challenge">Challenge ${n}</div>
+          <div class="stat-name" id="stat-name-${k}">${esc(c.title)}</div>
+          <div class="stat-counts">
+            <div class="stat-count-item"><div class="stat-count-num stat-count-1" id="s${k}-1st">${cnt[1]}</div><div class="stat-count-label">1st</div></div>
+            <div class="stat-count-item"><div class="stat-count-num stat-count-2" id="s${k}-2nd">${cnt[2]}</div><div class="stat-count-label">2nd</div></div>
+            <div class="stat-count-item"><div class="stat-count-num stat-count-3" id="s${k}-3rd">${cnt[3]}</div><div class="stat-count-label">3rd</div></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
 }
 
 function renderGrouped() {
