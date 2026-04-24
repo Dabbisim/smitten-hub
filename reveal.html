@@ -263,36 +263,26 @@ body::after {
   line-height: 1.5;
 }
 
-/* per-slide accent colours */
-#s1 { --accent: var(--c1); }
-#s1 .slide-glow { background: radial-gradient(circle, var(--c1), transparent 70%); top: -10%; right: -10%; }
-#s1 .challenge-eyebrow { color: var(--c1); }
-#s1 .eyebrow-line { background: var(--c1); }
-#s1 .watermark-num { -webkit-text-stroke-color: rgba(0,229,255,0.06); }
-#s1 .challenge-desc { background: rgba(0,229,255,0.05); border-color: rgba(0,229,255,0.2); color: rgba(0,229,255,0.82); }
-#s1 .constraint-box { background: rgba(0,229,255,0.05); border-color: rgba(0,229,255,0.2); color: var(--c1); }
-#s1 .constraint-label { color: var(--c1); }
-#s1 .constraint-text { color: rgba(0,229,255,0.75); }
+/* per-slide accent colours — cycles across any number of challenges */
+.challenge-slide { --accent: var(--c1); --accent-rgb: 0,229,255; }
+.challenge-slide.c1 { --accent: var(--c1); --accent-rgb: 0,229,255; }
+.challenge-slide.c2 { --accent: var(--c2); --accent-rgb: 255,184,0; }
+.challenge-slide.c3 { --accent: var(--c3); --accent-rgb: 255,92,138; }
+.challenge-slide.c4 { --accent: var(--cF); --accent-rgb: 184,255,74; }
+.challenge-slide.c5 { --accent: #A78BFA; --accent-rgb: 167,139,250; }
 
-#s2 { --accent: var(--c2); }
-#s2 .slide-glow { background: radial-gradient(circle, var(--c2), transparent 70%); bottom: -10%; left: -5%; }
-#s2 .challenge-eyebrow { color: var(--c2); }
-#s2 .eyebrow-line { background: var(--c2); }
-#s2 .watermark-num { -webkit-text-stroke-color: rgba(255,184,0,0.06); }
-#s2 .challenge-desc { background: rgba(255,184,0,0.05); border-color: rgba(255,184,0,0.2); color: rgba(255,184,0,0.82); }
-#s2 .constraint-box { background: rgba(255,184,0,0.05); border-color: rgba(255,184,0,0.2); }
-#s2 .constraint-label { color: var(--c2); }
-#s2 .constraint-text { color: rgba(255,184,0,0.75); }
-
-#s3 { --accent: var(--c3); }
-#s3 .slide-glow { background: radial-gradient(circle, var(--c3), transparent 70%); top: -5%; right: -5%; }
-#s3 .challenge-eyebrow { color: var(--c3); }
-#s3 .eyebrow-line { background: var(--c3); }
-#s3 .watermark-num { -webkit-text-stroke-color: rgba(255,92,138,0.06); }
-#s3 .challenge-desc { background: rgba(255,92,138,0.05); border-color: rgba(255,92,138,0.2); color: rgba(255,92,138,0.82); }
-#s3 .constraint-box { background: rgba(255,92,138,0.05); border-color: rgba(255,92,138,0.2); }
-#s3 .constraint-label { color: var(--c3); }
-#s3 .constraint-text { color: rgba(255,92,138,0.75); }
+.challenge-slide .slide-glow { background: radial-gradient(circle, var(--accent), transparent 70%); top: -10%; right: -10%; }
+.challenge-slide.c2 .slide-glow { top: auto; bottom: -10%; left: -5%; right: auto; }
+.challenge-slide.c3 .slide-glow { top: -5%; right: -5%; }
+.challenge-slide.c4 .slide-glow { top: 40%; left: -10%; right: auto; }
+.challenge-slide.c5 .slide-glow { bottom: -15%; right: -5%; top: auto; }
+.challenge-slide .challenge-eyebrow { color: var(--accent); }
+.challenge-slide .eyebrow-line { background: var(--accent); }
+.challenge-slide .watermark-num { -webkit-text-stroke-color: rgba(var(--accent-rgb),0.06); }
+.challenge-slide .challenge-desc { background: rgba(var(--accent-rgb),0.05); border-color: rgba(var(--accent-rgb),0.2); color: rgba(var(--accent-rgb),0.82); }
+.challenge-slide .constraint-box { background: rgba(var(--accent-rgb),0.05); border-color: rgba(var(--accent-rgb),0.2); color: var(--accent); }
+.challenge-slide .constraint-label { color: var(--accent); }
+.challenge-slide .constraint-text { color: rgba(var(--accent-rgb),0.75); }
 
 /* ─────────────────────────────────────────────
    SLIDE FINAL
@@ -561,7 +551,7 @@ body::after {
   </div>
 
   <!-- SLIDE 1 · CHALLENGE 1 -->
-  <div class="slide challenge-slide" id="s1">
+  <div class="slide challenge-slide c1" id="s1">
     <div class="slide-glow"></div>
     <div class="watermark-num">01</div>
     <div class="challenge-eyebrow">
@@ -579,7 +569,7 @@ body::after {
   </div>
 
   <!-- SLIDE 2 · CHALLENGE 2 -->
-  <div class="slide challenge-slide" id="s2">
+  <div class="slide challenge-slide c2" id="s2">
     <div class="slide-glow"></div>
     <div class="watermark-num">02</div>
     <div class="challenge-eyebrow">
@@ -597,7 +587,7 @@ body::after {
   </div>
 
   <!-- SLIDE 3 · CHALLENGE 3 -->
-  <div class="slide challenge-slide" id="s3">
+  <div class="slide challenge-slide c3" id="s3">
     <div class="slide-glow"></div>
     <div class="watermark-num">03</div>
     <div class="challenge-eyebrow">
@@ -648,7 +638,7 @@ body::after {
 //  SLIDE ENGINE
 // ═══════════════════════════════════════════════
 
-const SLIDES = ['s0','s1','s2','s3','sF'];
+let SLIDES = ['s0','s1','s2','s3','sF'];
 let current = 0;
 
 function buildDots() {
@@ -814,6 +804,71 @@ document.querySelectorAll('button, a, .nav-dot, #btn-fullscreen').forEach(el => 
 })();
 
 // ═══════════════════════════════════════════════
+//  DYNAMIC CHALLENGE SLIDES
+// ═══════════════════════════════════════════════
+
+function rebuildChallengeSlides(challenges) {
+  const n = challenges.length;
+  const deck = document.querySelector('.deck');
+  const finalSlide = document.getElementById('sF');
+  const template = document.getElementById('s1'); // always exists as base
+
+  // Remove existing challenge slides except the template reference
+  const existing = Array.from(document.querySelectorAll('.challenge-slide'));
+  existing.forEach(s => s.remove());
+
+  // Build a fresh set from the template's cloned markup structure
+  const baseHTML = template.outerHTML;
+  for (let i = 0; i < n; i++) {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = baseHTML;
+    const slide = wrap.firstElementChild;
+    slide.id = 's' + (i + 1);
+    slide.className = 'slide challenge-slide c' + ((i % 5) + 1);
+    // Watermark number
+    slide.querySelector('.watermark-num').textContent = String(i + 1).padStart(2, '0');
+    // Eyebrow
+    const eyebrow = slide.querySelector('.challenge-eyebrow');
+    eyebrow.innerHTML = '<span class="eyebrow-line"></span>\n      Challenge ' + String(i + 1).padStart(2, '0');
+    // Content
+    const c = challenges[i];
+    const titleEl = slide.querySelector('.challenge-title');
+    const descEl  = slide.querySelector('.challenge-desc');
+    const conEl   = slide.querySelector('.constraint-text');
+    const conBox  = slide.querySelector('.constraint-box');
+    if (titleEl) titleEl.innerHTML = (c.title || '').replace(/\s(\S+)$/, '<br>$1');
+    if (descEl)  descEl.textContent = c.description || '';
+    if (c.constraint) {
+      if (conEl) conEl.textContent = c.constraint;
+      if (conBox) conBox.style.display = '';
+    } else if (conBox) {
+      conBox.style.display = 'none';
+    }
+    deck.insertBefore(slide, finalSlide);
+  }
+
+  // Rebuild SLIDES array and nav
+  SLIDES = ['s0', ...Array.from({length: n}, (_, i) => 's' + (i + 1)), 'sF'];
+  // Reset current index if out of bounds
+  if (current >= SLIDES.length) current = 0;
+  // Rebuild dots + counter
+  const dotsWrap = document.getElementById('nav-dots');
+  dotsWrap.innerHTML = '';
+  buildDots();
+  document.getElementById('count-current').textContent = current + 1;
+  // Update progress bar
+  const pct = ((current) / (SLIDES.length - 1)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  // Ensure active class is only on current slide
+  document.querySelectorAll('.slide').forEach((s, i) => {
+    s.classList.toggle('active', s.id === SLIDES[current]);
+  });
+  // Button states
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === SLIDES.length - 1;
+}
+
+// ═══════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════
 
@@ -832,22 +887,8 @@ document.getElementById('progress-bar').style.width = '0%';
     q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
     const { data } = await q;
     if (!data) return;
-    if (data.challenges) {
-      data.challenges.forEach((c, i) => {
-        const n = i + 1;
-        const titleEl = document.querySelector(`#s${n} .challenge-title`);
-        const descEl  = document.querySelector(`#s${n} .challenge-desc`);
-        const conEl   = document.querySelector(`#s${n} .constraint-text`);
-        const conBox  = document.querySelector(`#s${n} .constraint-box`);
-        if (titleEl) titleEl.innerHTML = c.title.replace(/\s(\S+)$/, '<br>$1');
-        if (descEl)  descEl.textContent = c.description || '';
-        if (c.constraint) {
-          if (conEl) conEl.textContent = c.constraint;
-          if (conBox) conBox.style.display = '';
-        } else if (conBox) {
-          conBox.style.display = 'none';
-        }
-      });
+    if (data.challenges && data.challenges.length) {
+      rebuildChallengeSlides(data.challenges);
     }
     // Patch welcome + final slide content if configured
     const sl = data.slides || {};

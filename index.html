@@ -1339,7 +1339,7 @@ async function submitVote() {
 
   if (supabaseClient) {
     try {
-      const { error } = await supabaseClient.from('votes').upsert(voteData, { onConflict: 'voter_name' });
+      const { error } = await supabaseClient.from('votes').upsert(voteData, { onConflict: 'voter_name,sprint_id' });
       if (error) throw error;
     } catch (err) {
       console.error('Vote submission error:', err);
