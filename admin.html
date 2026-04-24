@@ -753,19 +753,17 @@
   <div class="orb orb-3"></div>
 </div>
 
-<!-- ── PASSWORD GATE ── -->
+<!-- ── SIGN IN GATE ── -->
 <div id="gate">
   <div class="gate-tag">Admin Access</div>
   <h1>Results Dashboard</h1>
-  <p class="gate-sub">Enter password to view all votes &amp; teams</p>
-  <div class="gate-form">
-    <input type="text" id="pwd-input" class="input" placeholder="Password"
-      onkeydown="if(event.key==='Enter') unlock()" autocomplete="off"
-      data-1p-ignore data-lpignore="true" data-bwignore="true" data-form-type="other"
-      style="-webkit-text-security:disc">
-    <button type="button" class="btn btn-amber" onclick="unlock()">Enter</button>
-    <div class="gate-error" id="gate-error"></div>
-  </div>
+  <p class="gate-sub">Sign in to view all votes, teams &amp; retros</p>
+  <form class="gate-form" id="auth-form" autocomplete="off">
+    <input type="email" id="email-input" class="input" placeholder="your@email.com"
+      autocomplete="email" required style="text-align:left;letter-spacing:normal">
+    <button type="submit" class="btn btn-amber" id="auth-btn">Send magic link</button>
+    <div class="gate-error" id="auth-msg"></div>
+  </form>
 </div>
 
 <!-- ── DASHBOARD ── -->
@@ -781,6 +779,7 @@
       <button class="btn btn-ghost" style="padding:0.5em 1em;font-size:0.78rem;" onclick="loadVotes()">↻ Refresh</button>
       <a class="btn btn-ghost" href="hub.html" style="padding:0.5em 1em;font-size:0.78rem;text-decoration:none">⚡ Hub</a>
       <select id="sprint-select" class="btn btn-ghost" style="padding:0.5em 0.75em;font-size:0.78rem;background:transparent;cursor:pointer" onchange="switchSprint(this.value)"></select>
+      <button class="btn btn-ghost" style="padding:0.5em 1em;font-size:0.78rem;" onclick="signOutAdmin()">Sign out</button>
     </div>
   </div>
 
@@ -862,7 +861,7 @@
 
 const SUPABASE_URL  = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
-const ADMIN_PASSWORD = 'smitten7';
+const ADMIN_EMAIL = 'david@smitten.fun';
 
 let CHALLENGES = [
   { id: 1, title: 'Launch Smitten in Malta' },
@@ -887,32 +886,61 @@ let dragState = null;   // { voterId, fromTeam }
 
 function init() {
   initConstellation();
-  document.getElementById('pwd-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') unlock();
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
-  if (sessionStorage.getItem('admin_ok') === '1') {
-    showDashboard();
-  }
+  document.getElementById('auth-form').addEventListener('submit', sendMagicLink);
+  db.auth.onAuthStateChange((_ev, session) => handleSession(session));
+  db.auth.getSession().then(({data}) => handleSession(data.session));
 }
 
 // ════════════════════════════════════════════════
 //  AUTH
 // ════════════════════════════════════════════════
 
-function unlock() {
-  const val = document.getElementById('pwd-input').value;
-  const err = document.getElementById('gate-error');
-  if (val === ADMIN_PASSWORD) {
-    sessionStorage.setItem('admin_ok', '1');
-    showDashboard();
-  } else {
-    err.textContent = 'Wrong password — try again';
-    document.getElementById('pwd-input').style.borderColor = 'var(--rose)';
-    setTimeout(() => {
-      err.textContent = '';
-      document.getElementById('pwd-input').style.borderColor = '';
-    }, 2000);
+async function handleSession(session) {
+  const msg = document.getElementById('auth-msg');
+  if (!session) {
+    document.getElementById('gate').classList.remove('hidden');
+    document.getElementById('dashboard').classList.add('hidden');
+    return;
   }
+  if (session.user?.email !== ADMIN_EMAIL) {
+    await db.auth.signOut();
+    document.getElementById('gate').classList.remove('hidden');
+    document.getElementById('dashboard').classList.add('hidden');
+    msg.style.color = 'var(--rose)';
+    msg.textContent = `No admin access for ${session.user?.email || 'this account'}`;
+    return;
+  }
+  showDashboard();
+}
+
+async function sendMagicLink(e) {
+  e?.preventDefault();
+  const email = document.getElementById('email-input').value.trim();
+  const msg = document.getElementById('auth-msg');
+  const btn = document.getElementById('auth-btn');
+  if (!email) { msg.style.color='var(--rose)'; msg.textContent = 'Enter your email'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await db.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
+  });
+  if (error) {
+    msg.style.color = 'var(--rose)';
+    msg.textContent = error.message;
+    btn.disabled = false; btn.textContent = 'Send magic link';
+    return;
+  }
+  msg.style.color = 'var(--amber)';
+  msg.textContent = '✓ Check your email for a sign-in link.';
+  btn.textContent = 'Link sent';
+}
+
+async function signOutAdmin() {
+  await db.auth.signOut();
+  location.reload();
 }
 
 // ════════════════════════════════════════════════
@@ -962,7 +990,7 @@ async function switchSprint(id) {
 async function showDashboard() {
   document.getElementById('gate').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
-  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // db client is already created in init()
   await loadSprintConfig();
 
   // Populate challenge names in stat cards

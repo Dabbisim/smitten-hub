@@ -38,6 +38,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
 .gate-sub{color:var(--t2);font-size:.95rem}
 .pwd-form{display:flex;flex-direction:column;align-items:center;gap:.875rem;width:100%;max-width:300px}
 .pwd-input{width:100%;padding:.875rem 1.25rem;background:rgba(255,255,255,.04);border:1px solid var(--bl);border-radius:12px;color:var(--text);font-size:1rem;font-family:'Inter',sans-serif;text-align:center;letter-spacing:.3em;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-text-security:disc}
+.pwd-input.email-input{letter-spacing:normal;-webkit-text-security:none;text-align:left}
 .pwd-input:focus{border-color:var(--c1);box-shadow:0 0 0 3px rgba(0,229,255,.1)}
 .pwd-btn{width:100%;padding:.875rem;background:var(--c1);color:#000;border:none;border-radius:12px;font-weight:700;font-size:.9rem;cursor:pointer;transition:opacity .2s;font-family:'Inter',sans-serif}
 .pwd-btn:hover{opacity:.85}
@@ -140,12 +141,12 @@ input[type="datetime-local"].fi{color-scheme:dark}
 <div id="gate">
   <div class="smitten-badge">Smitten</div>
   <h1 class="gate-title clash">Sprint Hub</h1>
-  <p class="gate-sub">Create and manage challenge sprints.</p>
-  <div class="pwd-form">
-    <input type="text" class="pwd-input" id="pwd" placeholder="Password" autocomplete="off" data-1p-ignore>
-    <button class="pwd-btn" onclick="unlock()">Enter</button>
-    <p class="pwd-err" id="pwd-err"></p>
-  </div>
+  <p class="gate-sub">Sign in to manage sprints.</p>
+  <form class="pwd-form" id="auth-form">
+    <input type="email" class="pwd-input email-input" id="email-input" placeholder="your@email.com" autocomplete="email" required>
+    <button class="pwd-btn" type="submit" id="auth-btn">Send magic link</button>
+    <p class="pwd-err" id="auth-msg"></p>
+  </form>
 </div>
 
 <!-- Dashboard -->
@@ -155,7 +156,10 @@ input[type="datetime-local"].fi{color-scheme:dark}
       <div class="brand">Smitten</div>
       <h1 class="page-title clash">Sprint Hub</h1>
     </div>
-    <button class="btn-new" onclick="openModal()">+ New Sprint</button>
+    <div style="display:flex;gap:.6rem;align-items:center">
+      <button class="alink" onclick="signOut()" style="padding:.6rem 1rem">Sign out</button>
+      <button class="btn-new" onclick="openModal()">+ New Sprint</button>
+    </div>
   </div>
 
   <div id="active-sec">
@@ -191,7 +195,7 @@ input[type="datetime-local"].fi{color-scheme:dark}
 <script>
 const SUPABASE_URL     = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY= 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
-const PASS             = 'smitten6';
+const ADMIN_EMAIL      = 'david@smitten.fun';
 const COLORS           = ['#00E5FF','#FFB800','#FF5C8A'];
 let db, sprints = [];
 
@@ -202,20 +206,61 @@ function ipts(){pts=Array.from({length:Math.floor(innerWidth*innerHeight/13000)}
 function draw(){cx.clearRect(0,0,cv.width,cv.height);pts.forEach(p=>{p.x=(p.x+p.vx+cv.width)%cv.width;p.y=(p.y+p.vy+cv.height)%cv.height;cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2);cx.fillStyle=`rgba(255,255,255,${p.a*.5})`;cx.fill()});for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<110){cx.beginPath();cx.moveTo(pts[i].x,pts[i].y);cx.lineTo(pts[j].x,pts[j].y);cx.strokeStyle=`rgba(255,255,255,${(1-d/110)*.04})`;cx.lineWidth=.5;cx.stroke()}}requestAnimationFrame(draw)}
 window.addEventListener('resize',()=>{rsz();ipts()});rsz();ipts();draw();
 
-// ── gate ──────────────────────────────────────────────────
-document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')unlock()});
-function unlock(){
-  const v=document.getElementById('pwd').value.trim().toLowerCase();
-  if(v===PASS){
-    document.getElementById('gate').style.display='none';
-    document.getElementById('dash').classList.remove('hidden');
-    db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-    loadSprints();
-  }else{
-    document.getElementById('pwd-err').textContent='Wrong password';
-    setTimeout(()=>document.getElementById('pwd-err').textContent='',2000);
+// ── auth ──────────────────────────────────────────────────
+db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+
+async function handleSession(session) {
+  const msg = document.getElementById('auth-msg');
+  if (!session) { showGate(); return; }
+  if (session.user?.email !== ADMIN_EMAIL) {
+    await db.auth.signOut();
+    showGate();
+    msg.style.color = 'var(--c3)';
+    msg.textContent = `No admin access for ${session.user?.email || 'this account'}`;
+    return;
   }
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('dash').classList.remove('hidden');
+  loadSprints();
 }
+
+function showGate(){
+  document.getElementById('gate').style.display = '';
+  document.getElementById('dash').classList.add('hidden');
+}
+
+async function sendMagicLink(e){
+  e?.preventDefault();
+  const email = document.getElementById('email-input').value.trim();
+  const msg = document.getElementById('auth-msg');
+  const btn = document.getElementById('auth-btn');
+  if (!email) { msg.style.color='var(--c3)'; msg.textContent = 'Enter your email'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await db.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
+  });
+  if (error) {
+    msg.style.color = 'var(--c3)';
+    msg.textContent = error.message;
+    btn.disabled = false; btn.textContent = 'Send magic link';
+    return;
+  }
+  msg.style.color = 'var(--c1)';
+  msg.textContent = '✓ Check your email for a sign-in link.';
+  btn.textContent = 'Link sent';
+}
+
+async function signOut(){
+  await db.auth.signOut();
+  location.reload();
+}
+
+document.getElementById('auth-form').addEventListener('submit', sendMagicLink);
+db.auth.onAuthStateChange((_event, session) => handleSession(session));
+db.auth.getSession().then(({data}) => handleSession(data.session));
 
 // ── data ──────────────────────────────────────────────────
 async function loadSprints(){
