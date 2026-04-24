@@ -605,15 +605,16 @@
   .retros-stats .ritem { display:flex; align-items:baseline; gap:.35em; }
   .retros-stats strong { color:var(--text); font-size:1rem; font-weight:700; font-family:'Clash Display',sans-serif; letter-spacing:-.01em; }
   .retros-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1rem; margin-bottom:2rem; }
-  .retro-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.1rem 1.25rem; display:flex; flex-direction:column; gap:.7rem; backdrop-filter:blur(10px); position:relative; transition:border-color .2s; }
-  .retro-card:hover { border-color:var(--border-bright, rgba(255,255,255,0.14)); }
-  .retro-card:hover .retro-delete { opacity:1; }
+  .retro-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:1.1rem 1.25rem; display:flex; flex-direction:column; gap:.7rem; backdrop-filter:blur(10px); transition:border-color .2s; }
+  .retro-card:hover { border-color:rgba(255,255,255,0.14); }
+  .retro-card:hover .retro-delete { opacity:0.7; }
   .retro-head { display:flex; align-items:flex-start; justify-content:space-between; padding-bottom:.75rem; border-bottom:1px solid var(--border); gap:.75rem; }
+  .retro-head-right { display:flex; align-items:center; gap:.6rem; flex-shrink:0; }
   .retro-name { font-family:'Clash Display',sans-serif; font-weight:600; font-size:1rem; letter-spacing:-.01em; }
   .retro-date { font-size:0.7rem; color:var(--text-3); margin-top:.2rem; letter-spacing:.02em; }
   .retro-mood { font-size:1.7rem; line-height:1; filter:drop-shadow(0 0 14px rgba(255,255,255,0.2)); flex-shrink:0; }
-  .retro-delete { position:absolute; top:.55rem; right:.55rem; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:7px; border:1px solid transparent; background:transparent; color:var(--text-3); cursor:pointer; font-size:0.75rem; opacity:0; transition:opacity .15s, background .15s, color .15s, border-color .15s; font-family:'Inter',sans-serif; }
-  .retro-delete:hover { background:rgba(255,92,138,0.12); border-color:rgba(255,92,138,0.35); color:var(--rose); opacity:1; }
+  .retro-delete { width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:7px; border:1px solid transparent; background:transparent; color:var(--text-3); cursor:pointer; font-size:0.75rem; opacity:0; transition:opacity .15s, background .15s, color .15s, border-color .15s; font-family:'Inter',sans-serif; padding:0; flex-shrink:0; }
+  .retro-delete:hover { background:rgba(255,92,138,0.15); border-color:rgba(255,92,138,0.4); color:var(--rose); opacity:1 !important; }
   .retro-body { display:flex; flex-direction:column; gap:.75rem; }
   .retro-part-label { font-size:0.65rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:.3rem; display:flex; align-items:center; gap:.3em; }
   .retro-part-text { font-size:0.86rem; color:var(--text-2); line-height:1.5; white-space:pre-wrap; word-wrap:break-word; }
@@ -1100,14 +1101,16 @@ function renderRetroCard(r) {
     ? parts.map(p => `<div><div class="retro-part-label" style="color:${p.color}"><span>${p.icon}</span> ${p.label}</div><div class="retro-part-text">${escapeRetro(p.text)}</div></div>`).join('')
     : '<div style="color:var(--text-3);font-size:0.82rem;font-style:italic;">Mood rating only — no written feedback.</div>';
   return `
-    <div class="retro-card">
-      <button class="retro-delete" title="Delete retro" onclick="deleteRetro('${r.id}', '${escapeRetro(r.name).replace(/'/g,'&#39;')}')">✕</button>
+    <div class="retro-card" data-retro-id="${r.id}">
       <div class="retro-head">
         <div>
           <div class="retro-name">${escapeRetro(r.name)}</div>
           <div class="retro-date">${date}</div>
         </div>
-        <div class="retro-mood">${moodEmoji}</div>
+        <div class="retro-head-right">
+          ${moodEmoji ? `<div class="retro-mood">${moodEmoji}</div>` : ''}
+          <button class="retro-delete" title="Delete retro" onclick="deleteRetro('${r.id}', '${escapeRetro(r.name).replace(/'/g,'&#39;')}')">✕</button>
+        </div>
       </div>
       <div class="retro-body">${body}</div>
     </div>`;
@@ -1115,9 +1118,20 @@ function renderRetroCard(r) {
 
 async function deleteRetro(id, name) {
   if (!confirm(`Delete ${name}'s retro? This cannot be undone.`)) return;
+  // Optimistic: remove the card immediately for snappy feedback
+  const card = document.querySelector(`.retro-card[data-retro-id="${id}"]`);
+  if (card) {
+    card.style.transition = 'opacity .2s, transform .2s';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.96)';
+  }
   const { error } = await db.from('retros').delete().eq('id', id);
-  if (error) { alert('Failed to delete: ' + error.message); return; }
-  loadRetros();
+  if (error) {
+    alert('Failed to delete: ' + error.message);
+    if (card) { card.style.opacity = '1'; card.style.transform = ''; }
+    return;
+  }
+  await loadRetros();
 }
 
 function escapeRetro(s){return String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);}
