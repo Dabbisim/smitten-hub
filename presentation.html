@@ -242,16 +242,18 @@ body::after {
 .arrow-transform {
   display: inline-flex;
   align-items: center;
-  gap: 0.6em;
-  margin-top: 1vh;
+  gap: 1em;
+  margin-top: 4.5vh;
+  margin-bottom: 1vh;
   font-family: 'DM Sans', sans-serif;
-  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  font-size: clamp(0.95rem, 1.5vw, 1.2rem);
   color: var(--text-dim);
   opacity: 0;
 }
 .slide.active .arrow-transform { animation: fadeIn 0.9s ease 0.7s forwards; }
-.at-word { padding: 0.35em 0.85em; border: 1px solid var(--border); border-radius: 99px; }
-.at-word.on { border-color: var(--c1); color: var(--c1); background: rgba(0,229,255,0.06); }
+.at-word { padding: 0.55em 1.25em; border: 1px solid var(--border); border-radius: 99px; font-weight: 500; letter-spacing: -0.005em; }
+.at-word.on { border-color: var(--c1); color: var(--c1); background: rgba(0,229,255,0.06); box-shadow: 0 0 20px rgba(0,229,255,0.15); }
+.arrow-transform .at-arrow { color: var(--text-faint); font-size: 1.2em; }
 
 /* ─────────────────────────────────────────────
    SLIDE 4 — HEDGEHOG
@@ -423,7 +425,7 @@ body::after {
 #s8 .title { font-size: clamp(2.2rem, 5.5vw, 4.5rem); max-width: 1100px; }
 #s8 .title em { color: var(--cF); }
 .fun-callout {
-  margin-top: 4vh;
+  margin-top: 6vh;
   padding: 1rem 1.75rem;
   border-left: 2px solid var(--cF);
   font-family: 'Fraunces', serif;
@@ -828,7 +830,6 @@ body::after {
     <div class="glow"></div>
     <div class="eyebrow"><span></span>Fun, redefined<span></span></div>
     <h2 class="title">The feeling of a<br>conversation <em>clicking</em></h2>
-    <p class="sub">Effortless. The vibe makes sense. The kind you think about the next morning. That's the peak experience on Smitten — and it's how people will remember us.</p>
     <div class="fun-callout">Once users experience Fun once, they chase that feeling.</div>
   </div>
 
