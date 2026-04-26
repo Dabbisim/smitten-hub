@@ -3,898 +3,717 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Team Reveal — Smitten</title>
+<title>Team Reveal · Smitten</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-/* ─── Reset & base ──────────────────────────────────────── */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 :root {
-  --c1: #00E5FF;
-  --c2: #FFB800;
-  --c3: #FF5C8A;
   --bg: #06060A;
-  --surface: rgba(255,255,255,0.04);
-  --border: rgba(255,255,255,0.08);
-  --text-1: #ffffff;
-  --text-2: rgba(255,255,255,0.6);
+  --text: #fff;
+  --text-2: rgba(255,255,255,0.55);
   --text-3: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.08);
+  --border-2: rgba(255,255,255,0.14);
+  --c1:#00E5FF; --c2:#FFB800; --c3:#FF5C8A; --c4:#B8FF4A; --c5:#A78BFA;
+  --rgb-c1:0,229,255; --rgb-c2:255,184,0; --rgb-c3:255,92,138; --rgb-c4:184,255,74; --rgb-c5:167,139,250;
 }
-html, body { width:100%; height:100%; background:var(--bg); color:#fff;
-  font-family:'DM Sans',sans-serif; overflow:hidden; cursor:none; }
+html, body { width:100%; height:100%; background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; overflow:hidden; cursor:none; -webkit-font-smoothing:antialiased; }
 
-/* ─── Canvas ────────────────────────────────────────────── */
-#bg-canvas { position:fixed; inset:0; z-index:0; pointer-events:none; }
+/* ── Background ── */
+#constellation { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.5; }
+.orbs { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.orb { position:absolute; border-radius:50%; filter:blur(160px); opacity:0.18; }
+.orb.o1 { width:600px; height:600px; background:rgba(255,92,138,0.5); top:-15%; left:-10%; animation:drift 28s ease-in-out infinite; }
+.orb.o2 { width:500px; height:500px; background:rgba(0,229,255,0.4); bottom:-15%; right:-5%; animation:drift 32s ease-in-out -8s infinite; }
+.orb.o3 { width:400px; height:400px; background:rgba(255,184,0,0.4); top:50%; left:50%; transform:translate(-50%,-50%); animation:drift 36s ease-in-out -16s infinite; opacity:0.12; }
+@keyframes drift { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(40px,-30px) scale(1.05)} }
 
-/* ─── Cursor ────────────────────────────────────────────── */
+body::after {
+  content:''; position:fixed; inset:0; opacity:0.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px 200px; pointer-events:none; z-index:9998;
+}
+
+/* ── Cursor ── */
 #cursor {
-  position:fixed; width:18px; height:18px;
-  border:1.5px solid rgba(255,255,255,0.8);
+  position:fixed; width:14px; height:14px;
+  background:rgba(255,255,255,0.9);
   border-radius:50%; pointer-events:none; z-index:9999;
   transform:translate(-50%,-50%);
-  transition:transform 0.1s, border-color 0.3s, width 0.2s, height 0.2s;
+  transition:width .2s, height .2s, background .3s;
   mix-blend-mode:difference;
 }
-#cursor.big { width:36px; height:36px; }
+#cursor.big { width:42px; height:42px; }
 
-/* ─── Screens ────────────────────────────────────────────── */
-.screen {
-  position:fixed; inset:0; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; z-index:10; padding:2rem;
-  opacity:0; pointer-events:none;
-  transition:opacity 0.5s ease;
-}
-.screen.active { opacity:1; pointer-events:all; }
-
-/* ─── Loading ─────────────────────────────────────────────── */
-#s-loading .spin {
-  width:44px; height:44px;
-  border:2.5px solid rgba(255,255,255,0.08);
-  border-top-color:var(--c1);
-  border-radius:50%;
-  animation:spin 0.7s linear infinite;
-}
-#s-loading p {
-  margin-top:1.25rem; color:var(--text-3);
-  font-size:0.75rem; letter-spacing:0.18em; text-transform:uppercase;
+/* ── Layout ── */
+main {
+  position:relative; z-index:1;
+  width:100%; height:100vh;
+  display:flex; flex-direction:column;
+  padding:clamp(1.5rem,3vw,2.5rem);
+  gap:clamp(1rem,2.5vh,2rem);
 }
 
-/* ─── Intro ───────────────────────────────────────────────── */
-#s-intro { gap:1.25rem; text-align:center; }
-.eyebrow {
-  font-size:0.7rem; letter-spacing:0.22em;
-  text-transform:uppercase; color:var(--text-3);
-}
-.smitten-eyebrow {
-  display:flex; align-items:center; justify-content:center;
-  gap:0.75rem; font-size:0.7rem; letter-spacing:0.22em;
-  text-transform:uppercase; color:var(--c3); font-weight:600;
-}
-.smitten-eyebrow::before,
-.smitten-eyebrow::after {
-  content:''; display:block; width:36px; height:1.5px;
-  border-radius:2px; background:var(--c3); flex-shrink:0;
-  box-shadow:0 0 8px var(--c3), 0 0 18px rgba(255,92,138,0.5);
-}
-.intro-title {
-  font-family:'Clash Display',sans-serif;
-  font-size:clamp(3.5rem,8vw,7rem);
-  font-weight:700; line-height:0.95; letter-spacing:-0.04em;
-}
-.intro-title .gr {
-  background:linear-gradient(135deg, var(--c1) 0%, var(--c3) 100%);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-}
-.intro-sub { color:var(--text-2); font-size:1.1rem; max-width:380px; }
-.click-hint {
-  margin-top:0.75rem; display:flex; align-items:center; gap:0.875rem;
-  color:var(--text-3); font-size:0.75rem; letter-spacing:0.15em;
-  text-transform:uppercase;
-  animation:breath 2.2s ease-in-out infinite;
-}
-.click-hint::before,.click-hint::after {
-  content:''; height:1px; width:32px;
-  background:rgba(255,255,255,0.1);
-}
-
-/* ─── Team screen ─────────────────────────────────────────── */
-#s-team { padding:0; justify-content:flex-start; }
-
-.team-bar {
-  width:100%; padding:1.75rem 3rem 1.5rem;
-  display:flex; align-items:center; gap:1.5rem;
-  border-bottom:1px solid rgba(255,255,255,0.04);
-  background:rgba(6,6,10,0.7); backdrop-filter:blur(24px);
-  flex-shrink:0; position:relative;
-}
-.team-bar::after {
-  content:''; position:absolute; bottom:-1px; left:0; right:0;
-  height:1px; background:currentColor; opacity:0.15;
-}
-.team-pill {
-  font-size:0.65rem; font-weight:600; letter-spacing:0.2em;
-  text-transform:uppercase; padding:0.35rem 0.8rem;
-  border:1.5px solid currentColor; border-radius:100px;
+/* ── Header ── */
+header {
+  display:flex; align-items:center; justify-content:space-between;
   flex-shrink:0;
 }
-.team-info { flex:1; }
-.team-label {
-  font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase;
-  color:var(--text-3); margin-bottom:0.2rem;
+.brand {
+  display:flex; align-items:center; gap:.65rem;
+  font-size:.7rem; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--c3); font-weight:600;
+}
+.brand::before, .brand::after {
+  content:''; display:block; width:32px; height:1.5px; border-radius:2px;
+  background:var(--c3); box-shadow:0 0 8px var(--c3);
+}
+.title-block { text-align:center; }
+.eyebrow { font-size:.7rem; letter-spacing:.24em; text-transform:uppercase; color:var(--text-3); margin-bottom:.4rem; }
+.title-block h1 {
+  font-family:'Clash Display',sans-serif;
+  font-size:clamp(1.6rem,2.6vw,2.2rem);
+  font-weight:700; letter-spacing:-.025em; line-height:1;
+}
+.title-block h1 em {
+  font-family:'Fraunces',serif; font-style:italic; font-weight:300;
+  color:var(--c3); text-shadow:0 0 30px var(--c3);
+}
+.progress-pill {
+  display:flex; align-items:center; gap:.6em;
+  font-size:.78rem; color:var(--text-2);
+  padding:.5rem .9rem;
+  background:rgba(255,255,255,0.04);
+  border:1px solid var(--border); border-radius:99px;
+  letter-spacing:.04em;
+  font-feature-settings:"tnum";
+}
+.progress-pill strong { color:var(--text); font-family:'Clash Display',sans-serif; font-weight:600; }
+
+/* ── Teams Grid ── */
+.teams-grid {
+  display:grid;
+  gap:1rem;
+  flex-shrink:0;
+}
+.teams-grid[data-count="1"] { grid-template-columns:1fr; }
+.teams-grid[data-count="2"] { grid-template-columns:repeat(2,1fr); }
+.teams-grid[data-count="3"] { grid-template-columns:repeat(3,1fr); }
+.teams-grid[data-count="4"] { grid-template-columns:repeat(4,1fr); }
+.teams-grid[data-count="5"] { grid-template-columns:repeat(5,1fr); }
+.teams-grid[data-count="6"] { grid-template-columns:repeat(3,1fr); }
+@media (max-width:900px) { .teams-grid { grid-template-columns:repeat(2,1fr) !important; } }
+
+.team-card {
+  position:relative;
+  background:rgba(255,255,255,0.025);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:1.1rem 1.2rem;
+  backdrop-filter:blur(12px);
+  display:flex; flex-direction:column;
+  gap:.85rem;
+  min-height:180px;
+  overflow:hidden;
+  transition:border-color .4s, box-shadow .4s, transform .4s;
+}
+.team-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--team-color); opacity:.7;
+}
+.team-card.active {
+  border-color:var(--team-color);
+  box-shadow:0 0 0 1px var(--team-color),
+             0 0 50px rgba(var(--team-rgb), 0.35),
+             inset 0 0 60px rgba(var(--team-rgb), 0.05);
+  transform:translateY(-3px);
+}
+.team-card.active::before { opacity:1; height:4px; box-shadow:0 0 16px var(--team-color); }
+
+.team-head { display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem; }
+.team-no {
+  font-size:.62rem; font-weight:700; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--team-color);
+  margin-bottom:.25rem;
 }
 .team-title {
   font-family:'Clash Display',sans-serif;
-  font-size:clamp(1.2rem,2.5vw,2rem);
-  font-weight:700; line-height:1.1;
+  font-weight:600; font-size:clamp(.95rem,1.4vw,1.15rem);
+  letter-spacing:-.01em; line-height:1.15;
+  color:var(--text);
 }
-.team-tally {
-  font-size:0.8rem; color:var(--text-3);
-  letter-spacing:0.1em; text-transform:uppercase;
-  text-align:right; flex-shrink:0;
-}
-
-.team-stage {
-  flex:1; width:100%; display:flex;
-  align-items:center; justify-content:center;
-  position:relative; overflow:hidden; padding:2rem;
-}
-
-/* revealed members list */
-.members-list {
-  display:flex; flex-direction:column; gap:0.6rem;
-  width:100%; max-width:640px;
-  transition:opacity 0.35s, transform 0.35s;
-}
-
-.m-card {
-  display:flex; align-items:center; gap:1rem;
-  padding:0.875rem 1.25rem;
-  background:rgba(255,255,255,0.03);
-  border:1px solid rgba(255,255,255,0.06);
-  border-radius:14px; backdrop-filter:blur(10px);
-  animation:cardSlideIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275) both;
-}
-.m-avatar {
-  width:40px; height:40px; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Clash Display',sans-serif; font-weight:700;
-  font-size:0.85rem; flex-shrink:0;
-}
-.m-name {
+.team-count {
   font-family:'Clash Display',sans-serif;
-  font-size:1.3rem; font-weight:600; letter-spacing:-0.01em;
-  flex:1;
-}
-.m-num {
-  font-size:0.65rem; color:var(--text-3);
-  letter-spacing:0.1em; text-transform:uppercase;
+  font-size:1.5rem; font-weight:700; line-height:1;
+  color:var(--team-color);
+  text-shadow:0 0 18px rgba(var(--team-rgb),0.4);
+  font-feature-settings:"tnum";
 }
 
-/* empty prompt */
-.stage-prompt {
-  text-align:center; display:flex; flex-direction:column;
-  align-items:center; gap:0.75rem;
-}
-.stage-prompt .big-num {
-  font-family:'Clash Display',sans-serif;
-  font-size:clamp(5rem,15vw,12rem);
-  font-weight:700; line-height:0.9;
-  letter-spacing:-0.05em; opacity:0.06;
-}
-.stage-prompt .prompt-text {
-  font-size:0.8rem; letter-spacing:0.2em;
-  text-transform:uppercase; color:var(--text-3);
-  animation:breath 2.2s ease-in-out infinite;
-}
-
-/* bottom hint */
-.stage-hint {
-  position:absolute; bottom:1.5rem; left:50%;
-  transform:translateX(-50%);
-  font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase;
-  color:var(--text-3); white-space:nowrap;
-  animation:breath 2.2s ease-in-out infinite;
-}
-
-/* room reveal */
-.room-card {
-  text-align:center; display:flex; flex-direction:column;
-  align-items:center; gap:1rem;
-  animation:roomPop 0.7s cubic-bezier(0.175,0.885,0.32,1.275) both;
-}
-.room-icon-wrap {
-  width:80px; height:80px; border-radius:24px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:2rem; animation:float 3s ease-in-out infinite;
-}
-.room-sub {
-  font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase;
-  color:var(--text-3);
-}
-.room-name {
-  font-family:'Clash Display',sans-serif;
-  font-size:clamp(2rem,5vw,4rem);
-  font-weight:700; line-height:1; letter-spacing:-0.03em;
-}
-.room-also {
-  display:flex; flex-direction:column; align-items:center; gap:0.5rem;
-  margin-top:0.5rem;
-}
-.team-members-small {
-  display:flex; flex-wrap:wrap; justify-content:center; gap:0.5rem;
-  max-width:500px;
+.team-members {
+  display:flex; flex-wrap:wrap; gap:.4rem;
+  align-content:flex-start;
 }
 .member-chip {
-  font-size:0.8rem; padding:0.25rem 0.75rem;
-  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.07);
-  border-radius:100px; white-space:nowrap;
+  font-family:'DM Sans',sans-serif; font-weight:500;
+  font-size:.78rem; letter-spacing:-.005em;
+  padding:.3rem .7rem;
+  background:rgba(var(--team-rgb), 0.1);
+  border:1px solid rgba(var(--team-rgb), 0.25);
+  border-radius:99px;
+  color:var(--text);
+  white-space:nowrap;
+  animation:chipIn .55s cubic-bezier(0.16,1,0.3,1) backwards;
+}
+@keyframes chipIn {
+  from { opacity:0; transform:scale(0.7); filter:blur(6px); }
+  to   { opacity:1; transform:scale(1); filter:blur(0); }
 }
 
-/* ─── Reveal overlay ──────────────────────────────────────── */
-#reveal-overlay {
-  position:fixed; inset:0; z-index:100;
+/* ── Stage (center) ── */
+.stage {
+  flex:1;
   display:flex; flex-direction:column;
   align-items:center; justify-content:center;
-  opacity:0; pointer-events:none;
-  transition:opacity 0.2s;
+  position:relative;
+  min-height:0;
 }
-#reveal-overlay.show { opacity:1; }
-.reveal-bg {
-  position:absolute; inset:0;
-  background:radial-gradient(ellipse at center, rgba(0,0,0,0.85) 0%, rgba(6,6,10,0.97) 100%);
+.stage-inner {
+  text-align:center;
+  max-width:90vw;
 }
-.reveal-spotlight {
-  position:absolute; inset:0;
-  background:radial-gradient(ellipse 60% 60% at 50% 50%, transparent, rgba(0,0,0,0));
-  transition:background 0.3s;
+.stage-eyebrow {
+  font-size:.72rem; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--text-3);
+  margin-bottom:1.2rem;
+  height:1em;
+  transition:color .4s;
 }
-.reveal-name-wrap {
-  position:relative; z-index:2;
-  display:flex; flex-direction:column; align-items:center; gap:0.75rem;
-}
-.reveal-name {
+.stage-eyebrow.active { color:var(--current-color, var(--text-2)); }
+
+.stage-name {
   font-family:'Clash Display',sans-serif;
-  font-size:clamp(3.5rem,10vw,9rem);
-  font-weight:700; letter-spacing:-0.04em;
-  line-height:0.95; text-align:center;
-  opacity:0;
+  font-weight:700;
+  font-size:clamp(3rem,9vw,7rem);
+  line-height:1;
+  letter-spacing:-.035em;
+  color:var(--text);
+  min-height:1em;
+  word-break:break-word;
+  transition:color .5s, text-shadow .5s, transform .5s;
+  font-feature-settings:"ss01";
+  position:relative;
+  display:inline-block;
 }
-.reveal-name.show { animation:nameIn 0.65s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
-.reveal-badge {
-  font-size:0.65rem; letter-spacing:0.3em; text-transform:uppercase;
-  padding:0.35rem 1rem;
-  border:1px solid currentColor;
-  border-radius:100px; opacity:0;
-  transition:opacity 0.4s 0.7s;
-}
-.reveal-badge.show { opacity:0.6; }
-
-/* rings */
-.ring {
-  position:fixed; border-radius:50%;
-  border:2px solid currentColor;
-  pointer-events:none; z-index:200;
-  animation:ringOut 0.9s ease-out forwards;
+.stage-name.empty { color:var(--text-3); font-weight:600; font-size:clamp(1.5rem,3vw,2.2rem); letter-spacing:-.02em; font-style:italic; font-family:'Fraunces',serif; font-weight:300; }
+.stage-name.glowing {
+  color:var(--current-color, var(--text));
+  text-shadow:
+    0 0 40px var(--current-color, transparent),
+    0 0 90px rgba(var(--current-rgb), 0.4);
 }
 
-/* particles */
-.spark {
-  position:fixed; border-radius:50%;
-  pointer-events:none; z-index:200;
-  animation:sparkFly 0.9s ease-out forwards;
+.stage-team-pill {
+  margin-top:1.5rem;
+  display:inline-flex; align-items:center; gap:.6em;
+  padding:.55rem 1.25rem;
+  background:rgba(var(--current-rgb), 0.1);
+  border:1px solid var(--current-color, var(--border));
+  border-radius:99px;
+  font-size:.85rem; font-weight:600;
+  color:var(--current-color, var(--text-2));
+  letter-spacing:.02em;
+  opacity:0; transform:translateY(8px);
+  transition:opacity .5s .2s, transform .5s .2s;
+}
+.stage-team-pill.show { opacity:1; transform:translateY(0); }
+
+/* ── Footer hint ── */
+.hint {
+  flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  gap:.7em;
+  color:var(--text-3); font-size:.78rem;
+  letter-spacing:.14em; text-transform:uppercase;
+  height:2em;
+  transition:opacity .4s;
+}
+.hint.hidden { opacity:0; }
+.kbd {
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:.25em .55em;
+  border:1px solid var(--text-3);
+  border-radius:5px; font-family:'DM Sans',sans-serif;
+  font-size:.7rem; line-height:1; letter-spacing:.05em;
 }
 
-/* ─── Done ────────────────────────────────────────────────── */
-#s-done { text-align:center; gap:1rem; }
+/* ── Flying chip (FLIP animation) ── */
+.flying-chip {
+  position:fixed; z-index:200;
+  font-family:'Clash Display',sans-serif;
+  font-weight:700;
+  font-size:clamp(3rem,9vw,7rem);
+  line-height:1; letter-spacing:-.035em;
+  pointer-events:none;
+  white-space:nowrap;
+  color:var(--current-color);
+  text-shadow:
+    0 0 40px var(--current-color),
+    0 0 90px rgba(var(--current-rgb), 0.4);
+}
+
+/* ── Confetti (done state) ── */
+.confetti-piece {
+  position:fixed; width:10px; height:10px;
+  pointer-events:none; z-index:100;
+  top:50%; left:50%; border-radius:2px;
+}
+
+/* ── Done overlay ── */
+.done-overlay {
+  position:fixed; inset:0; z-index:50;
+  display:flex; align-items:center; justify-content:center;
+  background:radial-gradient(circle at 50% 50%, rgba(255,92,138,0.08), transparent 60%);
+  opacity:0; pointer-events:none;
+  transition:opacity .8s;
+  text-align:center;
+}
+.done-overlay.show { opacity:1; }
 .done-title {
   font-family:'Clash Display',sans-serif;
-  font-size:clamp(3rem,7vw,6rem);
-  font-weight:700; letter-spacing:-0.04em; line-height:0.95;
+  font-weight:700; font-size:clamp(2.5rem,6vw,5rem);
+  letter-spacing:-.03em; line-height:1;
 }
-.done-title .multi {
-  background:linear-gradient(90deg, var(--c1), var(--c2), var(--c3));
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  background-size:200%;
-  animation:shimmer 3s linear infinite;
-}
-.done-sub { color:var(--text-2); font-size:1.1rem; }
-.teams-summary {
-  display:flex; gap:1rem; margin-top:1.5rem; flex-wrap:wrap; justify-content:center;
-}
-.summary-pill {
-  padding:0.5rem 1.25rem;
-  border-radius:100px;
-  border:1px solid rgba(255,255,255,0.12);
-  font-size:0.8rem; color:var(--text-2);
-}
+.done-title em { font-family:'Fraunces',serif; font-style:italic; font-weight:300; color:var(--c3); text-shadow:0 0 60px var(--c3); }
+.done-sub { margin-top:1rem; color:var(--text-2); font-size:1rem; letter-spacing:.02em; }
 
-/* ─── Pre-rooms teaser ──────────────────────────────────────── */
-#s-prerooms { gap:1.5rem; text-align:center; }
-.prerooms-kicker {
-  font-size:0.7rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--text-3);
+/* ── Loading ── */
+.loading {
+  position:fixed; inset:0; z-index:300;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:var(--bg);
+  transition:opacity .5s;
 }
-.prerooms-line1 {
-  font-family:'Clash Display',sans-serif;
-  font-size:clamp(2rem,5vw,4.5rem);
-  font-weight:700; letter-spacing:-0.04em; line-height:1;
-  color:var(--text-2);
+.loading.hidden { opacity:0; pointer-events:none; }
+.spin {
+  width:42px; height:42px;
+  border:2px solid rgba(255,255,255,0.08);
+  border-top-color:var(--c3);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
 }
-.prerooms-line2 {
-  font-family:'Clash Display',sans-serif;
-  font-size:clamp(2.5rem,6.5vw,6rem);
-  font-weight:700; letter-spacing:-0.04em; line-height:0.95;
-  background:linear-gradient(135deg, var(--c1) 0%, var(--c2) 50%, var(--c3) 100%);
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
-  background-size:200%;
-  animation:shimmer 4s linear infinite;
-}
-.prerooms-sub {
-  color:var(--text-3); font-size:1rem; max-width:400px;
-}
-
-/* ─── All Rooms screen ──────────────────────────────────────── */
-#s-rooms { gap:2rem; }
-#s-rooms .rooms-eyebrow {
-  font-size:0.7rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--text-3);
-}
-#s-rooms .rooms-title {
-  font-family:'Clash Display',sans-serif;
-  font-size:clamp(1.75rem,3.5vw,3rem);
-  font-weight:700; letter-spacing:-0.03em; text-align:center;
-}
-.rooms-grid {
-  display:grid; grid-template-columns:repeat(3,1fr);
-  gap:1.25rem; width:100%; max-width:1000px;
-}
-.room-col {
-  display:flex; flex-direction:column; align-items:center;
-  gap:1rem; padding:2rem 1.5rem;
-  background:rgba(255,255,255,0.03);
-  border:1px solid rgba(255,255,255,0.07);
-  border-radius:20px; text-align:center;
-  opacity:0;
-}
-.room-col.in {
-  animation:roomColIn 0.65s cubic-bezier(0.175,0.885,0.32,1.275) forwards;
-}
-.room-col-icon {
-  width:70px; height:70px; border-radius:20px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:1.75rem; animation:float 3s ease-in-out infinite;
-}
-.room-col-team {
-  font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase;
-  padding:0.25rem 0.7rem;
-  border:1.5px solid currentColor; border-radius:100px;
-}
-.room-col-challenge {
-  font-size:0.8rem; color:var(--text-3); line-height:1.35;
-  max-width:200px;
-}
-.room-col-name {
-  font-family:'Clash Display',sans-serif;
-  font-size:clamp(1.4rem,2.5vw,2.2rem);
-  font-weight:700; letter-spacing:-0.02em; line-height:1;
-}
-.room-col-members {
-  display:flex; flex-wrap:wrap; justify-content:center; gap:0.4rem;
-  margin-top:0.25rem;
-}
-.room-col-chip {
-  font-size:0.72rem; padding:0.2rem 0.6rem;
-  background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.07);
-  border-radius:100px; white-space:nowrap;
-}
-.rooms-hint {
-  font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase;
-  color:var(--text-3); animation:breath 2.2s ease-in-out infinite;
-}
-@keyframes roomColIn {
-  from { opacity:0; transform:translateY(40px) scale(0.92); }
-  to   { opacity:1; transform:translateY(0) scale(1); }
-}
-
-/* ─── Progress bar ──────────────────────────────────────────── */
-#prog {
-  position:fixed; bottom:0; left:0; height:2px;
-  background:var(--c1); opacity:0.5;
-  transition:width 0.5s ease, background 0.5s;
-  z-index:50; width:0%;
-}
-
-/* ─── Keyframes ─────────────────────────────────────────────── */
 @keyframes spin { to { transform:rotate(360deg); } }
-@keyframes breath { 0%,100%{opacity:0.25} 50%{opacity:0.7} }
-@keyframes cardSlideIn {
-  from { opacity:0; transform:translateY(24px) scale(0.95); }
-  to   { opacity:1; transform:translateY(0) scale(1); }
-}
-@keyframes roomPop {
-  from { opacity:0; transform:scale(0.85) translateY(20px); }
-  to   { opacity:1; transform:scale(1) translateY(0); }
-}
-@keyframes float {
-  0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-8px); }
-}
-@keyframes nameIn {
-  0%  { opacity:0; transform:scale(0.6) translateY(30px); filter:blur(24px); }
-  55% { opacity:1; transform:scale(1.04) translateY(-4px); filter:blur(0); }
-  80% { transform:scale(0.98) translateY(0); }
-  100%{ opacity:1; transform:scale(1) translateY(0); }
-}
-@keyframes ringOut {
-  0%   { width:0;    height:0;    opacity:0.9; border-width:2px; transform:translate(-50%,-50%); }
-  100% { width:700px; height:700px; opacity:0;  border-width:0;  transform:translate(-50%,-50%); }
-}
-@keyframes sparkFly {
-  0%   { opacity:1; transform:translate(0,0) scale(1); }
-  100% { opacity:0; transform:translate(var(--tx),var(--ty)) scale(0); }
-}
-@keyframes shimmer { from{background-position:0%} to{background-position:200%} }
-@keyframes screenFadeIn {
-  from { opacity:0; transform:translateY(12px); }
-  to   { opacity:1; transform:translateY(0); }
+.loading p { margin-top:1.2rem; color:var(--text-3); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; }
+
+@media (max-width:760px) {
+  html, body { cursor:default; }
+  #cursor { display:none; }
+  .teams-grid { grid-template-columns:repeat(2,1fr); }
+  main { gap:1rem; padding:1.25rem; }
 }
 </style>
 </head>
 <body>
 
-<canvas id="bg-canvas"></canvas>
+<canvas id="constellation"></canvas>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
 <div id="cursor"></div>
 
-<!-- Loading -->
-<div class="screen active" id="s-loading">
+<div class="loading" id="loading">
   <div class="spin"></div>
-  <p>Assembling teams…</p>
+  <p>Building teams…</p>
 </div>
 
-<!-- Intro -->
-<div class="screen" id="s-intro">
-  <p class="smitten-eyebrow">Smitten</p>
-  <h1 class="intro-title">Meet the<br><span class="gr">Teams</span></h1>
-  <p class="intro-sub">Three challenges. Three teams. Let's see where you landed.</p>
-  <div class="click-hint">Click or press Space to begin</div>
-</div>
+<main id="app" style="display:none">
 
-<!-- Team reveal screen (shared) -->
-<div class="screen" id="s-team">
-  <div class="team-bar" id="team-bar">
-    <span class="team-pill" id="team-pill">Team 1</span>
-    <div class="team-info">
-      <div class="team-label">Challenge</div>
-      <div class="team-title" id="team-title">–</div>
+  <header>
+    <div class="brand">Smitten</div>
+    <div class="title-block">
+      <div class="eyebrow" id="sprint-name">Sprint</div>
+      <h1>Team <em>Reveal</em></h1>
     </div>
-    <div class="team-tally" id="team-tally">0 / 0 revealed</div>
+    <div class="progress-pill"><strong id="progress-current">0</strong> / <span id="progress-total">0</span></div>
+  </header>
+
+  <div class="teams-grid" id="teams-grid"></div>
+
+  <div class="stage">
+    <div class="stage-inner">
+      <div class="stage-eyebrow" id="stage-eyebrow">Click to begin the reveal</div>
+      <div class="stage-name empty" id="stage-name">Press space</div>
+      <div class="stage-team-pill" id="stage-pill"><span id="pill-icon">●</span><span id="pill-text"></span></div>
+    </div>
   </div>
-  <div class="team-stage" id="team-stage">
-    <div class="members-list" id="members-list"></div>
-    <div class="stage-hint" id="stage-hint">Click or Space to reveal</div>
+
+  <div class="hint" id="hint">
+    <span class="kbd">Space</span> <span>or click anywhere to reveal</span>
   </div>
-</div>
 
-<!-- Pre-rooms teaser -->
-<div class="screen" id="s-prerooms">
-  <p class="prerooms-kicker">One last thing…</p>
-  <div class="prerooms-line1">Okay so…</div>
-  <div class="prerooms-line2">Where does<br>everyone sit?</div>
-  <p class="prerooms-sub">Each team has a room waiting for them.</p>
-  <div class="click-hint">Click or Space to reveal</div>
-</div>
+</main>
 
-<!-- All Rooms reveal -->
-<div class="screen" id="s-rooms">
-  <p class="rooms-eyebrow">Head to your workspace</p>
-  <h2 class="rooms-title">Here's where you're<br>going to make it happen</h2>
-  <div class="rooms-grid" id="rooms-grid"></div>
-  <div class="rooms-hint">Click or Space to continue →</div>
-</div>
-
-<!-- Done -->
-<div class="screen" id="s-done">
-  <p class="eyebrow">All teams revealed</p>
-  <h1 class="done-title">Let's<br><span class="multi">Get To Work</span></h1>
-  <p class="done-sub">Three weeks. Three teams. One unforgettable sprint.</p>
-  <div class="teams-summary" id="done-summary"></div>
-</div>
-
-<!-- Reveal overlay -->
-<div id="reveal-overlay">
-  <div class="reveal-bg"></div>
-  <div class="reveal-spotlight" id="reveal-spotlight"></div>
-  <div class="reveal-name-wrap">
-    <div class="reveal-name" id="reveal-name"></div>
-    <div class="reveal-badge" id="reveal-badge">Team Member</div>
+<div class="done-overlay" id="done">
+  <div>
+    <div class="done-title">Teams <em>assembled</em></div>
+    <div class="done-sub">Time to ship something great.</div>
   </div>
 </div>
-
-<!-- Progress bar -->
-<div id="prog"></div>
 
 <script>
-/* ── Config ───────────────────────────────────────────────── */
-const SUPABASE_URL      = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
+const SUPABASE_URL = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
 
-const TEAM_META = [
-  { id:1, title:'Launch Smitten in Malta',   shortName:'Malta',        color:'#00E5FF', room:'Dev Room',        roomIcon:'🚀', emoji:'🇲🇹' },
-  { id:2, title:'Organic Growth Hacks',       shortName:'Organic',      color:'#FFB800', room:'Ops Room',        roomIcon:'🌿', emoji:'🌱' },
-  { id:3, title:'AI Dating Profile Agent',    shortName:'Dating Agent', color:'#FF5C8A', room:'Marketing Room',  roomIcon:'✨', emoji:'🤖' },
+const COLORS = [
+  { hex:'#00E5FF', rgb:'0,229,255'   },
+  { hex:'#FFB800', rgb:'255,184,0'   },
+  { hex:'#FF5C8A', rgb:'255,92,138'  },
+  { hex:'#B8FF4A', rgb:'184,255,74'  },
+  { hex:'#A78BFA', rgb:'167,139,250' },
+  { hex:'#FFD76B', rgb:'255,215,107' },
 ];
 
-/* ── State ────────────────────────────────────────────────── */
-let teams        = { 1:[], 2:[], 3:[] };
-let phase        = 'loading';   // loading | intro | team | prerooms | rooms | done
-let teamIdx      = 0;           // 0..2
-let revealedIdx  = 0;           // 0..members.length
-let busy         = false;
+let challenges = [];          // [{id, title}]
+let teamColors = {};          // { challengeId: {hex, rgb} }
+let teamMembers = {};         // { challengeId: [name1, name2, ...] } — placed
+let queue = [];               // [{ name, teamId }] — shuffled, drained as we reveal
+let totalCount = 0;
+let state = 'idle';           // idle | revealing | revealed | flying
+let current = null;           // { name, teamId } in flight
 
-/* ── Canvas bg ────────────────────────────────────────────── */
-const canvas = document.getElementById('bg-canvas');
-const ctx    = canvas.getContext('2d');
-let pts      = [];
-let accentColor = '#00E5FF';
-
-function resizeCanvas() {
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-function initPts() {
-  pts = [];
-  const n = Math.floor((canvas.width * canvas.height) / 14000);
-  for (let i = 0; i < n; i++) pts.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    vx:(Math.random()-0.5)*0.25, vy:(Math.random()-0.5)*0.25,
-    r: Math.random()*1.4+0.4, a: Math.random()*0.45+0.1,
-  });
-}
-function drawBg() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  pts.forEach(p => {
-    p.x += p.vx; p.y += p.vy;
-    if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
-    if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
-    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle = `rgba(255,255,255,${p.a*0.5})`; ctx.fill();
-  });
-  for (let i = 0; i < pts.length; i++) {
-    for (let j = i+1; j < pts.length; j++) {
-      const dx = pts[i].x-pts[j].x, dy = pts[i].y-pts[j].y;
-      const d  = Math.sqrt(dx*dx+dy*dy);
-      if (d < 110) {
-        ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y);
-        ctx.strokeStyle = `rgba(255,255,255,${(1-d/110)*0.04})`; ctx.lineWidth=0.5; ctx.stroke();
+// ── Constellation BG ─────────────────────────────────────
+(function () {
+  const canvas = document.getElementById('constellation');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts;
+  const N = 60, CONN = 170;
+  const resize = () => {
+    W = canvas.width = innerWidth; H = canvas.height = innerHeight;
+    pts = Array.from({length:N}, () => ({
+      x:Math.random()*W, y:Math.random()*H,
+      vx:(Math.random()-0.5)*0.22, vy:(Math.random()-0.5)*0.22,
+      r:Math.random()*1.2 + 0.4
+    }));
+  };
+  const tick = () => {
+    ctx.clearRect(0,0,W,H);
+    for (const p of pts) {
+      p.x = (p.x + p.vx + W) % W;
+      p.y = (p.y + p.vy + H) % H;
+    }
+    for (let i=0; i<N; i++) for (let j=i+1; j<N; j++) {
+      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.hypot(dx,dy);
+      if (d < CONN) {
+        ctx.strokeStyle = `rgba(255,255,255,${0.05*(1-d/CONN)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y); ctx.stroke();
       }
     }
-  }
-  requestAnimationFrame(drawBg);
-}
+    for (const p of pts) { ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
+    requestAnimationFrame(tick);
+  };
+  addEventListener('resize', resize); resize(); tick();
+})();
 
-/* ── Cursor ───────────────────────────────────────────────── */
-const cursorEl = document.getElementById('cursor');
-document.addEventListener('mousemove', e => {
-  cursorEl.style.left = e.clientX+'px';
-  cursorEl.style.top  = e.clientY+'px';
-});
-document.addEventListener('mousedown', () => cursorEl.classList.add('big'));
-document.addEventListener('mouseup',   () => cursorEl.classList.remove('big'));
+// ── Cursor ───────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+addEventListener('mousemove', e => { cursor.style.left=e.clientX+'px'; cursor.style.top=e.clientY+'px'; });
+addEventListener('mousedown', () => cursor.classList.add('big'));
+addEventListener('mouseup', () => cursor.classList.remove('big'));
 
-/* ── Supabase ─────────────────────────────────────────────── */
-async function loadTeams() {
+// ── Helpers ──────────────────────────────────────────────
+function escapeHtml(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m])}
+function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// ── Load data ────────────────────────────────────────────
+async function load() {
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const sprintId = new URLSearchParams(window.location.search).get('sprint');
+  const sprintId = new URLSearchParams(location.search).get('sprint');
 
-  // Load sprint config (rooms + challenge titles)
-  try {
-    let q = db.from('sprints').select('*');
-    q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
-    const { data: sprint } = await q;
-    if (sprint) {
-      const ch = sprint.challenges || [];
-      const rm = sprint.rooms || [];
-      TEAM_META = [1,2,3].map(id => {
-        const c = ch.find(x => x.id === id) || {};
-        const r = rm.find(x => x.teamId === id) || {};
-        return {
-          id,
-          title:     c.title     || TEAM_META[id-1]?.title,
-          shortName: r.shortTag  || TEAM_META[id-1]?.shortName,
-          color:     ['#00E5FF','#FFB800','#FF5C8A'][id-1],
-          room:      r.room      || TEAM_META[id-1]?.room,
-          roomIcon:  r.icon      || TEAM_META[id-1]?.roomIcon,
-          emoji:     TEAM_META[id-1]?.emoji,
-        };
-      });
-    }
-  } catch(e) { console.warn('Sprint config load skipped:', e); }
+  // Sprint config
+  let sq = db.from('sprints').select('id,name,challenges,status');
+  sq = sprintId ? sq.eq('id', sprintId).single()
+                : sq.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
+  const { data: sprint } = await sq;
+  if (!sprint) { document.getElementById('loading').querySelector('p').textContent = 'No sprint found'; return; }
+  document.getElementById('sprint-name').textContent = sprint.name;
+  challenges = (sprint.challenges || []).map((c,i) => ({ id: c.id ?? (i+1), title: c.title || `Challenge ${i+1}` }));
 
-  // Load votes filtered by sprint
-  let vq = db.from('votes').select('*').order('created_at',{ascending:true});
-  if (sprintId) vq = vq.eq('sprint_id', sprintId);
-  const { data } = await vq;
-  teams = {1:[],2:[],3:[]};
-  (data||[]).forEach(v => {
-    const slot = v.team_assignment ?? v.first_choice;
-    const t    = [1,2,3].includes(slot) ? slot : v.first_choice;
-    teams[t].push({ id:v.id, name:v.voter_name, first:v.first_choice, second:v.second_choice, third:v.third_choice });
-  });
-  showScreen('intro');
-  phase = 'intro';
-}
+  // Assign colors to each challenge / team
+  challenges.forEach((c, i) => { teamColors[c.id] = COLORS[i % COLORS.length]; });
 
-/* ── Screens ──────────────────────────────────────────────── */
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('s-'+name).classList.add('active');
-}
-
-/* ── Progress bar ─────────────────────────────────────────── */
-function updateProgress() {
-  if (teamIdx >= TEAM_META.length) return;
-  const meta    = TEAM_META[teamIdx];
-  const members = teams[meta.id];
-  const pct     = (teamIdx + revealedIdx / Math.max(members.length,1)) / 3 * 100;
-  const bar     = document.getElementById('prog');
-  bar.style.background = meta.color;
-  bar.style.width      = pct + '%';
-}
-
-/* ── Team screen setup ────────────────────────────────────── */
-function setupTeam(idx) {
-  teamIdx     = idx;
-  revealedIdx = 0;
-  busy        = false;
-
-  const meta    = TEAM_META[idx];
-  const members = teams[meta.id];
-  accentColor   = meta.color;
-
-  document.getElementById('team-pill').textContent  = `Team ${idx+1}`;
-  document.getElementById('team-pill').style.color  = meta.color;
-  document.getElementById('team-pill').style.borderColor = meta.color;
-  document.getElementById('team-bar').style.color   = meta.color;
-  document.getElementById('team-title').textContent = meta.title;
-  document.getElementById('team-title').style.color = meta.color;
-  document.getElementById('team-tally').textContent = `0 / ${members.length} revealed`;
-  document.getElementById('stage-hint').textContent = 'Click or Space to reveal first member';
-  document.getElementById('members-list').innerHTML = '';
-  document.getElementById('prog').style.background  = meta.color;
-  cursorEl.style.borderColor = meta.color;
-  updateProgress();
-}
-
-/* ── Scramble effect ──────────────────────────────────────── */
-const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÞÐÆÖabcdefghijklmnopqrstuvwxyz0123456789!#$%';
-function scramble(el, text, ms = 850) {
-  return new Promise(res => {
-    const steps = 28, dt = ms/steps; let t = 0;
-    const id = setInterval(() => {
-      t++;
-      const prog    = t/steps;
-      const revealed = Math.floor(Math.pow(prog,0.55)*text.length);
-      el.textContent = text.split('').map((c,i) => {
-        if (c===' ') return ' ';
-        if (i < revealed) return c;
-        return GLYPHS[Math.floor(Math.random()*GLYPHS.length)];
-      }).join('');
-      if (t >= steps) { clearInterval(id); el.textContent = text; res(); }
-    }, dt);
-  });
-}
-
-/* ── FX: rings ────────────────────────────────────────────── */
-function spawnRings(color) {
-  [0, 100, 200].forEach(delay => {
-    const r = document.createElement('div');
-    r.className = 'ring';
-    r.style.cssText = `left:50%;top:50%;color:${color};border-color:${color};
-      box-shadow:0 0 12px ${color}50; animation-delay:${delay}ms;`;
-    document.body.appendChild(r);
-    setTimeout(() => r.remove(), 900+delay);
-  });
-}
-
-/* ── FX: sparks ───────────────────────────────────────────── */
-function spawnSparks(color, count=28) {
-  const cx = window.innerWidth/2, cy = window.innerHeight/2;
-  for (let i=0; i<count; i++) {
-    const angle = (i/count)*Math.PI*2 + (Math.random()-0.5)*0.4;
-    const speed = 80 + Math.random()*280;
-    const tx    = Math.cos(angle)*speed, ty = Math.sin(angle)*speed;
-    const size  = 2.5 + Math.random()*4.5;
-    const s     = document.createElement('div');
-    s.className = 'spark';
-    s.style.cssText = `
-      left:${cx}px; top:${cy}px;
-      width:${size}px; height:${size}px;
-      background:${color}; box-shadow:0 0 8px ${color};
-      --tx:${tx}px; --ty:${ty}px;
-      animation-duration:${0.6+Math.random()*0.4}s;
-      animation-delay:${Math.random()*80}ms;
-    `;
-    document.body.appendChild(s);
-    setTimeout(() => s.remove(), 1100);
-  }
-}
-
-/* ── Reveal a person ──────────────────────────────────────── */
-async function revealPerson() {
-  if (busy) return;
-  const meta    = TEAM_META[teamIdx];
-  const members = teams[meta.id];
-  const person  = members[revealedIdx];
-  busy = true;
-
-  /* 1. Show overlay */
-  const overlay  = document.getElementById('reveal-overlay');
-  const nameEl   = document.getElementById('reveal-name');
-  const badgeEl  = document.getElementById('reveal-badge');
-  const spotlight= document.getElementById('reveal-spotlight');
-
-  nameEl.className   = 'reveal-name';
-  nameEl.style.color = meta.color;
-  nameEl.style.textShadow = `0 0 60px ${meta.color}70, 0 0 120px ${meta.color}30`;
-  nameEl.textContent = '▓▓▓▓▓▓▓▓';
-  badgeEl.className  = 'reveal-badge'; // hidden — opacity stays 0
-  spotlight.style.background = `radial-gradient(ellipse 50% 45% at 50% 50%, ${meta.color}12 0%, transparent 70%)`;
-
-  overlay.classList.add('show');
-
-  /* 2. Spawn FX */
-  spawnRings(meta.color);
-  spawnSparks(meta.color);
-
-  /* 3. Animate name */
-  await sleep(80);
-  nameEl.classList.add('show');
-  await scramble(nameEl, person.name, 1500);
-
-  /* 4. Hold — 2 extra seconds */
-  await sleep(1700);
-
-  /* 5. Hide overlay */
-  overlay.classList.remove('show');
-  await sleep(250);
-
-  /* 6. Add card to list */
-  const list    = document.getElementById('members-list');
-  const initials = person.name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
-  const card    = document.createElement('div');
-  card.className = 'm-card';
-  card.style.borderColor = `${meta.color}25`;
-  card.innerHTML = `
-    <div class="m-avatar" style="background:${meta.color}18;color:${meta.color}">${esc(initials)}</div>
-    <div class="m-name">${esc(person.name)}</div>
-    <div class="m-num">#${revealedIdx+1}</div>
-  `;
-  list.appendChild(card);
-  revealedIdx++;
-
-  /* 7. Update tally */
-  const remaining = members.length - revealedIdx;
-  document.getElementById('team-tally').textContent = `${revealedIdx} / ${members.length} revealed`;
-  if (remaining > 0)
-    document.getElementById('stage-hint').textContent = `${remaining} more — click or Space`;
-  else if (teamIdx < 2)
-    document.getElementById('stage-hint').textContent = `All revealed · click for next team →`;
-  else
-    document.getElementById('stage-hint').textContent = `All teams revealed · click for the rooms →`;
-
-  updateProgress();
-  busy = false;
-}
-
-/* ── Advance to next team ────────────────────────────────── */
-async function nextTeam() {
-  if (busy) return;
-  busy = true;
-
-  const screen = document.getElementById('s-team');
-  screen.style.transition = 'opacity 0.35s';
-  screen.style.opacity    = '0';
-  await sleep(350);
-
-  teamIdx++;
-  if (teamIdx >= 3) {
-    // All teams done — show teaser then rooms
-    showScreen('prerooms');
-    phase = 'prerooms';
-    busy = false;
+  // Votes (filter by sprint)
+  let vq = db.from('votes').select('voter_name,first_choice,team_assignment,sprint_id').order('created_at',{ascending:true});
+  if (sprint.id) vq = vq.eq('sprint_id', sprint.id);
+  const { data: votes } = await vq;
+  if (!votes || !votes.length) {
+    document.getElementById('loading').querySelector('p').textContent = 'No votes for this sprint yet — admin needs to be signed in';
     return;
   }
 
-  setupTeam(teamIdx);
-  screen.style.opacity = '1';
-  phase = 'team';
-  busy  = false;
+  // Build queue: each voter gets a (name, teamId)
+  const ids = challenges.map(c => c.id);
+  const items = votes.map(v => {
+    const slot = v.team_assignment ?? v.first_choice;
+    const team = ids.includes(slot) ? slot : (ids.includes(v.first_choice) ? v.first_choice : ids[0]);
+    return { name: v.voter_name, teamId: team };
+  });
+  queue = shuffle(items);
+  totalCount = items.length;
+  challenges.forEach(c => { teamMembers[c.id] = []; });
+
+  document.getElementById('progress-total').textContent = totalCount;
+  renderTeams();
+
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('app').style.display = 'flex';
 }
 
-/* ── Combined rooms screen ───────────────────────────────── */
-async function showRoomsScreen() {
-  showScreen('rooms');
-  phase = 'rooms';
-
-  // Build 3 room columns
-  const grid = document.getElementById('rooms-grid');
-  grid.innerHTML = TEAM_META.map((meta, i) => {
-    const members = teams[meta.id];
-    const chips = members.map(m => `<span class="room-col-chip">${esc(m.name)}</span>`).join('');
+// ── Render teams ─────────────────────────────────────────
+function renderTeams() {
+  const grid = document.getElementById('teams-grid');
+  grid.dataset.count = challenges.length;
+  grid.innerHTML = challenges.map((c, i) => {
+    const color = teamColors[c.id];
+    const members = teamMembers[c.id] || [];
+    const num = String(i+1).padStart(2,'0');
     return `
-      <div class="room-col" id="rcol-${i}" style="border-color:${meta.color}25">
-        <div class="room-col-icon" style="background:${meta.color}18;animation-delay:${i*0.3}s">${meta.roomIcon}</div>
-        <span class="room-col-team" style="color:${meta.color};border-color:${meta.color}">${esc(meta.shortName)}</span>
-        <div class="room-col-name" style="color:${meta.color};text-shadow:0 0 40px ${meta.color}50">${meta.room}</div>
-        <div class="room-col-members">${chips}</div>
+      <div class="team-card" data-team-id="${c.id}" style="--team-color:${color.hex};--team-rgb:${color.rgb}">
+        <div class="team-head">
+          <div>
+            <div class="team-no">Team ${num}</div>
+            <div class="team-title">${escapeHtml(c.title)}</div>
+          </div>
+          <div class="team-count" data-team-count-id="${c.id}">${members.length}</div>
+        </div>
+        <div class="team-members" data-team-members-id="${c.id}">
+          ${members.map(m => `<span class="member-chip">${escapeHtml(m)}</span>`).join('')}
+        </div>
       </div>`;
   }).join('');
+}
 
-  // Stagger the cards in
-  await sleep(100);
-  for (let i = 0; i < 3; i++) {
-    await sleep(160);
-    const col = document.getElementById(`rcol-${i}`);
-    col.classList.add('in');
-    spawnRings(TEAM_META[i].color);
-    spawnSparks(TEAM_META[i].color, 14);
+function highlightTeam(teamId) {
+  document.querySelectorAll('.team-card').forEach(el => {
+    el.classList.toggle('active', String(el.dataset.teamId) === String(teamId));
+  });
+}
+
+// ── Reveal flow ──────────────────────────────────────────
+function clearStage() {
+  document.documentElement.style.removeProperty('--current-color');
+  document.documentElement.style.removeProperty('--current-rgb');
+  document.getElementById('stage-eyebrow').classList.remove('active');
+  document.getElementById('stage-name').classList.remove('glowing');
+  document.getElementById('stage-pill').classList.remove('show');
+  highlightTeam(null);
+}
+
+function nextStep() {
+  if (state === 'flying') return;
+
+  if (state === 'idle') {
+    if (queue.length === 0) { showDone(); return; }
+    current = queue.shift();
+    const color = teamColors[current.teamId];
+    document.documentElement.style.setProperty('--current-color', color.hex);
+    document.documentElement.style.setProperty('--current-rgb', color.rgb);
+    state = 'revealing';
+    document.getElementById('stage-eyebrow').textContent = 'Up next';
+    document.getElementById('stage-eyebrow').classList.add('active');
+    document.getElementById('hint').classList.add('hidden');
+    document.getElementById('stage-pill').classList.remove('show');
+    scrambleThenSettle(current.name).then(() => {
+      state = 'revealed';
+      // show team pill
+      const c = challenges.find(c => c.id === current.teamId);
+      const idx = challenges.indexOf(c);
+      document.getElementById('pill-text').textContent = `${c.title} · Team ${String(idx+1).padStart(2,'0')}`;
+      document.getElementById('stage-pill').classList.add('show');
+      highlightTeam(current.teamId);
+      document.getElementById('hint').classList.remove('hidden');
+      document.getElementById('hint').querySelector('span:last-child').textContent = 'send to their team';
+    });
+  } else if (state === 'revealed') {
+    state = 'flying';
+    flyToTeam();
   }
-
-  document.getElementById('prog').style.width = '95%';
-  document.getElementById('prog').style.background = 'var(--c3)';
 }
 
-/* ── Done screen ──────────────────────────────────────────── */
-function buildDoneScreen() {
-  const el = document.getElementById('done-summary');
-  el.innerHTML = TEAM_META.map((m,i) => `
-    <div class="summary-pill" style="border-color:${m.color}40;color:${m.color}">
-      Team ${i+1} · ${teams[m.id].length} members
-    </div>
-  `).join('');
-}
-
-/* ── Main advance logic ────────────────────────────────────── */
-function advance() {
-  if (phase === 'intro') {
-    phase   = 'team';
-    teamIdx = 0;
-    showScreen('team');
-    setupTeam(0);
-  } else if (phase === 'team') {
-    const meta    = TEAM_META[teamIdx];
-    const members = teams[meta.id];
-    if (revealedIdx < members.length) {
-      revealPerson();
-    } else {
-      nextTeam();
+// ── Scramble effect ──────────────────────────────────────
+const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅÞ';
+function scrambleThenSettle(targetName) {
+  const el = document.getElementById('stage-name');
+  el.classList.remove('empty');
+  return new Promise(resolve => {
+    const target = targetName.toUpperCase();
+    const len = target.length;
+    let frame = 0;
+    const totalFrames = 28;            // ~700ms at 16ms/frame, but with raf
+    const lockDelay = 14;              // start locking letters after this frame
+    const start = performance.now();
+    const lockedAt = new Array(len).fill(null);
+    // Each char locks at a different frame, in order
+    for (let i=0; i<len; i++) lockedAt[i] = lockDelay + Math.floor((i/len) * (totalFrames - lockDelay));
+    function tick() {
+      const now = performance.now();
+      const f = Math.floor((now - start) / 28);
+      let display = '';
+      for (let i=0; i<len; i++) {
+        const ch = target[i];
+        if (ch === ' ') { display += ' '; continue; }
+        if (f >= lockedAt[i]) { display += ch; }
+        else { display += SCRAMBLE_CHARS[Math.floor(Math.random()*SCRAMBLE_CHARS.length)]; }
+      }
+      el.textContent = display;
+      if (f >= totalFrames) {
+        el.textContent = target;
+        el.classList.add('glowing');
+        resolve();
+        return;
+      }
+      requestAnimationFrame(tick);
     }
-  } else if (phase === 'prerooms') {
-    showRoomsScreen();
-  } else if (phase === 'rooms') {
-    buildDoneScreen();
-    showScreen('done');
-    phase = 'done';
-    document.getElementById('prog').style.width = '100%';
+    requestAnimationFrame(tick);
+  });
+}
+
+// ── Fly animation ────────────────────────────────────────
+function flyToTeam() {
+  const stageName = document.getElementById('stage-name');
+  const teamCard = document.querySelector(`.team-card[data-team-id="${current.teamId}"]`);
+  if (!teamCard) { placeMember(); return; }
+
+  const startRect = stageName.getBoundingClientRect();
+  const endRect = teamCard.getBoundingClientRect();
+  const targetX = endRect.left + endRect.width / 2;
+  const targetY = endRect.top + endRect.height - 20;
+
+  // Create flying clone
+  const clone = document.createElement('div');
+  clone.className = 'flying-chip';
+  clone.textContent = stageName.textContent;
+  clone.style.left = (startRect.left + startRect.width/2) + 'px';
+  clone.style.top  = (startRect.top + startRect.height/2) + 'px';
+  clone.style.transform = 'translate(-50%, -50%)';
+  document.body.appendChild(clone);
+
+  // Hide source
+  stageName.style.opacity = '0';
+  stageName.style.transition = 'opacity .15s';
+
+  const dx = targetX - (startRect.left + startRect.width/2);
+  const dy = targetY - (startRect.top + startRect.height/2);
+
+  clone.animate(
+    [
+      { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx*0.4}px), calc(-50% + ${dy*0.5}px)) scale(0.7)`, opacity: 0.95, offset: 0.55 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.18)`, opacity: 0 }
+    ],
+    { duration: 850, easing: 'cubic-bezier(0.45,0.05,0.25,1)' }
+  ).onfinish = () => {
+    clone.remove();
+    placeMember();
+  };
+}
+
+function placeMember() {
+  // Add member chip to team card
+  if (!current) return;
+  teamMembers[current.teamId] = teamMembers[current.teamId] || [];
+  teamMembers[current.teamId].push(current.name);
+  // Re-render that team card
+  const card = document.querySelector(`.team-card[data-team-id="${current.teamId}"]`);
+  if (card) {
+    const wrap = card.querySelector('.team-members');
+    const chip = document.createElement('span');
+    chip.className = 'member-chip';
+    chip.textContent = current.name;
+    wrap.appendChild(chip);
+    card.querySelector('.team-count').textContent = teamMembers[current.teamId].length;
+  }
+  // Pulse the team card
+  const teamCard = document.querySelector(`.team-card[data-team-id="${current.teamId}"]`);
+  if (teamCard) {
+    teamCard.animate(
+      [{ transform: 'translateY(-3px) scale(1)' }, { transform: 'translateY(-3px) scale(1.04)' }, { transform: 'translateY(-3px) scale(1)' }],
+      { duration: 520, easing: 'cubic-bezier(0.16,1,0.3,1)' }
+    );
+  }
+
+  // Reset stage for next reveal
+  const stageName = document.getElementById('stage-name');
+  stageName.style.opacity = '';
+  stageName.classList.add('empty');
+  stageName.classList.remove('glowing');
+  stageName.textContent = queue.length ? 'Next…' : '';
+
+  document.getElementById('stage-eyebrow').textContent = queue.length ? 'Click to reveal next' : '';
+  document.getElementById('stage-eyebrow').classList.remove('active');
+  document.getElementById('stage-pill').classList.remove('show');
+  highlightTeam(null);
+
+  // Update progress
+  const placed = totalCount - queue.length;
+  document.getElementById('progress-current').textContent = placed;
+
+  document.getElementById('hint').querySelector('span:last-child').textContent =
+    queue.length ? 'or click anywhere to reveal' : 'all teams revealed';
+  document.getElementById('hint').classList.remove('hidden');
+
+  current = null;
+  state = 'idle';
+
+  if (queue.length === 0) {
+    setTimeout(() => showDone(), 700);
   }
 }
 
-/* ── Input ───────────────────────────────────────────────── */
-document.addEventListener('keydown', e => {
-  if (['Space','ArrowRight','Enter'].includes(e.code)) { e.preventDefault(); advance(); }
-});
-document.addEventListener('click', advance);
-
-/* ── Utils ───────────────────────────────────────────────── */
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-function esc(s) {
-  return String(s).replace(/[&<>"']/g, m =>
-    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+// ── Done ─────────────────────────────────────────────────
+function showDone() {
+  document.getElementById('done').classList.add('show');
+  document.getElementById('hint').classList.add('hidden');
+  launchConfetti();
 }
 
-/* ── Boot ────────────────────────────────────────────────── */
-window.addEventListener('resize', () => { resizeCanvas(); initPts(); });
-resizeCanvas(); initPts(); drawBg(); loadTeams();
+function launchConfetti() {
+  const colors = challenges.map(c => teamColors[c.id].hex).concat(['#ffffff']);
+  for (let i=0; i<160; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.background = colors[i % colors.length];
+    p.style.left = (50 + (Math.random()-0.5)*20) + '%';
+    p.style.top = '50%';
+    document.body.appendChild(p);
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 250 + Math.random() * 600;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 200;
+    p.animate([
+      { transform: 'translate(-50%,-50%) rotate(0deg)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${(Math.random()-0.5)*900}deg)`, opacity: 0 }
+    ], { duration: 1700 + Math.random()*900, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'forwards' });
+    setTimeout(() => p.remove(), 2800);
+  }
+}
+
+// ── Input ────────────────────────────────────────────────
+document.addEventListener('click', e => {
+  // Ignore clicks during fly state to prevent double-trigger
+  if (state === 'flying') return;
+  nextStep();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (state !== 'flying') nextStep();
+  }
+});
+
+load();
 </script>
 </body>
 </html>
