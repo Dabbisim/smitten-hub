@@ -1003,7 +1003,7 @@ async function switchSprint(id) {
   currentSprintId = id;
   history.replaceState(null, '', '?sprint=' + id);
   teamsDirty = false;
-  teamAssignments = { 1: [], 2: [], 3: [] };
+  teamAssignments = {};
   if (channel) { db.removeChannel(channel); channel = null; }
   await loadSprintConfig();
   CHALLENGES.forEach(c => {
@@ -1367,9 +1367,12 @@ function renderTable() {
 // ─── TEAM BUILDER ────────────────────────────────
 
 function initTeamAssignments() {
-  const teams = { 1: [], 2: [], 3: [] };
+  const teams = {};
+  const ids = CHALLENGES.map(c => c.id);
+  ids.forEach(id => { teams[id] = []; });
   votes.forEach(v => {
-    teams[v.first_choice].push({
+    const target = ids.includes(v.first_choice) ? v.first_choice : ids[0];
+    teams[target].push({
       id: v.id,
       name: v.voter_name,
       first: v.first_choice,
@@ -1378,13 +1381,14 @@ function initTeamAssignments() {
     });
   });
   // Balance: move overflow members to their 2nd choice team if it's undersized
-  const ideal = Math.ceil(votes.length / 3);
+  const teamCount = ids.length || 1;
+  const ideal = Math.ceil(votes.length / teamCount);
   let changed = true, iters = 0;
   while (changed && iters++ < 10) {
     changed = false;
-    for (const t of [1, 2, 3]) {
+    for (const t of ids) {
       while (teams[t].length > ideal + 1) {
-        const idx = teams[t].findIndex(p => teams[p.second].length < ideal);
+        const idx = teams[t].findIndex(p => ids.includes(p.second) && teams[p.second].length < ideal);
         if (idx === -1) break;
         const [p] = teams[t].splice(idx, 1);
         teams[p.second].push(p);
@@ -1398,10 +1402,12 @@ function initTeamAssignments() {
 function loadTeamAssignmentsFromDB() {
   // Rebuild from the team_assignment column stored in each vote row.
   // Votes without a saved assignment go to their first choice.
-  const teams = { 1: [], 2: [], 3: [] };
+  const teams = {};
+  const ids = CHALLENGES.map(c => c.id);
+  ids.forEach(id => { teams[id] = []; });
   votes.forEach(v => {
     const slot = v.team_assignment ?? v.first_choice;
-    const team = [1, 2, 3].includes(slot) ? slot : v.first_choice;
+    const team = ids.includes(slot) ? slot : (ids.includes(v.first_choice) ? v.first_choice : ids[0]);
     teams[team].push({
       id: v.id,
       name: v.voter_name,
@@ -1504,8 +1510,8 @@ async function updateVoterName(id, newName, fallbackName, span) {
     const vote = votes.find(v => String(v.id) === String(id));
     if (vote) vote.voter_name = newName;
     // Update team assignments
-    [1, 2, 3].forEach(t => {
-      const p = teamAssignments[t].find(p => String(p.id) === String(id));
+    Object.keys(teamAssignments).forEach(t => {
+      const p = (teamAssignments[t] || []).find(p => String(p.id) === String(id));
       if (p) p.name = newName;
     });
     span.textContent = newName;
