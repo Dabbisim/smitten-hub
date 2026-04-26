@@ -158,6 +158,30 @@ header {
   display:flex; flex-wrap:wrap; gap:.4rem;
   align-content:flex-start;
 }
+
+/* ── Room badge (revealed after team reveal) ── */
+.team-room {
+  margin-top:auto;
+  padding-top:.85rem;
+  border-top:1px solid var(--border);
+  display:flex; align-items:center; gap:.55em;
+  font-size:.85rem; font-weight:600;
+  color:var(--team-color);
+  letter-spacing:.01em;
+  opacity:0; transform:translateY(8px);
+  transition:opacity .55s cubic-bezier(0.16,1,0.3,1), transform .55s cubic-bezier(0.16,1,0.3,1);
+  min-height:0;
+}
+.team-room.show { opacity:1; transform:translateY(0); }
+.team-room::before {
+  content:'📍'; font-size:.95rem; filter:drop-shadow(0 0 8px rgba(var(--team-rgb), .6));
+}
+.team-card.room-revealing {
+  border-color:var(--team-color);
+  box-shadow:0 0 0 1px var(--team-color),
+             0 0 60px rgba(var(--team-rgb), 0.5),
+             inset 0 0 80px rgba(var(--team-rgb), 0.08);
+}
 .member-chip {
   font-family:'DM Sans',sans-serif; font-weight:500;
   font-size:.85rem; letter-spacing:-.005em;
@@ -359,8 +383,8 @@ header {
 
 <div class="done-overlay" id="done">
   <div>
-    <div class="done-title">Teams <em>assembled</em></div>
-    <div class="done-sub">Time to ship something great.</div>
+    <div class="done-title">Time to <em>ship</em></div>
+    <div class="done-sub">Find your team. Find your room. Let's build something great.</div>
   </div>
 </div>
 
@@ -380,9 +404,12 @@ const COLORS = [
 let challenges = [];          // [{id, title}]
 let teamColors = {};          // { challengeId: {hex, rgb} }
 let teamMembers = {};         // { challengeId: [name1, name2, ...] } — placed
+let teamRooms = {};           // { challengeId: 'Room name' }
 let queue = [];               // [{ name, teamId }] — shuffled, drained as we reveal
+let roomQueue = [];           // [{ teamId, room }] — drained as we reveal rooms
 let totalCount = 0;
-let state = 'idle';           // idle | revealing | revealed | flying
+let state = 'idle';           // idle | busy
+let phase = 'members';        // members | rooms | done
 let current = null;           // { name, teamId } in flight
 
 // ── Constellation BG ─────────────────────────────────────
@@ -435,7 +462,7 @@ async function load() {
   const sprintId = new URLSearchParams(location.search).get('sprint');
 
   // Sprint config
-  let sq = db.from('sprints').select('id,name,challenges,status');
+  let sq = db.from('sprints').select('id,name,challenges,rooms,status');
   sq = sprintId ? sq.eq('id', sprintId).single()
                 : sq.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
   const { data: sprint } = await sq;
@@ -445,6 +472,13 @@ async function load() {
 
   // Assign colors to each challenge / team
   challenges.forEach((c, i) => { teamColors[c.id] = COLORS[i % COLORS.length]; });
+
+  // Load rooms — match by teamId, fallback to challenge index
+  const roomMap = {};
+  (sprint.rooms || []).forEach(r => { if (r && r.teamId != null) roomMap[r.teamId] = r.room; });
+  challenges.forEach((c, i) => {
+    teamRooms[c.id] = roomMap[c.id] || roomMap[i+1] || `Room ${i+1}`;
+  });
 
   // Votes (filter by sprint)
   let vq = db.from('votes').select('voter_name,first_choice,team_assignment,sprint_id').order('created_at',{ascending:true});
@@ -493,6 +527,7 @@ function renderTeams() {
         <div class="team-members" data-team-members-id="${c.id}">
           ${members.map(m => `<span class="member-chip">${escapeHtml(m)}</span>`).join('')}
         </div>
+        <div class="team-room" data-team-room-id="${c.id}">${escapeHtml(teamRooms[c.id] || '')}</div>
       </div>`;
   }).join('');
 }
@@ -515,7 +550,12 @@ function clearStage() {
 
 async function nextStep() {
   if (state !== 'idle') return;
-  if (queue.length === 0) { showDone(); return; }
+  if (phase === 'members') return revealMember();
+  if (phase === 'rooms')   return revealRoom();
+}
+
+async function revealMember() {
+  if (queue.length === 0) { startRoomPhase(); return; }
 
   current = queue.shift();
   const color = teamColors[current.teamId];
@@ -548,6 +588,113 @@ async function nextStep() {
 }
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Room phase ───────────────────────────────────────────
+function startRoomPhase() {
+  phase = 'rooms';
+  // Build the room queue in challenge order
+  roomQueue = challenges.map(c => ({ teamId: c.id, room: teamRooms[c.id] || '' }));
+  // Update stage to invite next click
+  const stageName = document.getElementById('stage-name');
+  stageName.classList.add('empty');
+  stageName.classList.remove('glowing');
+  stageName.textContent = 'Now… where do you sit?';
+  stageName.style.opacity = '';
+  document.documentElement.style.removeProperty('--current-color');
+  document.documentElement.style.removeProperty('--current-rgb');
+  document.getElementById('stage-eyebrow').textContent = 'Teams assembled';
+  document.getElementById('stage-eyebrow').classList.remove('active');
+  document.getElementById('stage-pill').classList.remove('show');
+  highlightTeam(null);
+  document.getElementById('hint').querySelector('span:last-child').textContent = 'click to reveal the rooms';
+  document.getElementById('hint').classList.remove('hidden');
+  // Tiny celebration confetti
+  miniConfetti();
+}
+
+async function revealRoom() {
+  if (roomQueue.length === 0) { showDone(); return; }
+  const item = roomQueue.shift();
+  const color = teamColors[item.teamId];
+  const c = challenges.find(x => x.id === item.teamId);
+  const idx = challenges.indexOf(c);
+
+  state = 'busy';
+  document.documentElement.style.setProperty('--current-color', color.hex);
+  document.documentElement.style.setProperty('--current-rgb', color.rgb);
+  document.getElementById('hint').classList.add('hidden');
+
+  // Big center reveal: room name in team color
+  const stageName = document.getElementById('stage-name');
+  stageName.classList.remove('empty');
+  stageName.style.opacity = '';
+  document.getElementById('stage-eyebrow').textContent = `Team ${String(idx+1).padStart(2,'0')} · ${c.title}`;
+  document.getElementById('stage-eyebrow').classList.add('active');
+  document.getElementById('stage-pill').classList.remove('show');
+
+  // Scramble in the room name
+  await scrambleThenSettle(item.room);
+  stageName.classList.add('glowing');
+
+  // Highlight the team card with extra glow
+  document.querySelectorAll('.team-card').forEach(el => el.classList.remove('room-revealing'));
+  const card = document.querySelector(`.team-card[data-team-id="${item.teamId}"]`);
+  if (card) card.classList.add('room-revealing');
+
+  // Hold then place into the team card
+  await delay(2500);
+  // Reveal the room badge in the team card
+  if (card) {
+    const roomEl = card.querySelector('.team-room');
+    if (roomEl) roomEl.classList.add('show');
+    card.animate(
+      [{ transform: 'scale(1)' }, { transform: 'scale(1.04)' }, { transform: 'scale(1)' }],
+      { duration: 600, easing: 'cubic-bezier(0.16,1,0.3,1)' }
+    );
+  }
+  // Clear stage
+  stageName.classList.add('empty');
+  stageName.classList.remove('glowing');
+  stageName.textContent = roomQueue.length ? '' : '';
+  document.getElementById('stage-eyebrow').textContent = roomQueue.length ? 'Click for the next room' : '';
+  document.getElementById('stage-eyebrow').classList.remove('active');
+  if (card) {
+    setTimeout(() => card.classList.remove('room-revealing'), 1200);
+  }
+  document.documentElement.style.removeProperty('--current-color');
+  document.documentElement.style.removeProperty('--current-rgb');
+  if (roomQueue.length) {
+    document.getElementById('hint').querySelector('span:last-child').textContent = 'click to reveal the next room';
+    document.getElementById('hint').classList.remove('hidden');
+  }
+
+  state = 'idle';
+
+  if (roomQueue.length === 0) {
+    setTimeout(() => showDone(), 800);
+  }
+}
+
+function miniConfetti() {
+  const colors = challenges.map(c => teamColors[c.id].hex);
+  for (let i=0; i<40; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.background = colors[i % colors.length];
+    p.style.left = (50 + (Math.random()-0.5)*30) + '%';
+    p.style.top = '40%';
+    document.body.appendChild(p);
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 200 + Math.random() * 350;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 100;
+    p.animate([
+      { transform: 'translate(-50%,-50%) rotate(0deg)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${(Math.random()-0.5)*720}deg)`, opacity: 0 }
+    ], { duration: 1300 + Math.random()*700, easing: 'cubic-bezier(0.16,1,0.3,1)', fill: 'forwards' });
+    setTimeout(() => p.remove(), 2200);
+  }
+}
 
 // ── Scramble effect ──────────────────────────────────────
 const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅÞ';
@@ -675,8 +822,9 @@ function placeMember() {
   current = null;
   state = 'idle';
 
+  // When all members are placed, transition to room reveal phase.
   if (queue.length === 0) {
-    setTimeout(() => showDone(), 700);
+    setTimeout(() => startRoomPhase(), 700);
   }
 }
 
