@@ -1031,11 +1031,29 @@ async function showDashboard() {
 
   document.getElementById('btn-reset-teams').addEventListener('click', async () => {
     if (!confirm('Reset all team assignments to the suggested layout?')) return;
-    // Clear team_assignment in Supabase for every vote
-    await db.from('votes').update({ team_assignment: null }).neq('id', '00000000-0000-0000-0000-000000000000');
-    teamsDirty = false;
-    initTeamAssignments();
-    renderBuilder();
+    const btn = document.getElementById('btn-reset-teams');
+    const oldText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Resetting…';
+    try {
+      // Scope to current sprint so we don't accidentally clear other sprints' assignments
+      let q = db.from('votes').update({ team_assignment: null });
+      if (currentSprintId) q = q.eq('sprint_id', currentSprintId);
+      else q = q.neq('id', '00000000-0000-0000-0000-000000000000');
+      const { error, count } = await q;
+      if (error) throw error;
+      // Update local state so the in-memory votes match the DB
+      votes.forEach(v => { v.team_assignment = null; });
+      teamsDirty = false;
+      initTeamAssignments();
+      renderBuilder();
+    } catch (e) {
+      console.error('Reset failed:', e);
+      alert('Reset failed: ' + (e.message || 'unknown error'));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
   });
 
   loadVotes();
