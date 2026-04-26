@@ -653,9 +653,9 @@ function placeMember() {
   stageName.style.opacity = '';
   stageName.classList.add('empty');
   stageName.classList.remove('glowing');
-  stageName.textContent = queue.length ? 'Next…' : '';
+  stageName.textContent = '';
 
-  document.getElementById('stage-eyebrow').textContent = queue.length ? 'Click to reveal next' : '';
+  document.getElementById('stage-eyebrow').textContent = queue.length ? 'Click anywhere to reveal next' : '';
   document.getElementById('stage-eyebrow').classList.remove('active');
   document.getElementById('stage-pill').classList.remove('show');
   highlightTeam(null);
