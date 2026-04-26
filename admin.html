@@ -1036,24 +1036,31 @@ async function showDashboard() {
     btn.disabled = true;
     btn.textContent = 'Resetting…';
     try {
+      // Count how many votes had a manual assignment before reset (for feedback)
+      const hadAssignments = votes.filter(v => v.team_assignment != null).length;
       // Scope to current sprint so we don't accidentally clear other sprints' assignments
       let q = db.from('votes').update({ team_assignment: null });
       if (currentSprintId) q = q.eq('sprint_id', currentSprintId);
       else q = q.neq('id', '00000000-0000-0000-0000-000000000000');
-      const { error, count } = await q;
+      const { error } = await q;
       if (error) throw error;
       // Update local state so the in-memory votes match the DB
       votes.forEach(v => { v.team_assignment = null; });
       teamsDirty = false;
       initTeamAssignments();
       renderBuilder();
+      // Visible feedback so the click clearly registered
+      btn.textContent = hadAssignments
+        ? `✓ ${hadAssignments} reset`
+        : '✓ Already on suggested';
+      setTimeout(() => { btn.textContent = oldText; btn.disabled = false; }, 2000);
+      return;
     } catch (e) {
       console.error('Reset failed:', e);
       alert('Reset failed: ' + (e.message || 'unknown error'));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = oldText;
     }
+    btn.disabled = false;
+    btn.textContent = oldText;
   });
 
   loadVotes();
