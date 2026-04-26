@@ -758,13 +758,10 @@
   <div class="gate-tag">Admin Access</div>
   <h1>Results Dashboard</h1>
   <p class="gate-sub">Sign in to view all votes, teams &amp; retros</p>
-  <form class="gate-form" id="auth-form" autocomplete="on">
+  <form class="gate-form" id="auth-form" autocomplete="off">
     <input type="email" id="email-input" class="input" placeholder="your@email.com"
       autocomplete="email" required style="text-align:left;letter-spacing:normal">
-    <input type="password" id="password-input" class="input" placeholder="Password"
-      autocomplete="current-password" style="text-align:left;letter-spacing:normal">
-    <button type="submit" class="btn btn-amber" id="auth-btn">Sign in</button>
-    <a href="#" id="magic-link-btn" style="font-size:.78rem;color:var(--text-2);text-decoration:none;margin-top:.35rem;text-align:center">or send me a magic link</a>
+    <button type="submit" class="btn btn-amber" id="auth-btn">Send magic link</button>
     <div class="gate-error" id="auth-msg"></div>
   </form>
 </div>
@@ -864,7 +861,7 @@
 
 const SUPABASE_URL  = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
-const ADMIN_EMAIL = 'david@smitten.fun';
+const ADMIN_EMAILS = ['david@smitten.fun', 'a@smitten.fun', 'magnus@smitten.fun'];
 
 let CHALLENGES = [
   { id: 1, title: 'Launch Smitten in Malta' },
@@ -892,8 +889,7 @@ function init() {
   db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
   });
-  document.getElementById('auth-form').addEventListener('submit', signIn);
-  document.getElementById('magic-link-btn').addEventListener('click', sendMagicLink);
+  document.getElementById('auth-form').addEventListener('submit', sendMagicLink);
   db.auth.onAuthStateChange((_ev, session) => handleSession(session));
   db.auth.getSession().then(({data}) => handleSession(data.session));
 }
@@ -909,36 +905,16 @@ async function handleSession(session) {
     document.getElementById('dashboard').classList.add('hidden');
     return;
   }
-  if (session.user?.email !== ADMIN_EMAIL) {
+  const email = (session.user?.email || '').toLowerCase();
+  if (!ADMIN_EMAILS.includes(email)) {
     await db.auth.signOut();
     document.getElementById('gate').classList.remove('hidden');
     document.getElementById('dashboard').classList.add('hidden');
     msg.style.color = 'var(--rose)';
-    msg.textContent = `No admin access for ${session.user?.email || 'this account'}`;
+    msg.textContent = `No admin access for ${email || 'this account'}`;
     return;
   }
   showDashboard();
-}
-
-async function signIn(e) {
-  e?.preventDefault();
-  const email = document.getElementById('email-input').value.trim().toLowerCase();
-  const password = document.getElementById('password-input').value;
-  const msg = document.getElementById('auth-msg');
-  const btn = document.getElementById('auth-btn');
-  if (!email) { msg.style.color='var(--rose)'; msg.textContent = 'Enter your email'; return; }
-  if (email !== ADMIN_EMAIL.toLowerCase()) {
-    msg.style.color = 'var(--rose)'; msg.textContent = 'This email is not allowed.'; return;
-  }
-  if (!password) { msg.style.color='var(--rose)'; msg.textContent = 'Enter your password (or use the magic link link below)'; return; }
-  btn.disabled = true; btn.textContent = 'Signing in…';
-  const { error } = await db.auth.signInWithPassword({ email, password });
-  if (error) {
-    msg.style.color = 'var(--rose)';
-    msg.textContent = error.message;
-    btn.disabled = false; btn.textContent = 'Sign in';
-    return;
-  }
 }
 
 async function sendMagicLink(e) {
@@ -947,7 +923,7 @@ async function sendMagicLink(e) {
   const msg = document.getElementById('auth-msg');
   const btn = document.getElementById('auth-btn');
   if (!email) { msg.style.color='var(--rose)'; msg.textContent = 'Enter your email'; return; }
-  if (email !== ADMIN_EMAIL.toLowerCase()) {
+  if (!ADMIN_EMAILS.includes(email)) {
     msg.style.color = 'var(--rose)'; msg.textContent = 'This email is not allowed.'; return;
   }
   btn.disabled = true; btn.textContent = 'Sending…';
@@ -958,12 +934,12 @@ async function sendMagicLink(e) {
   if (error) {
     msg.style.color = 'var(--rose)';
     msg.textContent = error.message;
-    btn.disabled = false; btn.textContent = 'Sign in';
+    btn.disabled = false; btn.textContent = 'Send magic link';
     return;
   }
   msg.style.color = 'var(--amber)';
   msg.textContent = '✓ Check your email for a sign-in link.';
-  btn.disabled = false; btn.textContent = 'Sign in';
+  btn.textContent = 'Link sent';
 }
 
 async function signOutAdmin() {
