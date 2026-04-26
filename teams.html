@@ -54,8 +54,8 @@ main {
   position:relative; z-index:1;
   width:100%; height:100vh;
   display:flex; flex-direction:column;
-  padding:clamp(1.5rem,3vw,2.5rem);
-  gap:clamp(1rem,2.5vh,2rem);
+  padding:clamp(1.75rem,3.5vw,3rem) clamp(2rem,5vw,5rem);
+  gap:clamp(1.5rem,4vh,3rem);
 }
 
 /* ── Header ── */
@@ -112,12 +112,12 @@ header {
   position:relative;
   background:rgba(255,255,255,0.025);
   border:1px solid var(--border);
-  border-radius:18px;
-  padding:1.1rem 1.2rem;
+  border-radius:20px;
+  padding:1.5rem 1.6rem;
   backdrop-filter:blur(12px);
   display:flex; flex-direction:column;
-  gap:.85rem;
-  min-height:180px;
+  gap:1.1rem;
+  min-height:210px;
   overflow:hidden;
   transition:border-color .4s, box-shadow .4s, transform .4s;
 }
@@ -160,10 +160,10 @@ header {
 }
 .member-chip {
   font-family:'DM Sans',sans-serif; font-weight:500;
-  font-size:.78rem; letter-spacing:-.005em;
-  padding:.3rem .7rem;
-  background:rgba(var(--team-rgb), 0.1);
-  border:1px solid rgba(var(--team-rgb), 0.25);
+  font-size:.85rem; letter-spacing:-.005em;
+  padding:.42rem .85rem;
+  background:rgba(var(--team-rgb), 0.12);
+  border:1px solid rgba(var(--team-rgb), 0.3);
   border-radius:99px;
   color:var(--text);
   white-space:nowrap;
@@ -183,13 +183,15 @@ header {
   min-height:0;
 }
 .stage-inner {
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:1.6rem;
   text-align:center;
   max-width:90vw;
 }
 .stage-eyebrow {
   font-size:.72rem; letter-spacing:.24em;
   text-transform:uppercase; color:var(--text-3);
-  margin-bottom:1.2rem;
   height:1em;
   transition:color .4s;
 }
@@ -207,7 +209,7 @@ header {
   transition:color .5s, text-shadow .5s, transform .5s;
   font-feature-settings:"ss01";
   position:relative;
-  display:inline-block;
+  display:block;
 }
 .stage-name.empty { color:var(--text-3); font-weight:600; font-size:clamp(1.5rem,3vw,2.2rem); letter-spacing:-.02em; font-style:italic; font-family:'Fraunces',serif; font-weight:300; }
 .stage-name.glowing {
@@ -218,17 +220,17 @@ header {
 }
 
 .stage-team-pill {
-  margin-top:1.5rem;
   display:inline-flex; align-items:center; gap:.6em;
-  padding:.55rem 1.25rem;
+  padding:.6rem 1.4rem;
   background:rgba(var(--current-rgb), 0.1);
   border:1px solid var(--current-color, var(--border));
   border-radius:99px;
-  font-size:.85rem; font-weight:600;
+  font-size:.9rem; font-weight:600;
   color:var(--current-color, var(--text-2));
   letter-spacing:.02em;
   opacity:0; transform:translateY(8px);
-  transition:opacity .5s .2s, transform .5s .2s;
+  transition:opacity .5s .15s, transform .5s .15s;
+  align-self:center;
 }
 .stage-team-pill.show { opacity:1; transform:translateY(0); }
 
@@ -511,36 +513,37 @@ function clearStage() {
   highlightTeam(null);
 }
 
-function nextStep() {
-  if (state === 'flying') return;
+async function nextStep() {
+  if (state !== 'idle') return;
+  if (queue.length === 0) { showDone(); return; }
 
-  if (state === 'idle') {
-    if (queue.length === 0) { showDone(); return; }
-    current = queue.shift();
-    const color = teamColors[current.teamId];
-    document.documentElement.style.setProperty('--current-color', color.hex);
-    document.documentElement.style.setProperty('--current-rgb', color.rgb);
-    state = 'revealing';
-    document.getElementById('stage-eyebrow').textContent = 'Up next';
-    document.getElementById('stage-eyebrow').classList.add('active');
-    document.getElementById('hint').classList.add('hidden');
-    document.getElementById('stage-pill').classList.remove('show');
-    scrambleThenSettle(current.name).then(() => {
-      state = 'revealed';
-      // show team pill
-      const c = challenges.find(c => c.id === current.teamId);
-      const idx = challenges.indexOf(c);
-      document.getElementById('pill-text').textContent = `${c.title} · Team ${String(idx+1).padStart(2,'0')}`;
-      document.getElementById('stage-pill').classList.add('show');
-      highlightTeam(current.teamId);
-      document.getElementById('hint').classList.remove('hidden');
-      document.getElementById('hint').querySelector('span:last-child').textContent = 'send to their team';
-    });
-  } else if (state === 'revealed') {
-    state = 'flying';
-    flyToTeam();
-  }
+  current = queue.shift();
+  const color = teamColors[current.teamId];
+  document.documentElement.style.setProperty('--current-color', color.hex);
+  document.documentElement.style.setProperty('--current-rgb', color.rgb);
+  state = 'busy';
+  document.getElementById('stage-eyebrow').textContent = 'Up next';
+  document.getElementById('stage-eyebrow').classList.add('active');
+  document.getElementById('hint').classList.add('hidden');
+  document.getElementById('stage-pill').classList.remove('show');
+
+  // 1. Scramble + settle on the real name
+  await scrambleThenSettle(current.name);
+
+  // 2. Reveal team pill, highlight target card
+  const c = challenges.find(x => x.id === current.teamId);
+  const idx = challenges.indexOf(c);
+  document.getElementById('pill-text').textContent = `${c.title} · Team ${String(idx+1).padStart(2,'0')}`;
+  document.getElementById('stage-pill').classList.add('show');
+  highlightTeam(current.teamId);
+
+  // 3. Hold the moment, then send them to their team
+  await delay(900);
+  await flyToTeam();
+  placeMember();
 }
+
+function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ── Scramble effect ──────────────────────────────────────
 const SCRAMBLE_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅÞ';
@@ -582,42 +585,43 @@ function scrambleThenSettle(targetName) {
 
 // ── Fly animation ────────────────────────────────────────
 function flyToTeam() {
-  const stageName = document.getElementById('stage-name');
-  const teamCard = document.querySelector(`.team-card[data-team-id="${current.teamId}"]`);
-  if (!teamCard) { placeMember(); return; }
+  return new Promise(resolve => {
+    const stageName = document.getElementById('stage-name');
+    const teamCard = document.querySelector(`.team-card[data-team-id="${current.teamId}"]`);
+    if (!teamCard) { resolve(); return; }
 
-  const startRect = stageName.getBoundingClientRect();
-  const endRect = teamCard.getBoundingClientRect();
-  const targetX = endRect.left + endRect.width / 2;
-  const targetY = endRect.top + endRect.height - 20;
+    const startRect = stageName.getBoundingClientRect();
+    const endRect = teamCard.getBoundingClientRect();
+    const targetX = endRect.left + endRect.width / 2;
+    const targetY = endRect.top + endRect.height - 24;
 
-  // Create flying clone
-  const clone = document.createElement('div');
-  clone.className = 'flying-chip';
-  clone.textContent = stageName.textContent;
-  clone.style.left = (startRect.left + startRect.width/2) + 'px';
-  clone.style.top  = (startRect.top + startRect.height/2) + 'px';
-  clone.style.transform = 'translate(-50%, -50%)';
-  document.body.appendChild(clone);
+    const clone = document.createElement('div');
+    clone.className = 'flying-chip';
+    clone.textContent = stageName.textContent;
+    clone.style.left = (startRect.left + startRect.width/2) + 'px';
+    clone.style.top  = (startRect.top + startRect.height/2) + 'px';
+    clone.style.transform = 'translate(-50%, -50%)';
+    document.body.appendChild(clone);
 
-  // Hide source
-  stageName.style.opacity = '0';
-  stageName.style.transition = 'opacity .15s';
+    stageName.style.opacity = '0';
+    stageName.style.transition = 'opacity .15s';
 
-  const dx = targetX - (startRect.left + startRect.width/2);
-  const dy = targetY - (startRect.top + startRect.height/2);
+    const dx = targetX - (startRect.left + startRect.width/2);
+    const dy = targetY - (startRect.top + startRect.height/2);
 
-  clone.animate(
-    [
-      { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
-      { transform: `translate(calc(-50% + ${dx*0.4}px), calc(-50% + ${dy*0.5}px)) scale(0.7)`, opacity: 0.95, offset: 0.55 },
-      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.18)`, opacity: 0 }
-    ],
-    { duration: 850, easing: 'cubic-bezier(0.45,0.05,0.25,1)' }
-  ).onfinish = () => {
-    clone.remove();
-    placeMember();
-  };
+    const anim = clone.animate(
+      [
+        { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+        { transform: `translate(calc(-50% + ${dx*0.4}px), calc(-50% + ${dy*0.5}px)) scale(0.7)`, opacity: 0.95, offset: 0.55 },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.18)`, opacity: 0 }
+      ],
+      { duration: 850, easing: 'cubic-bezier(0.45,0.05,0.25,1)' }
+    );
+    anim.onfinish = () => {
+      clone.remove();
+      resolve();
+    };
+  });
 }
 
 function placeMember() {
@@ -661,7 +665,7 @@ function placeMember() {
   document.getElementById('progress-current').textContent = placed;
 
   document.getElementById('hint').querySelector('span:last-child').textContent =
-    queue.length ? 'or click anywhere to reveal' : 'all teams revealed';
+    queue.length ? 'or click anywhere to reveal next' : 'all teams revealed';
   document.getElementById('hint').classList.remove('hidden');
 
   current = null;
@@ -701,15 +705,13 @@ function launchConfetti() {
 }
 
 // ── Input ────────────────────────────────────────────────
-document.addEventListener('click', e => {
-  // Ignore clicks during fly state to prevent double-trigger
-  if (state === 'flying') return;
-  nextStep();
+document.addEventListener('click', () => {
+  if (state === 'idle') nextStep();
 });
 document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowRight') {
     e.preventDefault();
-    if (state !== 'flying') nextStep();
+    if (state === 'idle') nextStep();
   }
 });
 
