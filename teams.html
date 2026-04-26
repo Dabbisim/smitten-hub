@@ -527,17 +527,21 @@ async function nextStep() {
   document.getElementById('hint').classList.add('hidden');
   document.getElementById('stage-pill').classList.remove('show');
 
-  // 1. Scramble + settle on the real name
+  // 1. Scramble + settle on the real name (white, no team yet)
   await scrambleThenSettle(current.name);
 
-  // 2. Reveal team pill, highlight target card
+  // 2. Suspense beat — let the audience react before we reveal the team
+  await delay(3000);
+
+  // 3. Color the name + reveal team pill + highlight target card
+  document.getElementById('stage-name').classList.add('glowing');
   const c = challenges.find(x => x.id === current.teamId);
   const idx = challenges.indexOf(c);
   document.getElementById('pill-text').textContent = `${c.title} · Team ${String(idx+1).padStart(2,'0')}`;
   document.getElementById('stage-pill').classList.add('show');
   highlightTeam(current.teamId);
 
-  // 3. Hold the moment, then send them to their team
+  // 4. Hold the moment, then send them to their team
   await delay(5000);
   await flyToTeam();
   placeMember();
@@ -573,7 +577,7 @@ function scrambleThenSettle(targetName) {
       el.textContent = display;
       if (f >= totalFrames) {
         el.textContent = target;
-        el.classList.add('glowing');
+        // Don't glow yet — that happens 3s later in nextStep
         resolve();
         return;
       }
