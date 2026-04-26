@@ -302,8 +302,9 @@ header {
 /* ── Done overlay ── */
 .done-overlay {
   position:fixed; inset:0; z-index:50;
-  display:flex; align-items:center; justify-content:center;
-  background:radial-gradient(circle at 50% 50%, rgba(255,92,138,0.08), transparent 60%);
+  display:flex; align-items:flex-end; justify-content:center;
+  padding-bottom:8vh;
+  background:radial-gradient(circle at 50% 80%, rgba(255,92,138,0.08), transparent 60%);
   opacity:0; pointer-events:none;
   transition:opacity .8s;
   text-align:center;
