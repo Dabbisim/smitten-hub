@@ -575,8 +575,8 @@ async function revealMember() {
   await delay(3000);
 
   // 3. Color the name + reveal team pill + highlight target card
+  // (Eyebrow stays neutral throughout member reveal — only name + pill carry the color)
   document.getElementById('stage-name').classList.add('glowing');
-  document.getElementById('stage-eyebrow').classList.add('active');
   const c = challenges.find(x => x.id === current.teamId);
   const idx = challenges.indexOf(c);
   document.getElementById('pill-text').textContent = `${c.title} · Team ${String(idx+1).padStart(2,'0')}`;
