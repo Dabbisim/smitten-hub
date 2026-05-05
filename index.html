@@ -969,7 +969,7 @@
 </div>
 
 <!-- ═══════════════ VOTER: WELCOME ═══════════════ -->
-<div id="welcome" class="screen">
+<div id="welcome" class="screen hidden">
   <div class="welcome-tag">Cast Your Vote</div>
   <h1>Top 3<br>Challenges</h1>
   <p class="welcome-sub">Pick and rank your top 3 challenges — 1st is the one you most want to build.</p>
@@ -1008,15 +1008,15 @@
   <div class="confirm-actions"></div>
 </div>
 
-<!-- ═══════════════ ADMIN: PASSWORD GATE ═══════════════ -->
+<!-- ═══════════════ SIGN-IN GATE ═══════════════ -->
 <div id="admin-gate" class="screen hidden">
-  <h2>Admin Dashboard</h2>
-  <p class="admin-gate-sub">Enter the password to view results</p>
-  <div class="admin-form">
-    <input type="password" id="admin-password" class="input" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')checkAdminPassword()">
-    <button class="btn btn-amber" onclick="checkAdminPassword()">Enter</button>
-    <div class="admin-error" id="admin-error"></div>
-  </div>
+  <h2>Sign in</h2>
+  <p class="admin-gate-sub">Voting and admin access are sign-in only</p>
+  <form class="admin-form" id="auth-form" autocomplete="off">
+    <input type="email" id="email-input" class="input" placeholder="your@email.com" autocomplete="email" required style="text-align:left;letter-spacing:normal;">
+    <button type="submit" class="btn btn-amber" id="auth-btn">Send magic link</button>
+    <div class="admin-error" id="auth-msg"></div>
+  </form>
 </div>
 
 <!-- ═══════════════ ADMIN: DASHBOARD ═══════════════ -->
@@ -1029,6 +1029,7 @@
         <span><strong id="total-votes">0</strong> votes</span>
       </div>
       <button class="btn btn-secondary" style="padding:0.5em 1em;font-size:0.8rem;" onclick="refreshData()">Refresh</button>
+      <button class="btn btn-secondary" style="padding:0.5em 1em;font-size:0.8rem;" onclick="signOutAdmin()">Sign out</button>
     </div>
   </div>
 
@@ -1090,11 +1091,8 @@
 //  CONFIGURATION
 // ═══════════════════════════════════════════════════
 
-// TODO: Replace with your Supabase project URL and anon key
 const SUPABASE_URL = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
-
-const ADMIN_PASSWORD = 'smitten7';
 
 // Challenges loaded dynamically from active sprint (Supabase)
 let CHALLENGES = [];
@@ -1120,9 +1118,8 @@ let realtimeChannel = null;
 // ═══════════════════════════════════════════════════
 
 async function loadSprintConfig() {
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const sprintId = new URLSearchParams(window.location.search).get('sprint');
-  let query = db.from('sprints').select('*');
+  let query = supabaseClient.from('sprints').select('*');
   if (sprintId) query = query.eq('id', sprintId).single();
   else query = query.eq('status', 'active').order('created_at', { ascending: false }).limit(1).single();
   const { data } = await query;
@@ -1134,8 +1131,10 @@ async function loadSprintConfig() {
 }
 
 async function init() {
-  // Init Supabase
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Init Supabase with persisted auth (magic-link sessions survive reload)
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
   await loadSprintConfig();
 
   // Constellation background
@@ -1146,27 +1145,33 @@ async function init() {
     if (e.key === 'Enter') submitName();
   });
 
+  // Wire auth form
+  document.getElementById('auth-form').addEventListener('submit', sendMagicLink);
+
   // Check for stored name
   const storedName = localStorage.getItem('voter_name');
   if (storedName) {
     document.getElementById('name-input').value = storedName;
   }
 
-  // Route
-  route();
-  window.addEventListener('hashchange', route);
+  // Server enforces admin status via RLS + is_admin(); the client only
+  // gates the UI for UX. handleSession picks the right screen, and we
+  // re-validate on hashchange so navigating to #admin can't bypass auth.
+  supabaseClient.auth.onAuthStateChange((_ev, session) => handleSession(session));
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  await handleSession(session);
+  window.addEventListener('hashchange', async () => {
+    const { data: { session: s } } = await supabaseClient.auth.getSession();
+    await handleSession(s);
+  });
 }
 
 function route() {
+  // route() is only reached for an authenticated admin (gated by handleSession).
   const hash = location.hash.slice(1);
   hideAll();
   if (hash === 'admin') {
-    const authed = sessionStorage.getItem('admin_authed');
-    if (authed === 'true') {
-      showDashboard();
-    } else {
-      show('admin-gate');
-    }
+    showDashboard();
   } else {
     // Check if user already voted for this sprint
     const voted = localStorage.getItem(KEY_SUBMITTED());
@@ -1396,21 +1401,65 @@ function launchConfetti() {
 }
 
 // ═══════════════════════════════════════════════════
-//  ADMIN FLOW
+//  AUTH (server-enforced via Supabase RLS + is_admin())
 // ═══════════════════════════════════════════════════
 
-function checkAdminPassword() {
-  const input = document.getElementById('admin-password');
-  const error = document.getElementById('admin-error');
-  if (input.value === ADMIN_PASSWORD) {
-    sessionStorage.setItem('admin_authed', 'true');
+async function handleSession(session) {
+  const msg = document.getElementById('auth-msg');
+  if (!session) {
     hideAll();
-    showDashboard();
-  } else {
-    error.textContent = 'Incorrect password';
-    input.style.borderColor = 'var(--rose)';
-    setTimeout(() => { error.textContent = ''; input.style.borderColor = ''; }, 2000);
+    show('admin-gate');
+    return;
   }
+
+  // Server is source of truth: ask Postgres `is_admin()`.
+  const { data: isAdmin, error } = await supabaseClient.rpc('is_admin');
+  if (error || isAdmin !== true) {
+    await supabaseClient.auth.signOut();
+    hideAll();
+    show('admin-gate');
+    if (msg) {
+      msg.style.color = 'var(--rose)';
+      msg.textContent = `No access for ${session.user?.email || 'this account'}`;
+    }
+    return;
+  }
+
+  if (msg) msg.textContent = '';
+  route();
+}
+
+async function sendMagicLink(e) {
+  e?.preventDefault();
+  const email = document.getElementById('email-input').value.trim().toLowerCase();
+  const msg = document.getElementById('auth-msg');
+  const btn = document.getElementById('auth-btn');
+  if (!email) {
+    msg.style.color = 'var(--rose)';
+    msg.textContent = 'Enter your email';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
+  });
+  if (error) {
+    msg.style.color = 'var(--rose)';
+    msg.textContent = error.message;
+    btn.disabled = false;
+    btn.textContent = 'Send magic link';
+    return;
+  }
+  msg.style.color = 'var(--amber)';
+  msg.textContent = '✓ Check your email for a sign-in link.';
+  btn.textContent = 'Link sent';
+}
+
+async function signOutAdmin() {
+  await supabaseClient.auth.signOut();
+  location.reload();
 }
 
 async function showDashboard() {

@@ -861,7 +861,8 @@
 
 const SUPABASE_URL  = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
-const ADMIN_EMAILS = ['david@smitten.fun', 'a@smitten.fun', 'magnus@smitten.fun'];
+// Admin allowlist lives in the `admin_emails` Postgres table; checked via the
+// `is_admin()` RPC. Server is the source of truth — do not duplicate it here.
 
 let CHALLENGES = [
   { id: 1, title: 'Launch Smitten in Malta' },
@@ -905,13 +906,14 @@ async function handleSession(session) {
     document.getElementById('dashboard').classList.add('hidden');
     return;
   }
-  const email = (session.user?.email || '').toLowerCase();
-  if (!ADMIN_EMAILS.includes(email)) {
+  // Server is source of truth: ask Postgres `is_admin()`.
+  const { data: isAdmin, error } = await db.rpc('is_admin');
+  if (error || isAdmin !== true) {
     await db.auth.signOut();
     document.getElementById('gate').classList.remove('hidden');
     document.getElementById('dashboard').classList.add('hidden');
     msg.style.color = 'var(--rose)';
-    msg.textContent = `No admin access for ${email || 'this account'}`;
+    msg.textContent = `No admin access for ${session.user?.email || 'this account'}`;
     return;
   }
   showDashboard();
@@ -923,9 +925,8 @@ async function sendMagicLink(e) {
   const msg = document.getElementById('auth-msg');
   const btn = document.getElementById('auth-btn');
   if (!email) { msg.style.color='var(--rose)'; msg.textContent = 'Enter your email'; return; }
-  if (!ADMIN_EMAILS.includes(email)) {
-    msg.style.color = 'var(--rose)'; msg.textContent = 'This email is not allowed.'; return;
-  }
+  // No client-side allowlist precheck — RLS denies access for non-admins
+  // post-callback in handleSession(). Server is source of truth.
   btn.disabled = true; btn.textContent = 'Sending…';
   const { error } = await db.auth.signInWithOtp({
     email,
