@@ -303,7 +303,7 @@ function card(s,votes){
       ${ch.map((c,i)=>`<div class="c-row"><div class="c-dot" style="background:${COLORS[i]||'#fff'}"></div><span>${esc(c.title)}</span></div>`).join('')}
     </div>
     <div class="sprint-actions">
-      <a class="alink" href="index.html?sprint=${s.id}" target="_blank">🗳 Vote</a>
+      <a class="alink" href="voting.html?sprint=${s.id}" target="_blank">🗳 Vote</a>
       <a class="alink" href="admin.html?sprint=${s.id}" target="_blank">🛠 Admin</a>
       <a class="alink" href="presentation.html?sprint=${s.id}" target="_blank">🦋 Presentation</a>
       <a class="alink" href="reveal.html?sprint=${s.id}" target="_blank">🎭 Reveal</a>

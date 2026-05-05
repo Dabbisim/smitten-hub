@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Top 3 Challenges</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  @import url('https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --cyan: #00E5FF;
+    --cyan-deep: #00B8D4;
+    --cyan-glow: rgba(0, 229, 255, 0.15);
+    --amber: #FFB800;
+    --amber-deep: #E5A600;
+    --amber-glow: rgba(255, 184, 0, 0.15);
+    --rose: #FF5C8A;
+    --rose-glow: rgba(255, 92, 138, 0.15);
+    --bg: #06060A;
+    --surface: rgba(14, 14, 22, 0.75);
+    --surface-solid: #0E0E16;
+    --surface-2: rgba(22, 22, 34, 0.85);
+    --surface-3: rgba(30, 30, 46, 0.6);
+    --border: rgba(255,255,255,0.06);
+    --border-light: rgba(255,255,255,0.12);
+    --text: #FFFFFF;
+    --text-2: rgba(255,255,255,0.55);
+    --text-3: rgba(255,255,255,0.3);
+    --rank-1: var(--cyan);
+    --rank-2: var(--amber);
+    --rank-3: var(--rose);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  h1, h2, h3, .rank-badge, .stat-value, .team-header {
+    font-family: 'Clash Display', 'Inter', sans-serif;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ── CONSTELLATION BACKGROUND ── */
+  #constellation-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── AMBIENT GLOW ORBS ── */
+  .ambient-mesh {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .ambient-mesh .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(140px);
+    opacity: 0.3;
+    will-change: transform;
+  }
+  .orb-1 {
+    width: 500px; height: 500px;
+    background: var(--cyan-glow);
+    top: -10%; right: -5%;
+    animation: orbDrift1 25s ease-in-out infinite;
+  }
+  .orb-2 {
+    width: 400px; height: 400px;
+    background: var(--amber-glow);
+    bottom: -10%; left: -8%;
+    animation: orbDrift2 30s ease-in-out infinite;
+  }
+  .orb-3 {
+    width: 300px; height: 300px;
+    background: var(--rose-glow);
+    top: 50%; left: 50%;
+    animation: orbDrift3 22s ease-in-out infinite;
+  }
+
+  @keyframes orbDrift1 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-60px,40px) scale(1.15)} }
+  @keyframes orbDrift2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(50px,-40px) scale(1.1)} }
+  @keyframes orbDrift3 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-40%,-60%) scale(1.2)} }
+
+  /* ── ANIMATIONS ── */
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes revealScale {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+  @keyframes checkDraw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes ringExpand {
+    0% { transform: translate(-50%,-50%) scale(0); opacity: 0.8; }
+    100% { transform: translate(-50%,-50%) scale(1); opacity: 0; }
+  }
+
+  /* ── SCREEN WRAPPER ── */
+  .screen {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    padding: 0.8em 2.4em;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.01em;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.25s;
+  }
+  .btn:hover::before { opacity: 1; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0) scale(0.97); }
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+  .btn:disabled::before { display: none; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--cyan), var(--cyan-deep));
+    color: #000;
+    box-shadow: 0 4px 30px var(--cyan-glow), 0 0 0 1px rgba(0,229,255,0.15);
+    font-weight: 700;
+  }
+  .btn-primary:hover { box-shadow: 0 8px 50px var(--cyan-glow), 0 0 0 1px rgba(0,229,255,0.25); }
+
+  .btn-secondary {
+    background: var(--surface-2);
+    color: var(--text-2);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+  }
+  .btn-secondary:hover { border-color: var(--border-light); color: var(--text); }
+
+  .btn-amber {
+    background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+    color: #000;
+    box-shadow: 0 4px 30px var(--amber-glow), 0 0 0 1px rgba(255,184,0,0.15);
+    font-weight: 700;
+  }
+
+  /* ── INPUTS ── */
+  .input {
+    width: 100%;
+    max-width: 380px;
+    padding: 1em 1.3em;
+    font-size: 1.1rem;
+    font-family: 'Inter', sans-serif;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    color: var(--text);
+    outline: none;
+    transition: all 0.3s;
+    backdrop-filter: blur(20px);
+    text-align: center;
+    letter-spacing: -0.01em;
+  }
+  .input::placeholder { color: var(--text-3); }
+  .input:focus {
+    border-color: rgba(0,229,255,0.3);
+    box-shadow: 0 0 0 4px rgba(0,229,255,0.08), 0 4px 30px rgba(0,229,255,0.06);
+  }
+
+  /* ── WELCOME SCREEN ── */
+  #welcome {
+    text-align: center;
+    gap: 0;
+  }
+
+  .welcome-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s forwards;
+  }
+  .welcome-tag::before, .welcome-tag::after {
+    content: '';
+    width: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan));
+  }
+  .welcome-tag::after {
+    background: linear-gradient(90deg, var(--cyan), transparent);
+  }
+
+  #welcome h1 {
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.6rem;
+    opacity: 0;
+    animation: revealUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.25s forwards;
+  }
+
+  .welcome-sub {
+    font-size: 1.1rem;
+    color: var(--text-2);
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: revealUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s forwards;
+    max-width: 400px;
+  }
+
+  .name-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0;
+    animation: revealUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.55s forwards;
+  }
+
+  /* ── CHALLENGES SCREEN ── */
+  #challenges {
+    padding: 2rem 1.5rem 3rem;
+    justify-content: flex-start;
+    min-height: 100vh;
+  }
+
+  .challenges-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+  }
+  .challenges-header h2 {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.4rem;
+  }
+  .challenges-header p {
+    color: var(--text-2);
+    font-size: 0.95rem;
+  }
+  .voter-name-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.35em 1em;
+    font-size: 0.8rem;
+    color: var(--text-2);
+    margin-bottom: 1rem;
+    backdrop-filter: blur(20px);
+  }
+  .voter-name-tag span { color: var(--cyan); font-weight: 600; }
+  .deadline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255,184,0,0.1);
+    border: 1px solid rgba(255,184,0,0.25);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: #FFB800;
+    font-weight: 500;
+  }
+
+  /* ── CHALLENGE CARDS ── */
+  .challenge-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    width: 100%;
+    max-width: 560px;
+    margin-bottom: 2rem;
+  }
+
+  .challenge-card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 1.5rem;
+    backdrop-filter: blur(24px);
+    transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+    overflow: hidden;
+    opacity: 0;
+    animation: revealUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+  }
+  .challenge-card:nth-child(1) { animation-delay: 0.1s; }
+  .challenge-card:nth-child(2) { animation-delay: 0.2s; }
+  .challenge-card:nth-child(3) { animation-delay: 0.3s; }
+
+  .challenge-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 18px 18px 0 0;
+    transition: height 0.4s, opacity 0.4s;
+  }
+  .challenge-card[data-challenge="1"]::before { background: linear-gradient(90deg, var(--cyan), var(--cyan-deep)); }
+  .challenge-card[data-challenge="2"]::before { background: linear-gradient(90deg, var(--amber), var(--amber-deep)); }
+  .challenge-card[data-challenge="3"]::before { background: linear-gradient(90deg, var(--rose), #E04070); }
+
+  .challenge-card.ranked { border-color: var(--border-light); }
+  .challenge-card.ranked::before { height: 4px; }
+  .challenge-card.rank-1 { box-shadow: 0 0 40px var(--cyan-glow); border-color: rgba(0,229,255,0.15); }
+  .challenge-card.rank-2 { box-shadow: 0 0 30px var(--amber-glow); border-color: rgba(255,184,0,0.12); }
+  .challenge-card.rank-3 { box-shadow: 0 0 20px var(--rose-glow); border-color: rgba(255,92,138,0.1); }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 0.8rem;
+  }
+
+  .challenge-number {
+    font-family: 'Clash Display', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .challenge-card[data-challenge="1"] .challenge-number { color: var(--cyan); }
+  .challenge-card[data-challenge="2"] .challenge-number { color: var(--amber); }
+  .challenge-card[data-challenge="3"] .challenge-number { color: var(--rose); }
+
+  .challenge-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .challenge-card[data-challenge="1"] .challenge-dot { background: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow); }
+  .challenge-card[data-challenge="2"] .challenge-dot { background: var(--amber); box-shadow: 0 0 8px var(--amber-glow); }
+  .challenge-card[data-challenge="3"] .challenge-dot { background: var(--rose); box-shadow: 0 0 8px var(--rose-glow); }
+
+  .challenge-title {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+    line-height: 1.25;
+  }
+
+  .challenge-desc {
+    font-size: 0.88rem;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+
+  /* ── RANK SELECTOR ── */
+  .rank-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .rank-selector span {
+    font-size: 0.75rem;
+    color: var(--text-3);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    margin-right: 0.3rem;
+  }
+
+  .rank-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-3);
+    font-family: 'Clash Display', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .rank-btn:hover {
+    border-color: var(--border-light);
+    color: var(--text);
+    transform: translateY(-1px);
+  }
+  .rank-btn.active-1 {
+    background: linear-gradient(135deg, var(--cyan), var(--cyan-deep));
+    color: #000;
+    border-color: transparent;
+    box-shadow: 0 4px 20px var(--cyan-glow);
+    transform: scale(1.08);
+  }
+  .rank-btn.active-2 {
+    background: linear-gradient(135deg, var(--amber), var(--amber-deep));
+    color: #000;
+    border-color: transparent;
+    box-shadow: 0 4px 20px var(--amber-glow);
+    transform: scale(1.05);
+  }
+  .rank-btn.active-3 {
+    background: linear-gradient(135deg, var(--rose), #E04070);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 15px var(--rose-glow);
+    transform: scale(1.02);
+  }
+
+  .rank-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .rank-btn.active-1 .rank-label,
+  .rank-btn.active-2 .rank-label,
+  .rank-btn.active-3 .rank-label {
+    opacity: 1;
+  }
+
+  .submit-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    opacity: 0;
+    animation: revealUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.5s forwards;
+  }
+  .submit-hint {
+    font-size: 0.78rem;
+    color: var(--text-3);
+  }
+
+  /* ── CONFIRMATION SCREEN ── */
+  #confirmation {
+    text-align: center;
+    gap: 0;
+  }
+
+  .check-circle {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: revealScale 0.6s cubic-bezier(0.16,1,0.3,1) 0.2s forwards;
+    position: relative;
+  }
+  .check-circle svg {
+    width: 100%;
+    height: 100%;
+  }
+  .check-ring {
+    fill: none;
+    stroke: var(--cyan);
+    stroke-width: 2;
+    opacity: 0.3;
+  }
+  .check-mark {
+    fill: none;
+    stroke: var(--cyan);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: checkDraw 0.6s ease 0.6s forwards;
+  }
+  .ring-burst {
+    position: absolute;
+    inset: -20px;
+    border: 2px solid var(--cyan);
+    border-radius: 50%;
+    opacity: 0;
+    animation: ringExpand 0.8s ease 0.3s forwards;
+  }
+
+  #confirmation h2 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.4s forwards;
+  }
+  .confirm-sub {
+    color: var(--text-2);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.55s forwards;
+  }
+
+  .vote-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 2.5rem;
+    width: 100%;
+    max-width: 380px;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.7s forwards;
+  }
+  .vote-summary-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    backdrop-filter: blur(20px);
+  }
+  .summary-rank {
+    font-family: 'Clash Display', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .summary-rank-1 { background: var(--cyan); color: #000; }
+  .summary-rank-2 { background: var(--amber); color: #000; }
+  .summary-rank-3 { background: var(--rose); color: #fff; }
+  .summary-name {
+    font-weight: 500;
+    font-size: 0.92rem;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 0.8rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.85s forwards;
+  }
+
+  /* ── CONFETTI ── */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    top: -10px;
+    animation: confettiFall linear forwards;
+  }
+
+  /* ── ADMIN: PASSWORD GATE ── */
+  #admin-gate {
+    text-align: center;
+  }
+  #admin-gate h2 {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.15s forwards;
+  }
+  .admin-gate-sub {
+    color: var(--text-2);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.3s forwards;
+  }
+  .admin-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    opacity: 0;
+    animation: revealUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.45s forwards;
+  }
+  .admin-error {
+    color: var(--rose);
+    font-size: 0.85rem;
+    height: 1.2em;
+    margin-top: -0.3rem;
+  }
+
+  /* ── ADMIN: DASHBOARD ── */
+  #admin-dashboard {
+    justify-content: flex-start;
+    padding: 1.5rem 1.5rem 3rem;
+    min-height: 100vh;
+  }
+
+  .admin-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-top: 0.5rem;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .admin-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .admin-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+  .vote-count-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.4em 1em;
+    font-size: 0.8rem;
+    color: var(--text-2);
+    backdrop-filter: blur(20px);
+  }
+  .vote-count-badge strong { color: var(--cyan); }
+  .live-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #4ADE80;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* ── STATS CARDS ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.2rem;
+    backdrop-filter: blur(20px);
+    text-align: center;
+  }
+  .stat-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    margin-bottom: 0.4rem;
+  }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .stat-sub {
+    font-size: 0.78rem;
+    color: var(--text-2);
+    margin-top: 0.2rem;
+  }
+
+  /* ── VOTES TABLE ── */
+  .table-section {
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 2rem;
+  }
+  .section-title {
+    font-family: 'Clash Display', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+  }
+  .section-title .icon { font-size: 1.2rem; }
+
+  .votes-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+  }
+  .votes-table th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-3);
+    padding: 1rem 1.2rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .votes-table td {
+    padding: 0.85rem 1.2rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-2);
+  }
+  .votes-table tr:last-child td { border-bottom: none; }
+  .votes-table tr:hover td { background: var(--surface-3); }
+
+  .table-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-family: 'Clash Display', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+  .table-rank-1 { background: rgba(0,229,255,0.15); color: var(--cyan); }
+  .table-rank-2 { background: rgba(255,184,0,0.15); color: var(--amber); }
+  .table-rank-3 { background: rgba(255,92,138,0.15); color: var(--rose); }
+
+  .voter-name-cell {
+    font-weight: 600;
+    color: var(--text) !important;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-3);
+  }
+  .empty-state .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .empty-state p { font-size: 0.9rem; }
+
+  /* ── TEAM SUGGESTIONS ── */
+  .teams-section {
+    width: 100%;
+    max-width: 900px;
+    margin-bottom: 2rem;
+  }
+
+  .teams-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .team-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+  }
+  .team-header {
+    padding: 1rem 1.2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .team-card:nth-child(1) .team-header { background: linear-gradient(135deg, rgba(0,229,255,0.08), transparent); }
+  .team-card:nth-child(2) .team-header { background: linear-gradient(135deg, rgba(255,184,0,0.08), transparent); }
+  .team-card:nth-child(3) .team-header { background: linear-gradient(135deg, rgba(255,92,138,0.08), transparent); }
+
+  .team-count {
+    font-size: 0.75rem;
+    color: var(--text-3);
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .team-members {
+    padding: 0.5rem;
+    min-height: 60px;
+  }
+  .team-member {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    transition: background 0.2s;
+  }
+  .team-member:hover { background: var(--surface-3); }
+  .team-member-name { font-weight: 500; }
+  .team-member-pref {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.2em 0.5em;
+    border-radius: 4px;
+  }
+  .pref-1st { background: rgba(0,229,255,0.12); color: var(--cyan); }
+  .pref-2nd { background: rgba(255,184,0,0.12); color: var(--amber); }
+  .pref-3rd { background: rgba(255,92,138,0.12); color: var(--rose); }
+
+  .team-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 0.82rem;
+  }
+
+  /* ── ADMIN ACTIONS ── */
+  .admin-actions {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .stats-row { grid-template-columns: 1fr; gap: 0.8rem; }
+    .teams-grid { grid-template-columns: 1fr; }
+    .admin-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.8rem;
+    }
+    .votes-table { font-size: 0.82rem; }
+    .votes-table th, .votes-table td { padding: 0.7rem 0.8rem; }
+    .stat-value { font-size: 1.6rem; }
+    .admin-actions { flex-direction: column; }
+    .admin-actions .btn { width: 100%; }
+    .confirm-actions { flex-direction: column; width: 100%; max-width: 300px; }
+    .confirm-actions .btn { width: 100%; }
+    .challenge-card { padding: 1.2rem; }
+    .challenge-title { font-size: 1.15rem; }
+    .rank-btn { width: 44px; height: 44px; }
+  }
+
+  @media (max-width: 380px) {
+    #welcome h1 { font-size: 2.8rem; }
+    .challenge-title { font-size: 1rem; }
+    .challenge-desc { font-size: 0.82rem; }
+  }
+
+  /* ── SCROLL ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+</style>
+</head>
+<body>
+
+<!-- Background layers -->
+<canvas id="constellation-canvas"></canvas>
+<div class="ambient-mesh">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<!-- ═══════════════ VOTER: WELCOME ═══════════════ -->
+<div id="welcome" class="screen hidden">
+  <div class="welcome-tag">Cast Your Vote</div>
+  <h1>Top 3<br>Challenges</h1>
+  <p class="welcome-sub">Pick and rank your top 3 challenges — 1st is the one you most want to build.</p>
+  <div class="name-form">
+    <input type="text" id="name-input" class="input" placeholder="Enter your name" autocomplete="off" spellcheck="false">
+    <button class="btn btn-primary" id="name-submit" onclick="submitName()">Let's Go</button>
+  </div>
+</div>
+
+<!-- ═══════════════ VOTER: CHALLENGES ═══════════════ -->
+<div id="challenges" class="screen hidden">
+  <div class="challenges-header">
+    <div class="voter-name-tag">Voting as <span id="voter-display-name"></span></div>
+    <h2>Rank Your Choices</h2>
+    <p>Tap a rank for each challenge</p>
+  </div>
+  <div class="challenge-cards" id="challenge-cards"></div>
+  <div class="submit-wrap">
+    <button class="btn btn-primary" id="vote-submit" disabled onclick="submitVote()">Submit My Vote</button>
+    <span class="submit-hint" id="submit-hint">Rank all 3 challenges to continue</span>
+  </div>
+</div>
+
+<!-- ═══════════════ VOTER: CONFIRMATION ═══════════════ -->
+<div id="confirmation" class="screen hidden">
+  <div class="check-circle">
+    <div class="ring-burst"></div>
+    <svg viewBox="0 0 100 100">
+      <circle class="check-ring" cx="50" cy="50" r="45"/>
+      <polyline class="check-mark" points="30,52 45,66 72,36"/>
+    </svg>
+  </div>
+  <h2>Vote Recorded!</h2>
+  <p class="confirm-sub">Thanks for ranking the challenges</p>
+  <div class="vote-summary" id="vote-summary"></div>
+  <div class="confirm-actions"></div>
+</div>
+
+<!-- ═══════════════ SIGN-IN GATE ═══════════════ -->
+<div id="admin-gate" class="screen hidden">
+  <h2>Sign in</h2>
+  <p class="admin-gate-sub">Voting and admin access are sign-in only</p>
+  <form class="admin-form" id="auth-form" autocomplete="off">
+    <input type="email" id="email-input" class="input" placeholder="your@email.com" autocomplete="email" required style="text-align:left;letter-spacing:normal;">
+    <button type="submit" class="btn btn-amber" id="auth-btn">Send magic link</button>
+    <div class="admin-error" id="auth-msg"></div>
+  </form>
+</div>
+
+<!-- ═══════════════ ADMIN: DASHBOARD ═══════════════ -->
+<div id="admin-dashboard" class="screen hidden">
+  <div class="admin-header">
+    <h2>Results Dashboard</h2>
+    <div class="admin-header-right">
+      <div class="vote-count-badge">
+        <div class="live-dot"></div>
+        <span><strong id="total-votes">0</strong> votes</span>
+      </div>
+      <button class="btn btn-secondary" style="padding:0.5em 1em;font-size:0.8rem;" onclick="refreshData()">Refresh</button>
+      <button class="btn btn-secondary" style="padding:0.5em 1em;font-size:0.8rem;" onclick="signOutAdmin()">Sign out</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Challenge 1</div>
+      <div class="stat-value" id="stat-c1">0</div>
+      <div class="stat-sub">1st choice votes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Challenge 2</div>
+      <div class="stat-value" id="stat-c2">0</div>
+      <div class="stat-sub">1st choice votes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Challenge 3</div>
+      <div class="stat-value" id="stat-c3">0</div>
+      <div class="stat-sub">1st choice votes</div>
+    </div>
+  </div>
+
+  <!-- Votes Table -->
+  <div class="table-section">
+    <div class="section-title">All Votes</div>
+    <table class="votes-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>1st Choice</th>
+          <th>2nd Choice</th>
+          <th>3rd Choice</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="votes-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Team Suggestions -->
+  <div class="teams-section">
+    <div class="section-title">Suggested Teams</div>
+    <div class="teams-grid" id="teams-grid"></div>
+  </div>
+
+  <!-- Admin actions -->
+  <div class="admin-actions">
+    <button class="btn btn-secondary" onclick="exportCSV()">Export CSV</button>
+    <button class="btn btn-secondary" onclick="location.hash='';location.reload();">Back to Voting</button>
+  </div>
+</div>
+
+<!-- Confetti container -->
+<div class="confetti-container" id="confetti-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIGURATION
+// ═══════════════════════════════════════════════════
+
+const SUPABASE_URL = 'https://cfuilfpgsyxgaizzwlee.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
+
+// Challenges loaded dynamically from active sprint (Supabase)
+let CHALLENGES = [];
+let currentSprintId = null;
+let currentSprintEndsAt = null;
+
+// Sprint-scoped localStorage keys so each sprint has its own vote state
+const KEY_SUBMITTED = () => `vote_submitted_${currentSprintId}`;
+const KEY_RANKINGS  = () => `vote_rankings_${currentSprintId}`;
+
+// ═══════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════
+
+let voterName = '';
+let rankings = {}; // { challengeId: rank } e.g. { 1: 2, 2: 1, 3: 3 }
+let allVotes = [];
+let supabaseClient = null;
+let realtimeChannel = null;
+
+// ═══════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════
+
+async function loadSprintConfig() {
+  const sprintId = new URLSearchParams(window.location.search).get('sprint');
+  let query = supabaseClient.from('sprints').select('*');
+  if (sprintId) query = query.eq('id', sprintId).single();
+  else query = query.eq('status', 'active').order('created_at', { ascending: false }).limit(1).single();
+  const { data } = await query;
+  if (data) {
+    currentSprintId = data.id;
+    currentSprintEndsAt = data.ends_at || null;
+    CHALLENGES = (data.challenges || []).map(c => ({ id: c.id, title: c.title, description: c.description }));
+  }
+}
+
+async function init() {
+  // Init Supabase with persisted auth (magic-link sessions survive reload)
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  await loadSprintConfig();
+
+  // Constellation background
+  initConstellation();
+
+  // Name input: enter key
+  document.getElementById('name-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') submitName();
+  });
+
+  // Wire auth form
+  document.getElementById('auth-form').addEventListener('submit', sendMagicLink);
+
+  // Check for stored name
+  const storedName = localStorage.getItem('voter_name');
+  if (storedName) {
+    document.getElementById('name-input').value = storedName;
+  }
+
+  // Server enforces admin status via RLS + is_admin(); the client only
+  // gates the UI for UX. handleSession picks the right screen, and we
+  // re-validate on hashchange so navigating to #admin can't bypass auth.
+  supabaseClient.auth.onAuthStateChange((_ev, session) => handleSession(session));
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  await handleSession(session);
+  window.addEventListener('hashchange', async () => {
+    const { data: { session: s } } = await supabaseClient.auth.getSession();
+    await handleSession(s);
+  });
+}
+
+function route() {
+  // route() is only reached for an authenticated admin (gated by handleSession).
+  const hash = location.hash.slice(1);
+  hideAll();
+  if (hash === 'admin') {
+    showDashboard();
+  } else {
+    // Check if user already voted for this sprint
+    const voted = localStorage.getItem(KEY_SUBMITTED());
+    const storedName = localStorage.getItem('voter_name');
+    if (voted && storedName) {
+      voterName = storedName;
+      rankings = JSON.parse(localStorage.getItem(KEY_RANKINGS()) || '{}');
+      showConfirmation();
+    } else {
+      show('welcome');
+      setTimeout(() => document.getElementById('name-input').focus(), 600);
+    }
+  }
+}
+
+function hideAll() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+}
+function show(id) {
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ═══════════════════════════════════════════════════
+//  VOTER FLOW
+// ═══════════════════════════════════════════════════
+
+function submitName() {
+  const input = document.getElementById('name-input');
+  const name = input.value.trim();
+  if (!name) {
+    input.style.borderColor = 'var(--rose)';
+    input.style.boxShadow = '0 0 0 4px rgba(255,92,138,0.1)';
+    setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; }, 1500);
+    return;
+  }
+  voterName = name;
+  localStorage.setItem('voter_name', name);
+  hideAll();
+  showChallenges();
+}
+
+function showChallenges() {
+  show('challenges');
+  document.getElementById('voter-display-name').textContent = voterName;
+
+  const container = document.getElementById('challenge-cards');
+  container.innerHTML = '';
+
+  CHALLENGES.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'challenge-card';
+    card.setAttribute('data-challenge', c.id);
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="challenge-number"><span class="challenge-dot"></span> Challenge ${c.id}</div>
+      </div>
+      <div class="challenge-title">${c.title}</div>
+      <div class="challenge-desc">${c.description}</div>
+      <div class="rank-selector">
+        <span>Rank:</span>
+        ${[1,2,3].map(r => `
+          <button class="rank-btn" data-challenge="${c.id}" data-rank="${r}" onclick="setRank(${c.id}, ${r})">
+            ${r}
+            <span class="rank-label">${r === 1 ? '1st' : r === 2 ? '2nd' : '3rd'}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  // Restore any existing rankings
+  Object.entries(rankings).forEach(([cId, rank]) => {
+    highlightRank(parseInt(cId), rank);
+  });
+  updateSubmitButton();
+}
+
+function setRank(challengeId, rank) {
+  // If another challenge already has this rank, swap
+  const existingChallenge = Object.entries(rankings).find(([cId, r]) => r === rank && parseInt(cId) !== challengeId);
+  if (existingChallenge) {
+    const oldRank = rankings[challengeId];
+    if (oldRank) {
+      rankings[parseInt(existingChallenge[0])] = oldRank;
+      highlightRank(parseInt(existingChallenge[0]), oldRank);
+    } else {
+      delete rankings[parseInt(existingChallenge[0])];
+      clearRankHighlight(parseInt(existingChallenge[0]));
+    }
+  }
+
+  rankings[challengeId] = rank;
+  highlightRank(challengeId, rank);
+  updateSubmitButton();
+}
+
+function highlightRank(challengeId, rank) {
+  const card = document.querySelector(`.challenge-card[data-challenge="${challengeId}"]`);
+  card.classList.remove('rank-1', 'rank-2', 'rank-3');
+  card.classList.add('ranked', `rank-${rank}`);
+
+  // Update buttons
+  card.querySelectorAll('.rank-btn').forEach(btn => {
+    btn.classList.remove('active-1', 'active-2', 'active-3');
+    if (parseInt(btn.dataset.rank) === rank) {
+      btn.classList.add(`active-${rank}`);
+    }
+  });
+}
+
+function clearRankHighlight(challengeId) {
+  const card = document.querySelector(`.challenge-card[data-challenge="${challengeId}"]`);
+  card.classList.remove('ranked', 'rank-1', 'rank-2', 'rank-3');
+  card.querySelectorAll('.rank-btn').forEach(btn => {
+    btn.classList.remove('active-1', 'active-2', 'active-3');
+  });
+}
+
+function updateSubmitButton() {
+  const btn = document.getElementById('vote-submit');
+  const hint = document.getElementById('submit-hint');
+  const ranks = Object.values(rankings);
+  const hasAllThree = ranks.includes(1) && ranks.includes(2) && ranks.includes(3);
+  if (hasAllThree) {
+    btn.disabled = false;
+    hint.textContent = 'Ready to submit!';
+    hint.style.color = 'var(--cyan)';
+  } else {
+    btn.disabled = true;
+    hint.textContent = `Pick your top 3 — ${ranks.length}/3 ranked`;
+    hint.style.color = '';
+  }
+}
+
+async function submitVote() {
+  const btn = document.getElementById('vote-submit');
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
+  // Build vote data: for each challenge, what rank did they give it
+  const voteData = {
+    voter_name: voterName,
+    first_choice: parseInt(Object.entries(rankings).find(([, r]) => r === 1)[0]),
+    second_choice: parseInt(Object.entries(rankings).find(([, r]) => r === 2)[0]),
+    third_choice: parseInt(Object.entries(rankings).find(([, r]) => r === 3)[0]),
+    sprint_id: currentSprintId || null
+  };
+
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient.from('votes').upsert(voteData, { onConflict: 'voter_name,sprint_id' });
+      if (error) throw error;
+    } catch (err) {
+      console.error('Vote submission error:', err);
+      btn.disabled = false;
+      btn.textContent = 'Submit My Vote';
+      alert('Failed to submit vote. Please try again.');
+      return;
+    }
+  }
+
+  localStorage.setItem(KEY_SUBMITTED(), 'true');
+  localStorage.setItem(KEY_RANKINGS(), JSON.stringify(rankings));
+
+  hideAll();
+  showConfirmation();
+}
+
+function showConfirmation() {
+  show('confirmation');
+  launchConfetti();
+
+  // Build summary
+  const summary = document.getElementById('vote-summary');
+  summary.innerHTML = '';
+
+  // Find what they ranked 1st, 2nd, 3rd
+  const sortedChoices = Object.entries(rankings)
+    .sort((a, b) => a[1] - b[1])
+    .map(([cId, rank]) => {
+      const challenge = CHALLENGES.find(c => c.id === parseInt(cId));
+      return { rank, challenge };
+    });
+
+  sortedChoices.forEach(({ rank, challenge }) => {
+    const row = document.createElement('div');
+    row.className = 'vote-summary-row';
+    row.innerHTML = `
+      <div class="summary-rank summary-rank-${rank}">${rank}</div>
+      <div class="summary-name">${challenge.title}</div>
+    `;
+    summary.appendChild(row);
+  });
+}
+
+function changeVote() {
+  localStorage.removeItem(KEY_SUBMITTED());
+  hideAll();
+  showChallenges();
+}
+
+// ═══════════════════════════════════════════════════
+//  CONFETTI
+// ═══════════════════════════════════════════════════
+
+function launchConfetti() {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['var(--cyan)', 'var(--amber)', 'var(--rose)', '#fff', '#4ADE80'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.cssText = `
+      left: ${Math.random() * 100}%;
+      width: ${4 + Math.random() * 6}px;
+      height: ${4 + Math.random() * 6}px;
+      background: ${color};
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      animation-duration: ${1.5 + Math.random() * 2}s;
+      animation-delay: ${Math.random() * 0.8}s;
+    `;
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.innerHTML = '', 4000);
+}
+
+// ═══════════════════════════════════════════════════
+//  AUTH (server-enforced via Supabase RLS + is_admin())
+// ═══════════════════════════════════════════════════
+
+async function handleSession(session) {
+  const msg = document.getElementById('auth-msg');
+  if (!session) {
+    hideAll();
+    show('admin-gate');
+    return;
+  }
+
+  // Server is source of truth: ask Postgres `is_admin()`.
+  const { data: isAdmin, error } = await supabaseClient.rpc('is_admin');
+  if (error || isAdmin !== true) {
+    await supabaseClient.auth.signOut();
+    hideAll();
+    show('admin-gate');
+    if (msg) {
+      msg.style.color = 'var(--rose)';
+      msg.textContent = `No access for ${session.user?.email || 'this account'}`;
+    }
+    return;
+  }
+
+  if (msg) msg.textContent = '';
+  route();
+}
+
+async function sendMagicLink(e) {
+  e?.preventDefault();
+  const email = document.getElementById('email-input').value.trim().toLowerCase();
+  const msg = document.getElementById('auth-msg');
+  const btn = document.getElementById('auth-btn');
+  if (!email) {
+    msg.style.color = 'var(--rose)';
+    msg.textContent = 'Enter your email';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
+  });
+  if (error) {
+    msg.style.color = 'var(--rose)';
+    msg.textContent = error.message;
+    btn.disabled = false;
+    btn.textContent = 'Send magic link';
+    return;
+  }
+  msg.style.color = 'var(--amber)';
+  msg.textContent = '✓ Check your email for a sign-in link.';
+  btn.textContent = 'Link sent';
+}
+
+async function signOutAdmin() {
+  await supabaseClient.auth.signOut();
+  location.reload();
+}
+
+async function showDashboard() {
+  show('admin-dashboard');
+  await refreshData();
+  subscribeRealtime();
+}
+
+async function refreshData() {
+  if (!supabaseClient) {
+    renderDashboard([]);
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('votes')
+      .select('*')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    allVotes = data || [];
+  } catch (err) {
+    console.error('Fetch error:', err);
+    allVotes = [];
+  }
+
+  renderDashboard(allVotes);
+}
+
+function subscribeRealtime() {
+  if (!supabaseClient || realtimeChannel) return;
+  realtimeChannel = supabaseClient
+    .channel('votes-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
+      refreshData();
+    })
+    .subscribe();
+}
+
+function renderDashboard(votes) {
+  // Total
+  document.getElementById('total-votes').textContent = votes.length;
+
+  // Stats: count 1st choice votes per challenge
+  const firstChoiceCounts = [0, 0, 0];
+  votes.forEach(v => {
+    firstChoiceCounts[v.first_choice - 1]++;
+  });
+  document.getElementById('stat-c1').textContent = firstChoiceCounts[0];
+  document.getElementById('stat-c2').textContent = firstChoiceCounts[1];
+  document.getElementById('stat-c3').textContent = firstChoiceCounts[2];
+
+  // Update stat labels with challenge names
+  const statCards = document.querySelectorAll('.stat-card');
+  CHALLENGES.forEach((c, i) => {
+    if (statCards[i]) {
+      statCards[i].querySelector('.stat-label').textContent = c.title;
+    }
+  });
+
+  // Votes table
+  const tbody = document.getElementById('votes-tbody');
+  if (votes.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="icon">🗳️</div><p>No votes yet. Share the link to start collecting votes!</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = votes.map(v => {
+      const c1 = CHALLENGES.find(c => c.id === v.first_choice);
+      const c2 = CHALLENGES.find(c => c.id === v.second_choice);
+      const c3 = CHALLENGES.find(c => c.id === v.third_choice);
+      const time = new Date(v.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `<tr>
+        <td class="voter-name-cell">${escapeHtml(v.voter_name)}</td>
+        <td><span class="table-rank table-rank-1">C${v.first_choice}</span> ${c1 ? c1.title : ''}</td>
+        <td><span class="table-rank table-rank-2">C${v.second_choice}</span> ${c2 ? c2.title : ''}</td>
+        <td><span class="table-rank table-rank-3">C${v.third_choice}</span> ${c3 ? c3.title : ''}</td>
+        <td>${time}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Team suggestions
+  renderTeams(votes);
+}
+
+function renderTeams(votes) {
+  const grid = document.getElementById('teams-grid');
+  if (votes.length === 0) {
+    grid.innerHTML = '<div class="team-empty" style="grid-column:1/-1;">Waiting for votes...</div>';
+    return;
+  }
+
+  // Group by first choice, use second choice to balance
+  const teams = { 1: [], 2: [], 3: [] };
+
+  // First pass: assign everyone to their 1st choice
+  votes.forEach(v => {
+    teams[v.first_choice].push({
+      name: v.voter_name,
+      pref: '1st',
+      first: v.first_choice,
+      second: v.second_choice,
+      third: v.third_choice
+    });
+  });
+
+  // Balance: if any team has > avg+1, move people to their 2nd choice if that team is smaller
+  const totalPeople = votes.length;
+  const idealSize = Math.ceil(totalPeople / 3);
+  let balanced = true;
+  let iterations = 0;
+
+  do {
+    balanced = true;
+    iterations++;
+    for (const teamId of [1, 2, 3]) {
+      while (teams[teamId].length > idealSize + 1) {
+        // Find someone whose 2nd choice team is small
+        const moveIdx = teams[teamId].findIndex(p =>
+          p.pref !== '3rd' && teams[p.second] && teams[p.second].length < idealSize
+        );
+        if (moveIdx === -1) break;
+        const person = teams[teamId].splice(moveIdx, 1)[0];
+        person.pref = '2nd';
+        teams[person.second].push(person);
+        balanced = false;
+      }
+    }
+  } while (!balanced && iterations < 10);
+
+  grid.innerHTML = CHALLENGES.map((c, i) => {
+    const teamMembers = teams[c.id] || [];
+    return `
+      <div class="team-card">
+        <div class="team-header">
+          ${c.title}
+          <span class="team-count">${teamMembers.length} ${teamMembers.length === 1 ? 'person' : 'people'}</span>
+        </div>
+        <div class="team-members">
+          ${teamMembers.length === 0
+            ? '<div class="team-empty">No members yet</div>'
+            : teamMembers.map(m => `
+              <div class="team-member">
+                <span class="team-member-name">${escapeHtml(m.name)}</span>
+                <span class="team-member-pref pref-${m.pref}">${m.pref}</span>
+              </div>
+            `).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function exportCSV() {
+  if (allVotes.length === 0) return;
+  const header = 'Name,1st Choice,2nd Choice,3rd Choice,Time\n';
+  const rows = allVotes.map(v => {
+    const c1 = CHALLENGES.find(c => c.id === v.first_choice);
+    const c2 = CHALLENGES.find(c => c.id === v.second_choice);
+    const c3 = CHALLENGES.find(c => c.id === v.third_choice);
+    return `"${v.voter_name}","${c1?.title}","${c2?.title}","${c3?.title}","${new Date(v.created_at).toLocaleString()}"`;
+  }).join('\n');
+  const blob = new Blob([header + rows], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'challenge-votes.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════
+//  CONSTELLATION BACKGROUND
+// ═══════════════════════════════════════════════════
+
+function initConstellation() {
+  const canvas = document.getElementById('constellation-canvas');
+  const ctx = canvas.getContext('2d');
+  let width, height, particles, mouse;
+  const PARTICLE_COUNT = 50;
+  const CONNECTION_DIST = 150;
+  const MOUSE_DIST = 200;
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+
+  function createParticles() {
+    particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        size: 1 + Math.random() * 1.5,
+        alpha: 0.2 + Math.random() * 0.3
+      });
+    }
+  }
+
+  mouse = { x: -1000, y: -1000 };
+  document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  document.addEventListener('mouseleave', () => { mouse.x = -1000; mouse.y = -1000; });
+
+  function animate() {
+    ctx.clearRect(0, 0, width, height);
+
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > width) p.vx *= -1;
+      if (p.y < 0 || p.y > height) p.vy *= -1;
+    });
+
+    // Draw connections
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < CONNECTION_DIST) {
+          const alpha = (1 - dist / CONNECTION_DIST) * 0.12;
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(0, 229, 255, ${alpha})`;
+          ctx.lineWidth = 0.5;
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+
+      // Mouse connection
+      const mdx = particles[i].x - mouse.x;
+      const mdy = particles[i].y - mouse.y;
+      const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
+      if (mDist < MOUSE_DIST) {
+        const alpha = (1 - mDist / MOUSE_DIST) * 0.2;
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(255, 184, 0, ${alpha})`;
+        ctx.lineWidth = 0.8;
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(mouse.x, mouse.y);
+        ctx.stroke();
+      }
+
+      // Draw particle
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(255, 255, 255, ${particles[i].alpha})`;
+      ctx.arc(particles[i].x, particles[i].y, particles[i].size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  resize();
+  createParticles();
+  animate();
+  window.addEventListener('resize', () => { resize(); createParticles(); });
+}
+
+// ═══════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ═══════════════════════════════════════════════════
+//  START
+// ═══════════════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
