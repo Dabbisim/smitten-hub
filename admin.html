@@ -1001,7 +1001,7 @@ async function verifyCode() {
     return;
   }
   btn.disabled = true; btn.textContent = 'Verifying…';
-  const { error } = await db.auth.verifyOtp({ email: pendingEmail, token: code, type: 'email' });
+  const { data, error } = await db.auth.verifyOtp({ email: pendingEmail, token: code, type: 'email' });
   if (error) {
     msg.style.color = 'var(--rose)';
     msg.textContent = error.message;
@@ -1010,6 +1010,9 @@ async function verifyCode() {
   }
   msg.style.color = 'var(--amber)';
   msg.textContent = '✓ Signed in.';
+  pendingEmail = null;
+  btn.disabled = false; btn.textContent = 'Send code';
+  await handleSession(data?.session ?? null);
 }
 
 // Back-compat alias

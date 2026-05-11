@@ -1519,7 +1519,7 @@ async function verifyCode() {
   }
   btn.disabled = true;
   btn.textContent = 'Verifying…';
-  const { error } = await supabaseClient.auth.verifyOtp({
+  const { data, error } = await supabaseClient.auth.verifyOtp({
     email: pendingEmail,
     token: code,
     type: 'email'
@@ -1531,9 +1531,14 @@ async function verifyCode() {
     btn.textContent = 'Verify code';
     return;
   }
-  // Success — onAuthStateChange will fire handleSession and route us in.
   msg.style.color = 'var(--amber)';
   msg.textContent = '✓ Signed in.';
+  // Reset gate UI so a future signout lands cleanly on the email step,
+  // and drive routing explicitly instead of waiting for onAuthStateChange.
+  pendingEmail = null;
+  btn.disabled = false;
+  btn.textContent = 'Send code';
+  await handleSession(data?.session ?? null);
 }
 
 // Back-compat alias so any old onclick references still work.
