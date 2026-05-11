@@ -543,7 +543,8 @@ body::after {
     <div class="slide-glow"></div>
     <div class="welcome-eyebrow">Smitten</div>
     <h1 class="welcome-title">The<br><em>Challenge</em><br>Reveal</h1>
-    <p class="welcome-sub">Three bold bets. Three weeks. Three teams.<br>Let's figure out what we're building next.</p>
+    <!-- Placeholder text: JS replaces this with either sprint.slides.welcomeSub or an auto-generated "N challenges" line. -->
+    <p class="welcome-sub">&nbsp;</p>
     <div class="welcome-hint">
       <span class="hint-key">→</span>
       <span>press to begin</span>
@@ -573,18 +574,19 @@ body::after {
     <div class="final-eyebrow">Now the fun part</div>
     <h2 class="final-title">Let's make<br>it <em>fun</em></h2>
     <p class="final-sub">Vote on the challenge you'd most want to work on. Tomorrow morning we'll reveal the teams and rearrange seating — each room becomes its own challenge war room.</p>
+    <!-- Placeholder values: JS replaces with sprint.slides.card1/card2/card3. -->
     <div class="final-cards">
       <div class="final-card">
         <div class="final-card-label">Deadline</div>
-        <div class="final-card-value">Friday, April 24th</div>
+        <div class="final-card-value">&nbsp;</div>
       </div>
       <div class="final-card">
         <div class="final-card-label">Time to ship</div>
-        <div class="final-card-value">~2.5 weeks after Easter</div>
+        <div class="final-card-value">&nbsp;</div>
       </div>
       <div class="final-card">
         <div class="final-card-label">Teams</div>
-        <div class="final-card-value">Revealed tomorrow</div>
+        <div class="final-card-value">&nbsp;</div>
       </div>
     </div>
     <a href="voting.html" class="final-cta">
@@ -881,13 +883,21 @@ function escape(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':
   const fmtTitle = s => escHtml(s).replace(/\*([^*]+)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
   const fmtText  = s => escHtml(s).replace(/\n/g, '<br>');
   if (sl.welcomeTitle) { const el = document.querySelector('.welcome-title'); if (el) el.innerHTML = fmtTitle(sl.welcomeTitle); }
-  if (sl.welcomeSub)   { const el = document.querySelector('.welcome-sub');   if (el) el.innerHTML = fmtText(sl.welcomeSub); }
+  // Welcome sub: prefer explicit slides.welcomeSub; fall back to an auto-generated "N challenges" line.
+  const welcomeSubEl = document.querySelector('.welcome-sub');
+  if (welcomeSubEl) {
+    const n = (data.challenges || []).length;
+    welcomeSubEl.innerHTML = sl.welcomeSub
+      ? fmtText(sl.welcomeSub)
+      : `${n} bold bet${n === 1 ? '' : 's'}. ${n} team${n === 1 ? '' : 's'}.<br>Let's figure out what we're building next.`;
+  }
   if (sl.finalTitle)   { const el = document.querySelector('.final-title');   if (el) el.innerHTML = fmtTitle(sl.finalTitle); }
   if (sl.finalSub)     { const el = document.querySelector('.final-sub');     if (el) el.innerHTML = fmtText(sl.finalSub); }
   const cardVals = document.querySelectorAll('.final-card-value');
-  if (sl.card1 && cardVals[0]) cardVals[0].textContent = sl.card1;
-  if (sl.card2 && cardVals[1]) cardVals[1].textContent = sl.card2;
-  if (sl.card3 && cardVals[2]) cardVals[2].textContent = sl.card3;
+  // Cards: explicit override OR a sensible default ("—") so we never show sprint-1 leftovers.
+  if (cardVals[0]) cardVals[0].textContent = sl.card1 || '—';
+  if (cardVals[1]) cardVals[1].textContent = sl.card2 || '—';
+  if (cardVals[2]) cardVals[2].textContent = sl.card3 || '—';
 })();
 </script>
 </body>
