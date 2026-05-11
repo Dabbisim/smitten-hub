@@ -1010,11 +1010,13 @@
 
 <!-- ═══════════════ SIGN-IN GATE ═══════════════ -->
 <div id="admin-gate" class="screen hidden">
-  <h2>Sign in</h2>
-  <p class="admin-gate-sub">Voting and admin access are sign-in only</p>
+  <h2 id="auth-title">Sign in</h2>
+  <p class="admin-gate-sub" id="auth-sub">Voting and admin access are sign-in only</p>
   <form class="admin-form" id="auth-form" autocomplete="off">
     <input type="email" id="email-input" class="input" placeholder="your@email.com" autocomplete="email" required style="text-align:left;letter-spacing:normal;">
-    <button type="submit" class="btn btn-amber" id="auth-btn">Send magic link</button>
+    <input type="text" id="code-input" class="input" placeholder="123456" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" style="display:none;text-align:center;letter-spacing:0.4em;font-size:1.4rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">
+    <button type="submit" class="btn btn-amber" id="auth-btn">Send code</button>
+    <button type="button" id="auth-back-btn" style="display:none;background:transparent;color:var(--text-2);border:1px solid var(--border);padding:0.5em 1.2em;border-radius:99px;font-family:inherit;font-size:0.82rem;cursor:pointer;margin-top:0.4rem;">↩ Use a different email</button>
     <div class="admin-error" id="auth-msg"></div>
   </form>
 </div>
@@ -1145,8 +1147,15 @@ async function init() {
     if (e.key === 'Enter') submitName();
   });
 
-  // Wire auth form
-  document.getElementById('auth-form').addEventListener('submit', sendMagicLink);
+  // Wire auth form: form submit handles both "send code" and "verify code" steps
+  document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
+  document.getElementById('auth-back-btn').addEventListener('click', () => showEmailStep(false));
+  // Auto-submit when 6 digits are entered
+  document.getElementById('code-input').addEventListener('input', (e) => {
+    const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+    e.target.value = v;
+    if (v.length === 6) handleAuthSubmit();
+  });
 
   // Check for stored name
   const storedName = localStorage.getItem('voter_name');
@@ -1429,8 +1438,49 @@ async function handleSession(session) {
   route();
 }
 
-async function sendMagicLink(e) {
+// Two-step code-based sign-in (avoids the email-pre-fetcher footgun):
+// 1) sendCode() -> Supabase emails a 6-digit code
+// 2) verifyCode() -> we POST that code back, get a session
+let pendingEmail = null;
+
+function showCodeStep(email) {
+  pendingEmail = email;
+  document.getElementById('auth-title').textContent = 'Enter your code';
+  document.getElementById('auth-sub').textContent = `Sent to ${email}. Check your inbox & spam.`;
+  document.getElementById('email-input').style.display = 'none';
+  document.getElementById('code-input').style.display = '';
+  document.getElementById('code-input').value = '';
+  document.getElementById('auth-back-btn').style.display = '';
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = false;
+  btn.textContent = 'Verify code';
+  setTimeout(() => document.getElementById('code-input').focus(), 50);
+}
+
+function showEmailStep(preserveError) {
+  pendingEmail = null;
+  document.getElementById('auth-title').textContent = 'Sign in';
+  document.getElementById('auth-sub').textContent = 'Voting and admin access are sign-in only';
+  document.getElementById('email-input').style.display = '';
+  document.getElementById('code-input').style.display = 'none';
+  document.getElementById('code-input').value = '';
+  document.getElementById('auth-back-btn').style.display = 'none';
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = false;
+  btn.textContent = 'Send code';
+  if (!preserveError) {
+    const msg = document.getElementById('auth-msg');
+    if (msg) msg.textContent = '';
+  }
+  setTimeout(() => document.getElementById('email-input').focus(), 50);
+}
+
+async function handleAuthSubmit(e) {
   e?.preventDefault();
+  return pendingEmail ? verifyCode() : sendCode();
+}
+
+async function sendCode() {
   const email = document.getElementById('email-input').value.trim().toLowerCase();
   const msg = document.getElementById('auth-msg');
   const btn = document.getElementById('auth-btn');
@@ -1441,6 +1491,7 @@ async function sendMagicLink(e) {
   }
   btn.disabled = true;
   btn.textContent = 'Sending…';
+  msg.textContent = '';
   const { error } = await supabaseClient.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
@@ -1449,13 +1500,44 @@ async function sendMagicLink(e) {
     msg.style.color = 'var(--rose)';
     msg.textContent = error.message;
     btn.disabled = false;
-    btn.textContent = 'Send magic link';
+    btn.textContent = 'Send code';
     return;
   }
+  showCodeStep(email);
   msg.style.color = 'var(--amber)';
-  msg.textContent = '✓ Check your email for a sign-in link.';
-  btn.textContent = 'Link sent';
+  msg.textContent = '✓ Code sent. It expires in 1 hour.';
 }
+
+async function verifyCode() {
+  const code = document.getElementById('code-input').value.trim();
+  const msg = document.getElementById('auth-msg');
+  const btn = document.getElementById('auth-btn');
+  if (!/^\d{6}$/.test(code)) {
+    msg.style.color = 'var(--rose)';
+    msg.textContent = 'Enter the 6-digit code from your email.';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+  const { error } = await supabaseClient.auth.verifyOtp({
+    email: pendingEmail,
+    token: code,
+    type: 'email'
+  });
+  if (error) {
+    msg.style.color = 'var(--rose)';
+    msg.textContent = error.message;
+    btn.disabled = false;
+    btn.textContent = 'Verify code';
+    return;
+  }
+  // Success — onAuthStateChange will fire handleSession and route us in.
+  msg.style.color = 'var(--amber)';
+  msg.textContent = '✓ Signed in.';
+}
+
+// Back-compat alias so any old onclick references still work.
+const sendMagicLink = handleAuthSubmit;
 
 async function signOutAdmin() {
   await supabaseClient.auth.signOut();

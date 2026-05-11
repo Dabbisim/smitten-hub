@@ -140,11 +140,13 @@ input[type="datetime-local"].fi{color-scheme:dark}
 <!-- Gate -->
 <div id="gate">
   <div class="smitten-badge">Smitten</div>
-  <h1 class="gate-title clash">Sprint Hub</h1>
-  <p class="gate-sub">Sign in to manage sprints.</p>
+  <h1 class="gate-title clash" id="gate-title">Sprint Hub</h1>
+  <p class="gate-sub" id="gate-sub">Sign in to manage sprints.</p>
   <form class="pwd-form" id="auth-form">
     <input type="email" class="pwd-input email-input" id="email-input" placeholder="your@email.com" autocomplete="email" required>
-    <button class="pwd-btn" type="submit" id="auth-btn">Send magic link</button>
+    <input type="text" class="pwd-input" id="code-input" placeholder="123456" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" style="display:none;text-align:center;letter-spacing:0.4em;font-size:1.4rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;">
+    <button class="pwd-btn" type="submit" id="auth-btn">Send code</button>
+    <button type="button" id="auth-back-btn" style="display:none;background:transparent;color:var(--t2);border:1px solid var(--border);padding:0.5em 1.2em;border-radius:99px;font-family:inherit;font-size:0.82rem;cursor:pointer;margin-top:0.4rem;">↩ Use a different email</button>
     <p class="pwd-err" id="auth-msg"></p>
   </form>
 </div>
@@ -234,15 +236,50 @@ function showGate(){
   document.getElementById('dash').classList.add('hidden');
 }
 
-async function sendMagicLink(e){
+// Two-step code-based sign-in (avoids email-pre-fetcher token consumption).
+let pendingEmail = null;
+
+function showCodeStep(email){
+  pendingEmail = email;
+  document.getElementById('gate-title').textContent = 'Enter your code';
+  document.getElementById('gate-sub').textContent = `Sent to ${email}. Check your inbox & spam.`;
+  document.getElementById('email-input').style.display = 'none';
+  document.getElementById('code-input').style.display = '';
+  document.getElementById('code-input').value = '';
+  document.getElementById('auth-back-btn').style.display = '';
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = false;
+  btn.textContent = 'Verify code';
+  setTimeout(() => document.getElementById('code-input').focus(), 50);
+}
+
+function showEmailStep(){
+  pendingEmail = null;
+  document.getElementById('gate-title').textContent = 'Sprint Hub';
+  document.getElementById('gate-sub').textContent = 'Sign in to manage sprints.';
+  document.getElementById('email-input').style.display = '';
+  document.getElementById('code-input').style.display = 'none';
+  document.getElementById('code-input').value = '';
+  document.getElementById('auth-back-btn').style.display = 'none';
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = false;
+  btn.textContent = 'Send code';
+  document.getElementById('auth-msg').textContent = '';
+  setTimeout(() => document.getElementById('email-input').focus(), 50);
+}
+
+async function handleAuthSubmit(e){
   e?.preventDefault();
+  return pendingEmail ? verifyCode() : sendCode();
+}
+
+async function sendCode(){
   const email = document.getElementById('email-input').value.trim().toLowerCase();
   const msg = document.getElementById('auth-msg');
   const btn = document.getElementById('auth-btn');
   if (!email) { msg.style.color='var(--c3)'; msg.textContent = 'Enter your email'; return; }
-  // No client-side allowlist precheck — RLS denies access for non-admins
-  // post-callback in handleSession(). Server is source of truth.
   btn.disabled = true; btn.textContent = 'Sending…';
+  msg.textContent = '';
   const { error } = await db.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: window.location.href.split('#')[0].split('?')[0] }
@@ -250,20 +287,50 @@ async function sendMagicLink(e){
   if (error) {
     msg.style.color = 'var(--c3)';
     msg.textContent = error.message;
-    btn.disabled = false; btn.textContent = 'Send magic link';
+    btn.disabled = false; btn.textContent = 'Send code';
+    return;
+  }
+  showCodeStep(email);
+  msg.style.color = 'var(--c1)';
+  msg.textContent = '✓ Code sent. It expires in 1 hour.';
+}
+
+async function verifyCode(){
+  const code = document.getElementById('code-input').value.trim();
+  const msg = document.getElementById('auth-msg');
+  const btn = document.getElementById('auth-btn');
+  if (!/^\d{6}$/.test(code)) {
+    msg.style.color = 'var(--c3)';
+    msg.textContent = 'Enter the 6-digit code from your email.';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  const { error } = await db.auth.verifyOtp({ email: pendingEmail, token: code, type: 'email' });
+  if (error) {
+    msg.style.color = 'var(--c3)';
+    msg.textContent = error.message;
+    btn.disabled = false; btn.textContent = 'Verify code';
     return;
   }
   msg.style.color = 'var(--c1)';
-  msg.textContent = '✓ Check your email for a sign-in link.';
-  btn.textContent = 'Link sent';
+  msg.textContent = '✓ Signed in.';
 }
+
+// Back-compat alias
+const sendMagicLink = handleAuthSubmit;
 
 async function signOut(){
   await db.auth.signOut();
   location.reload();
 }
 
-document.getElementById('auth-form').addEventListener('submit', sendMagicLink);
+document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
+document.getElementById('auth-back-btn').addEventListener('click', () => showEmailStep());
+document.getElementById('code-input').addEventListener('input', (e) => {
+  const v = e.target.value.replace(/\D/g, '').slice(0, 6);
+  e.target.value = v;
+  if (v.length === 6) handleAuthSubmit();
+});
 db.auth.onAuthStateChange((_event, session) => handleSession(session));
 db.auth.getSession().then(({data}) => handleSession(data.session));
 
