@@ -558,49 +558,12 @@ body::after {
       <span class="eyebrow-line"></span>
       Challenge 01
     </div>
-    <h2 class="challenge-title">Launch Smitten<br>in Malta</h2>
-    <p class="challenge-desc">
-      Can we replicate the Iceland magic in a brand new market? Malta is strikingly similar — 570k population, island nation, tight-knit social scene, flooded with tourists. The challenge: make Smitten the dating app for Maltese locals and make it actually stick.
-    </p>
-    <div class="constraint-box">
+    <!-- Placeholder content: JS replaces this from the URL's ?sprint=<id> -->
+    <h2 class="challenge-title">Loading…</h2>
+    <p class="challenge-desc">&nbsp;</p>
+    <div class="constraint-box" style="display:none">
       <span class="constraint-label">Constraint</span>
-      <span class="constraint-text">Near-zero marketing budget. No online paid ads. Pure hustle, community, and word of mouth should drive the growth.</span>
-    </div>
-  </div>
-
-  <!-- SLIDE 2 · CHALLENGE 2 -->
-  <div class="slide challenge-slide c2" id="s2">
-    <div class="slide-glow"></div>
-    <div class="watermark-num">02</div>
-    <div class="challenge-eyebrow">
-      <span class="eyebrow-line"></span>
-      Challenge 02
-    </div>
-    <h2 class="challenge-title">Organic<br>Growth Hacks</h2>
-    <p class="challenge-desc">
-      What can we build <em style="font-family:'Fraunces',serif;font-style:italic;color:rgba(255,184,0,0.9)">outside</em> of Smitten to drive organic growth, increase runway, and boost revenue? Viral tools, content plays, communities, utilities — anything that funnels people our way without living inside the app.
-    </p>
-    <div class="constraint-box">
-      <span class="constraint-label">Constraint</span>
-      <span class="constraint-text">Cannot be a feature or anything built within Smitten itself. It must stand completely on its own two feet.</span>
-    </div>
-  </div>
-
-  <!-- SLIDE 3 · CHALLENGE 3 -->
-  <div class="slide challenge-slide c3" id="s3">
-    <div class="slide-glow"></div>
-    <div class="watermark-num">03</div>
-    <div class="challenge-eyebrow">
-      <span class="eyebrow-line"></span>
-      Challenge 03
-    </div>
-    <h2 class="challenge-title">AI Dating<br>Profile Agent</h2>
-    <p class="challenge-desc">
-      Build a standalone AI agent that creates the best, most compelling dating profiles on the internet. Works across Smitten, Tinder, Hinge, Bumble — its own product entirely. Not a Smitten feature.
-    </p>
-    <div class="constraint-box">
-      <span class="constraint-label">Constraint</span>
-      <span class="constraint-text">Radical authenticity. The AI can only work with real facts the user provides — no fabrication, no fake personas. The hard part is making the truth irresistible.</span>
+      <span class="constraint-text"></span>
     </div>
   </div>
 
@@ -638,7 +601,9 @@ body::after {
 //  SLIDE ENGINE
 // ═══════════════════════════════════════════════
 
-let SLIDES = ['s0','s1','s2','s3','sF'];
+// Initial state: welcome + one placeholder challenge slide + final. The
+// dynamic loader rebuilds this array from data.challenges (1-N slides).
+let SLIDES = ['s0','s1','sF'];
 let current = 0;
 
 function buildDots() {
