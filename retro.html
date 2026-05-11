@@ -600,7 +600,7 @@ let sprintChallenges = [];
 
 // ─── Init ───
 async function init() {
-  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
 
   // Load sprint with challenges
   const sprintId = new URLSearchParams(location.search).get('sprint');

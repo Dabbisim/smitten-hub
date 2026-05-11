@@ -740,7 +740,7 @@ function shuffleAndRender() {
 async function loadSprint() {
   const sprintId = new URLSearchParams(location.search).get('sprint');
   try {
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
     let q = db.from('sprints').select('id,name,challenges,status');
     q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
     const { data: sprint } = await q;

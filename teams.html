@@ -459,7 +459,7 @@ function shuffle(arr){const a=arr.slice();for(let i=a.length-1;i>0;i--){const j=
 
 // ── Load data ────────────────────────────────────────────
 async function load() {
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
   const sprintId = new URLSearchParams(location.search).get('sprint');
 
   // Sprint config
