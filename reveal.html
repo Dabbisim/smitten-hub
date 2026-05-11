@@ -840,9 +840,20 @@ function rebuildChallengeSlides(challenges) {
 buildDots();
 document.getElementById('progress-bar').style.width = '0%';
 
-// Load challenge content from active sprint
+// Load challenge content from active sprint. Show a visible error if
+// the fetch fails so the user isn't stuck staring at "Loading…" forever.
+function showLoadError(reason) {
+  console.error('Sprint load failed:', reason);
+  const titleEl = document.querySelector('#s1 .challenge-title');
+  const descEl  = document.querySelector('#s1 .challenge-desc');
+  if (titleEl) titleEl.innerHTML = 'Couldn’t load sprint';
+  if (descEl)  descEl.innerHTML = `Tried to load <code>${escape(location.search)}</code>. Reason: <code>${escape(reason)}</code>. <a href="${escape(location.pathname)}?sprint=${escape(new URLSearchParams(location.search).get('sprint') || '')}&t=${Date.now()}" style="color:#fff;text-decoration:underline">Reload</a>`;
+}
+function escape(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m])}
+
 (async () => {
   const sprintId = new URLSearchParams(window.location.search).get('sprint');
+  let data, error;
   try {
     const db = window.supabase.createClient(
       'https://cfuilfpgsyxgaizzwlee.supabase.co',
@@ -850,25 +861,33 @@ document.getElementById('progress-bar').style.width = '0%';
     );
     let q = db.from('sprints').select('name,challenges,slides');
     q = sprintId ? q.eq('id', sprintId).single() : q.eq('status','active').order('created_at',{ascending:false}).limit(1).single();
-    const { data } = await q;
-    if (!data) return;
-    if (data.challenges && data.challenges.length) {
-      rebuildChallengeSlides(data.challenges);
-    }
-    // Patch welcome + final slide content if configured
-    const sl = data.slides || {};
-    const escHtml = s => String(s||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
-    const fmtTitle = s => escHtml(s).replace(/\*([^*]+)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
-    const fmtText  = s => escHtml(s).replace(/\n/g, '<br>');
-    if (sl.welcomeTitle) { const el = document.querySelector('.welcome-title'); if (el) el.innerHTML = fmtTitle(sl.welcomeTitle); }
-    if (sl.welcomeSub)   { const el = document.querySelector('.welcome-sub');   if (el) el.innerHTML = fmtText(sl.welcomeSub); }
-    if (sl.finalTitle)   { const el = document.querySelector('.final-title');   if (el) el.innerHTML = fmtTitle(sl.finalTitle); }
-    if (sl.finalSub)     { const el = document.querySelector('.final-sub');     if (el) el.innerHTML = fmtText(sl.finalSub); }
-    const cardVals = document.querySelectorAll('.final-card-value');
-    if (sl.card1 && cardVals[0]) cardVals[0].textContent = sl.card1;
-    if (sl.card2 && cardVals[1]) cardVals[1].textContent = sl.card2;
-    if (sl.card3 && cardVals[2]) cardVals[2].textContent = sl.card3;
-  } catch(e) { console.warn('Sprint load skipped:', e); }
+    const res = await q;
+    data = res.data; error = res.error;
+  } catch(e) {
+    showLoadError(e?.message || String(e));
+    return;
+  }
+  if (error) { showLoadError(error.message || JSON.stringify(error)); return; }
+  if (!data) { showLoadError(sprintId ? `no sprint with id ${sprintId}` : 'no active sprint found'); return; }
+  if (data.challenges && data.challenges.length) {
+    rebuildChallengeSlides(data.challenges);
+  } else {
+    showLoadError('sprint has no challenges');
+    return;
+  }
+  // Patch welcome + final slide content if configured
+  const sl = data.slides || {};
+  const escHtml = s => String(s||'').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+  const fmtTitle = s => escHtml(s).replace(/\*([^*]+)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+  const fmtText  = s => escHtml(s).replace(/\n/g, '<br>');
+  if (sl.welcomeTitle) { const el = document.querySelector('.welcome-title'); if (el) el.innerHTML = fmtTitle(sl.welcomeTitle); }
+  if (sl.welcomeSub)   { const el = document.querySelector('.welcome-sub');   if (el) el.innerHTML = fmtText(sl.welcomeSub); }
+  if (sl.finalTitle)   { const el = document.querySelector('.final-title');   if (el) el.innerHTML = fmtTitle(sl.finalTitle); }
+  if (sl.finalSub)     { const el = document.querySelector('.final-sub');     if (el) el.innerHTML = fmtText(sl.finalSub); }
+  const cardVals = document.querySelectorAll('.final-card-value');
+  if (sl.card1 && cardVals[0]) cardVals[0].textContent = sl.card1;
+  if (sl.card2 && cardVals[1]) cardVals[1].textContent = sl.card2;
+  if (sl.card3 && cardVals[2]) cardVals[2].textContent = sl.card3;
 })();
 </script>
 </body>
