@@ -349,10 +349,31 @@ db.auth.onAuthStateChange((_event, session) => handleSession(session));
 db.auth.getSession().then(({data}) => handleSession(data.session));
 
 // ── data ──────────────────────────────────────────────────
+// Raw PostgREST helper — bypasses the Supabase JS client (which can
+// deadlock on GoTrueClient/BroadcastChannel state). Uses the current
+// session's access_token for RLS-authenticated calls.
+async function pg(method, path, body, prefer){
+  const { data: { session } } = await db.auth.getSession();
+  const headers = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json'
+  };
+  if (prefer) headers['Prefer'] = prefer;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method, headers, body: body == null ? undefined : JSON.stringify(body)
+  });
+  const text = await r.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  if (!r.ok) return { data: null, error: { message: data?.message || r.statusText, status: r.status } };
+  return { data, error: null };
+}
+
 async function loadSprints(){
-  const{data}=await db.from('sprints').select('*').order('created_at',{ascending:false});
-  sprints=data||[];
-  const{data:vd}=await db.from('votes').select('sprint_id');
+  const { data } = await pg('GET', 'sprints?select=*&order=created_at.desc');
+  sprints = data || [];
+  const { data: vd } = await pg('GET', 'votes?select=sprint_id');
   const counts={};(vd||[]).forEach(v=>{counts[v.sprint_id]=(counts[v.sprint_id]||0)+1});
   render(counts);
 }
@@ -400,18 +421,18 @@ function card(s,votes){
 
 async function archiveSprint(id){
   if(!confirm('Archive this sprint?'))return;
-  await db.from('sprints').update({status:'archived'}).eq('id',id);
+  await pg('PATCH', `sprints?id=eq.${id}`, {status:'archived'});
   loadSprints();
 }
 async function restoreSprint(id){
-  await db.from('sprints').update({status:'archived'}).eq('status','active');
-  await db.from('sprints').update({status:'active'}).eq('id',id);
+  await pg('PATCH', `sprints?status=eq.active`, {status:'archived'});
+  await pg('PATCH', `sprints?id=eq.${id}`, {status:'active'});
   loadSprints();
 }
 async function deleteSprint(id){
   if(!confirm('Delete this sprint and all its votes? This cannot be undone.'))return;
-  await db.from('votes').delete().eq('sprint_id',id);
-  await db.from('sprints').delete().eq('id',id);
+  await pg('DELETE', `votes?sprint_id=eq.${id}`);
+  await pg('DELETE', `sprints?id=eq.${id}`);
   loadSprints();
 }
 
@@ -566,12 +587,12 @@ async function createSprint(){
   let error;
   if(editingId){
     const payload={name:fd.sprint.name||'New Sprint',challenges,rooms,ends_at:endsAt,slides:hasSlides?slides:null};
-    const res=await db.from('sprints').update(payload).eq('id',editingId);
+    const res=await pg('PATCH', `sprints?id=eq.${editingId}`, payload);
     error=res.error;
   }else{
-    await db.from('sprints').update({status:'archived'}).eq('status','active');
+    await pg('PATCH', `sprints?status=eq.active`, {status:'archived'});
     const payload={name:fd.sprint.name||'New Sprint',status:'active',challenges,rooms,ends_at:endsAt,slides:hasSlides?slides:null};
-    const res=await db.from('sprints').insert(payload).select().single();
+    const res=await pg('POST', 'sprints?select=*', payload, 'return=representation');
     error=res.error;
   }
   if(error){console.error(error);btn.disabled=false;btn.textContent=editingId?'✓ Save Changes':'✓ Create Sprint';alert('Error: '+error.message);return}
@@ -594,7 +615,7 @@ function startRename(wrap, id, currentName) {
     if (saved) return; saved = true;
     const newName = input.value.trim();
     if (newName && newName !== currentName) {
-      await db.from('sprints').update({name: newName}).eq('id', id);
+      await pg('PATCH', `sprints?id=eq.${id}`, {name: newName});
       loadSprints();
     } else {
       loadSprints();
