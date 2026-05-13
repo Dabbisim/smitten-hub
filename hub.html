@@ -201,6 +201,10 @@ const SUPABASE_ANON_KEY= 'sb_publishable_f7EMQpKgX7CefW-HCBiW2Q_9rLSVLRn';
 // `is_admin()` RPC. Server is the source of truth — do not duplicate it here.
 const COLORS           = ['#00E5FF','#FFB800','#FF5C8A'];
 let db, sprints = [];
+// Cache the user's access_token after auth so the pg() helper doesn't
+// have to call db.auth.getSession() — which can deadlock when the
+// Supabase JS client is in a bad state.
+let CURRENT_ACCESS_TOKEN = null;
 
 // ── canvas bg ─────────────────────────────────────────────
 const cv=document.getElementById('bg'),cx=cv.getContext('2d');let pts=[];
@@ -216,7 +220,8 @@ db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 async function handleSession(session) {
   const msg = document.getElementById('auth-msg');
-  if (!session) { showGate(); return; }
+  if (!session) { CURRENT_ACCESS_TOKEN = null; showGate(); return; }
+  CURRENT_ACCESS_TOKEN = session.access_token;
   // Server is source of truth: ask Postgres `is_admin()`. Raw fetch
   // (not db.rpc) because the Supabase JS client can deadlock and
   // freeze the "Verifying…" button forever.
@@ -350,13 +355,12 @@ db.auth.getSession().then(({data}) => handleSession(data.session));
 
 // ── data ──────────────────────────────────────────────────
 // Raw PostgREST helper — bypasses the Supabase JS client (which can
-// deadlock on GoTrueClient/BroadcastChannel state). Uses the current
-// session's access_token for RLS-authenticated calls.
+// deadlock on GoTrueClient/BroadcastChannel state). Uses the cached
+// access_token from the last handleSession() call.
 async function pg(method, path, body, prefer){
-  const { data: { session } } = await db.auth.getSession();
   const headers = {
     'apikey': SUPABASE_ANON_KEY,
-    'Authorization': `Bearer ${session?.access_token || SUPABASE_ANON_KEY}`,
+    'Authorization': `Bearer ${CURRENT_ACCESS_TOKEN || SUPABASE_ANON_KEY}`,
     'Content-Type': 'application/json'
   };
   if (prefer) headers['Prefer'] = prefer;
