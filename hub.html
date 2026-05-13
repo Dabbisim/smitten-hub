@@ -217,8 +217,19 @@ db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 async function handleSession(session) {
   const msg = document.getElementById('auth-msg');
   if (!session) { showGate(); return; }
-  // Server is source of truth: ask Postgres `is_admin()`.
-  const { data: isAdmin, error } = await db.rpc('is_admin');
+  // Server is source of truth: ask Postgres `is_admin()`. Raw fetch
+  // (not db.rpc) because the Supabase JS client can deadlock and
+  // freeze the "Verifying…" button forever.
+  let isAdmin = false, error = null;
+  try {
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/rpc/is_admin`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    if (!resp.ok) error = { message: `HTTP ${resp.status}` };
+    else isAdmin = (await resp.json()) === true;
+  } catch (e) { error = { message: e?.message || String(e) }; }
   if (error || isAdmin !== true) {
     await db.auth.signOut();
     showGate();
