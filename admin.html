@@ -3,6 +3,9 @@
 <!-- v2 -->
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin · Top 3 Challenges</title>
 <style>
@@ -885,6 +888,27 @@ let channel = null;
 let teamAssignments = { 1: [], 2: [], 3: [] };
 let teamsDirty = false; // true when user has manually moved someone
 let dragState = null;   // { voterId, fromTeam }
+// Cache the user's access_token so the pg() helper bypasses the
+// Supabase JS client (which can deadlock under multi-instance auth).
+let CURRENT_ACCESS_TOKEN = null;
+
+// Raw PostgREST helper — returns { data, error } shaped like supabase-js.
+async function pg(method, path, body, prefer){
+  const headers = {
+    'apikey': SUPABASE_ANON_KEY,
+    'Authorization': `Bearer ${CURRENT_ACCESS_TOKEN || SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json'
+  };
+  if (prefer) headers['Prefer'] = prefer;
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method, headers, body: body == null ? undefined : JSON.stringify(body)
+  });
+  const text = await r.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  if (!r.ok) return { data: null, error: { message: data?.message || r.statusText, status: r.status } };
+  return { data, error: null };
+}
 
 // ════════════════════════════════════════════════
 //  BOOT
@@ -913,10 +937,12 @@ function init() {
 async function handleSession(session) {
   const msg = document.getElementById('auth-msg');
   if (!session) {
+    CURRENT_ACCESS_TOKEN = null;
     document.getElementById('gate').classList.remove('hidden');
     document.getElementById('dashboard').classList.add('hidden');
     return;
   }
+  CURRENT_ACCESS_TOKEN = session.access_token;
   // Server is source of truth: ask Postgres `is_admin()`. We use a raw
   // fetch (not db.rpc) because the Supabase JS client can deadlock on
   // GoTrueClient state when BroadcastChannel or multiple-instance sync
@@ -1047,10 +1073,11 @@ async function signOutAdmin() {
 let currentSprintId = new URLSearchParams(window.location.search).get('sprint') || null;
 
 async function loadSprintConfig() {
-  let query = db.from('sprints').select('*');
-  if (currentSprintId) query = query.eq('id', currentSprintId).single();
-  else query = query.eq('status', 'active').order('created_at', { ascending: false }).limit(1).single();
-  const { data } = await query;
+  const path = currentSprintId
+    ? `sprints?id=eq.${currentSprintId}&select=*`
+    : `sprints?status=eq.active&select=*&order=created_at.desc&limit=1`;
+  const { data: rows } = await pg('GET', path);
+  const data = rows && rows.length ? rows[0] : null;
   if (data) {
     currentSprintId = data.id;
     CHALLENGES = (data.challenges || []).map(c => ({ id: c.id, title: c.title }));
@@ -1060,7 +1087,7 @@ async function loadSprintConfig() {
 }
 
 async function loadAllSprintsDropdown() {
-  const { data } = await db.from('sprints').select('id,name,status').order('created_at', { ascending: false });
+  const { data } = await pg('GET', 'sprints?select=id,name,status&order=created_at.desc');
   const sel = document.getElementById('sprint-select');
   if (!data || !data.length) { sel.style.display = 'none'; return; }
   sel.innerHTML = data.map(s =>
@@ -1108,10 +1135,10 @@ async function showDashboard() {
       // Count how many votes had a manual assignment before reset (for feedback)
       const hadAssignments = votes.filter(v => v.team_assignment != null).length;
       // Scope to current sprint so we don't accidentally clear other sprints' assignments
-      let q = db.from('votes').update({ team_assignment: null });
-      if (currentSprintId) q = q.eq('sprint_id', currentSprintId);
-      else q = q.neq('id', '00000000-0000-0000-0000-000000000000');
-      const { error } = await q;
+      const filter = currentSprintId
+        ? `sprint_id=eq.${currentSprintId}`
+        : `id=neq.00000000-0000-0000-0000-000000000000`;
+      const { error } = await pg('PATCH', `votes?${filter}`, { team_assignment: null });
       if (error) throw error;
       // Update local state so the in-memory votes match the DB
       votes.forEach(v => { v.team_assignment = null; });
@@ -1184,7 +1211,7 @@ function initDragListeners() {
     teamsDirty = true;
     renderBuilder();
     // Persist assignment to Supabase
-    db.from('votes').update({ team_assignment: toTeam }).eq('id', person.id).then(({ error }) => {
+    pg('PATCH', `votes?id=eq.${person.id}`, { team_assignment: toTeam }).then(({ error }) => {
       if (error) console.error('Failed to save team assignment:', error);
     });
   });
@@ -1192,9 +1219,10 @@ function initDragListeners() {
 
 async function loadVotes() {
   try {
-    let query = db.from('votes').select('*').order('created_at', { ascending: true });
-    if (currentSprintId) query = query.eq('sprint_id', currentSprintId);
-    const { data, error } = await query;
+    const path = currentSprintId
+      ? `votes?sprint_id=eq.${currentSprintId}&select=*&order=created_at.asc`
+      : `votes?select=*&order=created_at.asc`;
+    const { data, error } = await pg('GET', path);
     if (error) throw error;
     votes = data || [];
     // If any vote has a saved team_assignment, honour all of them
@@ -1213,9 +1241,10 @@ async function loadRetros() {
   wrap.innerHTML = '<div class="retros-empty">Loading…</div>';
   statsEl.innerHTML = '';
   try {
-    let q = db.from('retros').select('*').order('created_at', { ascending: false });
-    if (currentSprintId) q = q.eq('sprint_id', currentSprintId);
-    const { data, error } = await q;
+    const path = currentSprintId
+      ? `retros?sprint_id=eq.${currentSprintId}&select=*&order=created_at.desc`
+      : `retros?select=*&order=created_at.desc`;
+    const { data, error } = await pg('GET', path);
     if (error) throw error;
     const rows = data || [];
     if (!rows.length) {
@@ -1296,7 +1325,7 @@ async function deleteRetro(id) {
     card.style.opacity = '0';
     card.style.transform = 'scale(0.96)';
   }
-  const { error } = await db.from('retros').delete().eq('id', id);
+  const { error } = await pg('DELETE', `retros?id=eq.${id}`);
   if (error) {
     alert('Failed to delete: ' + error.message);
     if (card) { card.style.opacity = '1'; card.style.transform = ''; }
@@ -1598,7 +1627,7 @@ function startNameEdit(span) {
 
 async function updateVoterName(id, newName, fallbackName, span) {
   try {
-    const { error } = await db.from('votes').update({ voter_name: newName }).eq('id', id);
+    const { error } = await pg('PATCH', `votes?id=eq.${id}`, { voter_name: newName });
     if (error) throw error;
     // Update local state
     const vote = votes.find(v => String(v.id) === String(id));
@@ -1633,7 +1662,7 @@ async function deleteVote(id) {
   }
 
   try {
-    const { error } = await db.from('votes').delete().eq('id', id);
+    const { error } = await pg('DELETE', `votes?id=eq.${id}`);
     if (error) throw error;
     votes = votes.filter(v => String(v.id) !== String(id));
     render();
