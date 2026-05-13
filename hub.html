@@ -354,7 +354,21 @@ document.getElementById('code-input').addEventListener('input', (e) => {
   if (v.length === 6) handleAuthSubmit();
 });
 db.auth.onAuthStateChange((_event, session) => handleSession(session));
-db.auth.getSession().then(({data}) => handleSession(data.session));
+// Bypass the (sometimes wedged) Supabase client and read the persisted
+// session directly from localStorage. Lets hub.html pick up an existing
+// sign-in from another tab without forcing a re-auth.
+(function restoreSessionFromStorage() {
+  try {
+    const key = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+    if (!key) return;
+    const raw = localStorage.getItem(key);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    const session = parsed?.currentSession || parsed;
+    if (session?.access_token && session?.user) handleSession(session);
+  } catch (e) { console.warn('Session restore failed:', e); }
+})();
+db.auth.getSession().then(({data}) => { if (data.session) handleSession(data.session); });
 
 // ── data ──────────────────────────────────────────────────
 // Raw PostgREST helper — bypasses the Supabase JS client (which can
