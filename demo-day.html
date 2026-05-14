@@ -464,6 +464,171 @@ body::after {
   border-radius: 2px;
 }
 
+/* ─────────────────────────────────────────────
+   TEAM PRESENTATION SLIDES (dynamically generated)
+───────────────────────────────────────────── */
+.team-slide {
+  --team-color: var(--c1);
+  --team-rgb: 0,229,255;
+}
+.team-slide .team-position {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.18em;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  color: var(--team-color);
+  letter-spacing: -0.02em;
+  margin-bottom: 1.5vh;
+  opacity: 0;
+  text-shadow: 0 0 30px rgba(var(--team-rgb), 0.5);
+}
+.slide.active .team-position { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.05s forwards; }
+.team-position-num { font-size: clamp(2rem, 4vw, 3rem); line-height: 1; }
+.team-position-suffix { font-size: clamp(0.7rem, 1vw, 0.9rem); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; opacity: 0.85; }
+
+.team-slide .team-title {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.4rem, 6.5vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 2vh;
+  max-width: 1100px;
+  opacity: 0;
+}
+.slide.active .team-title { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.15s forwards; }
+
+.team-slide .team-members {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  max-width: 900px;
+  margin-bottom: 4vh;
+  opacity: 0;
+}
+.slide.active .team-members { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.3s forwards; }
+.team-slide .member-chip {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.85rem;
+  background: rgba(var(--team-rgb), 0.1);
+  border: 1px solid rgba(var(--team-rgb), 0.28);
+  border-radius: 99px;
+  color: var(--text);
+}
+
+/* Big timer */
+.timer-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5vh;
+  opacity: 0;
+}
+.slide.active .timer-wrap { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.45s forwards; }
+
+.timer-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--team-color);
+  font-family: 'DM Sans', sans-serif;
+  padding: 0.4rem 1.1rem;
+  border: 1px solid rgba(var(--team-rgb), 0.4);
+  border-radius: 99px;
+  background: rgba(var(--team-rgb), 0.08);
+}
+.timer-phase.qa { color: var(--gold); border-color: rgba(255,215,107,0.4); background: rgba(255,215,107,0.08); }
+.timer-phase.done { color: var(--c3); border-color: rgba(255,92,138,0.5); background: rgba(255,92,138,0.12); }
+
+.timer-display {
+  font-family: 'Clash Display', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  font-weight: 700;
+  font-size: clamp(7rem, 22vw, 22rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  text-shadow: 0 0 80px rgba(var(--team-rgb), 0.4), 0 0 160px rgba(var(--team-rgb), 0.2);
+  transition: color 0.3s, text-shadow 0.3s;
+}
+.timer-display.warn {
+  color: var(--gold);
+  text-shadow: 0 0 80px var(--gold), 0 0 160px rgba(255,215,107,0.45);
+}
+.timer-display.danger {
+  color: var(--c3);
+  text-shadow: 0 0 80px var(--c3), 0 0 160px rgba(255,92,138,0.55);
+}
+
+.timer-controls {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 2vh;
+}
+.timer-btn {
+  padding: 0.55rem 1.2rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all .2s;
+}
+.timer-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.18); }
+.timer-btn.primary {
+  background: var(--team-color);
+  color: #000;
+  border-color: transparent;
+}
+.timer-btn.primary:hover { transform: translateY(-2px); }
+
+/* Color stripe at top */
+.team-slide::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: var(--team-color);
+  box-shadow: 0 0 24px var(--team-color);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Red blink alarm when Q&A timer hits 0 */
+.team-slide.alarm {
+  animation: alarmBlink 1.2s ease-in-out infinite;
+}
+@keyframes alarmBlink {
+  0%, 100% { background: transparent; }
+  50%      { background: rgba(255, 60, 90, 0.28); }
+}
+.team-slide.alarm::after {
+  animation: alarmStripe 0.6s ease-in-out infinite;
+}
+@keyframes alarmStripe {
+  0%, 100% { background: #FF3C5A; box-shadow: 0 0 30px #FF3C5A, 0 0 60px rgba(255,60,90,0.5); }
+  50%      { background: #FFFFFF; box-shadow: 0 0 60px #FF3C5A, 0 0 120px #FF3C5A; }
+}
+.team-slide.alarm .timer-display {
+  animation: alarmText 0.6s ease-in-out infinite;
+}
+@keyframes alarmText {
+  0%, 100% { color: #FF3C5A; text-shadow: 0 0 80px #FF3C5A, 0 0 160px rgba(255,60,90,0.6); }
+  50%      { color: #FFFFFF; text-shadow: 0 0 80px #FF3C5A, 0 0 200px #FFFFFF; }
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   html, body { cursor: default; }
@@ -541,7 +706,7 @@ body::after {
 //  SLIDE ENGINE
 // ═══════════════════════════════════════════════
 
-const SLIDES = ['s0','s1','s2'];
+let SLIDES = ['s0','s1','s2'];
 let current = 0;
 
 function buildDots() {
@@ -558,21 +723,26 @@ function buildDots() {
 
 function goTo(idx) {
   if (idx < 0 || idx >= SLIDES.length) return;
-  document.getElementById(SLIDES[current]).classList.remove('active');
+  const prevSlide = document.getElementById(SLIDES[current]);
+  prevSlide.classList.remove('active');
+  // Stop the timer on the slide we're leaving (so it doesn't keep ticking)
+  if (prevSlide.classList.contains('team-slide')) pauseTimer(prevSlide.id);
   current = idx;
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
-  slide.querySelectorAll('.eyebrow, .title, .sub, .sprint-chip, .press-hint, .act, .curtain-cta, .cta-note').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .sprint-chip, .press-hint, .act, .curtain-cta, .cta-note, .team-position, .team-title, .team-members, .timer-wrap').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
   });
   document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === current));
   document.getElementById('count-current').textContent = current + 1;
-  const pct = ((current) / (SLIDES.length - 1)) * 100;
+  const pct = ((current) / Math.max(1, SLIDES.length - 1)) * 100;
   document.getElementById('progress-bar').style.width = pct + '%';
   document.getElementById('btn-prev').disabled = current === 0;
   document.getElementById('btn-next').disabled = current === SLIDES.length - 1;
+  // Auto-start the timer on team slides
+  if (slide.classList.contains('team-slide')) startTimer(slide.id);
 }
 
 function go(dir) { goTo(current + dir); }
@@ -670,6 +840,156 @@ const COLORS = [
 
 function escapeH(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m])}
 
+// Pitch / Q&A durations (seconds). Tweak here if you need different windows.
+const PITCH_SECONDS = 7 * 60;
+const QA_SECONDS    = 3 * 60;
+const WARN_SECONDS  = 30;     // last-N-seconds amber warning
+
+// Fisher-Yates shuffle
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function ordinalSuffix(n) {
+  const v = n % 100;
+  if (v >= 11 && v <= 13) return 'th';
+  const last = n % 10;
+  return last === 1 ? 'st' : last === 2 ? 'nd' : last === 3 ? 'rd' : 'th';
+}
+
+function fmtMMSS(secs) {
+  const s = Math.max(0, Math.floor(secs));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`;
+}
+
+// One state object per team slide, keyed by slide id (e.g. "team-1")
+const TIMERS = {};
+
+function ensureTimer(slideId) {
+  if (!TIMERS[slideId]) {
+    TIMERS[slideId] = {
+      phase: 'pitch',       // 'pitch' | 'qa' | 'done'
+      remaining: PITCH_SECONDS,
+      ticking: false,
+      tickHandle: null,
+    };
+  }
+  return TIMERS[slideId];
+}
+
+function renderTimer(slideId) {
+  const s = ensureTimer(slideId);
+  const slide = document.getElementById(slideId);
+  if (!slide) return;
+  const display = slide.querySelector('.timer-display');
+  const phaseEl = slide.querySelector('.timer-phase');
+  const playBtn = slide.querySelector('.timer-btn-play');
+  if (display) display.textContent = fmtMMSS(s.remaining);
+  // Warn / danger color states
+  if (display) {
+    display.classList.remove('warn', 'danger');
+    if (s.phase === 'done') display.classList.add('danger');
+    else if (s.remaining <= WARN_SECONDS && s.remaining > 0) display.classList.add('warn');
+  }
+  // Phase label
+  if (phaseEl) {
+    phaseEl.classList.remove('qa', 'done');
+    if (s.phase === 'qa')   { phaseEl.classList.add('qa');   phaseEl.textContent = `Q & A · ${Math.round(QA_SECONDS / 60)} min`; }
+    else if (s.phase === 'done') { phaseEl.classList.add('done'); phaseEl.textContent = "Time's up · next team"; }
+    else { phaseEl.textContent = `Pitch · ${Math.round(PITCH_SECONDS / 60)} min`; }
+  }
+  // Play/pause button label
+  if (playBtn) playBtn.textContent = s.ticking ? '⏸ Pause' : '▶ Resume';
+  // Alarm pulse when done
+  if (s.phase === 'done') slide.classList.add('alarm');
+  else slide.classList.remove('alarm');
+}
+
+function startTimer(slideId) {
+  const s = ensureTimer(slideId);
+  if (s.phase === 'done') { renderTimer(slideId); return; }
+  if (s.ticking) return;
+  s.ticking = true;
+  s.tickHandle = setInterval(() => {
+    s.remaining -= 1;
+    if (s.remaining <= 0) {
+      if (s.phase === 'pitch') {
+        // Auto-transition to Q&A
+        s.phase = 'qa';
+        s.remaining = QA_SECONDS;
+        beep(440, 0.2, 0.4);
+      } else if (s.phase === 'qa') {
+        s.phase = 'done';
+        s.remaining = 0;
+        s.ticking = false;
+        clearInterval(s.tickHandle);
+        s.tickHandle = null;
+        // Triple beep when totally done
+        beep(880, 0.18, 0.5); setTimeout(() => beep(880, 0.18, 0.5), 350); setTimeout(() => beep(660, 0.4, 0.5), 700);
+      }
+    }
+    renderTimer(slideId);
+  }, 1000);
+  renderTimer(slideId);
+}
+
+function pauseTimer(slideId) {
+  const s = TIMERS[slideId];
+  if (!s) return;
+  if (s.tickHandle) clearInterval(s.tickHandle);
+  s.tickHandle = null;
+  s.ticking = false;
+  renderTimer(slideId);
+}
+
+function togglePauseTimer(slideId) {
+  const s = ensureTimer(slideId);
+  if (s.ticking) pauseTimer(slideId); else startTimer(slideId);
+}
+
+function resetTimer(slideId) {
+  const s = ensureTimer(slideId);
+  if (s.tickHandle) clearInterval(s.tickHandle);
+  s.tickHandle = null;
+  s.ticking = false;
+  s.phase = 'pitch';
+  s.remaining = PITCH_SECONDS;
+  renderTimer(slideId);
+}
+
+function skipPhase(slideId) {
+  const s = ensureTimer(slideId);
+  if (s.tickHandle) clearInterval(s.tickHandle);
+  s.tickHandle = null;
+  s.ticking = false;
+  if (s.phase === 'pitch') { s.phase = 'qa'; s.remaining = QA_SECONDS; }
+  else if (s.phase === 'qa') { s.phase = 'done'; s.remaining = 0; }
+  renderTimer(slideId);
+  if (s.phase !== 'done') startTimer(slideId);
+}
+
+// Cheap synth beep — no audio file needed
+function beep(freq, duration, volume) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.value = volume ?? 0.3;
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start();
+    setTimeout(() => { osc.stop(); ctx.close(); }, (duration ?? 0.2) * 1000);
+  } catch(e) {}
+}
+
 async function loadSprint() {
   const sprintId = new URLSearchParams(location.search).get('sprint');
   try {
@@ -682,10 +1002,9 @@ async function loadSprint() {
       return;
     }
     document.getElementById('sprint-chip').textContent = sprint.name;
-    // Reverse the challenge order for presentation (biggest bet goes last)
-    const challenges = (sprint.challenges || []).slice().reverse();
+    const challenges = sprint.challenges || [];
 
-    // Fetch team members (requires admin session for RLS)
+    // Fetch team members (public SELECT under our RLS)
     let teamMembers = {};
     try {
       let vq = db.from('votes').select('voter_name,team_assignment,first_choice').order('voter_name',{ascending:true});
@@ -693,33 +1012,85 @@ async function loadSprint() {
       const { data: votes } = await vq;
       (votes || []).forEach(v => {
         const team = v.team_assignment ?? v.first_choice;
-        if (!team) return;
+        if (team == null) return;
         (teamMembers[team] = teamMembers[team] || []).push(v.voter_name);
       });
     } catch (e) { /* RLS denied — fall back to empty */ }
 
+    // Tag each challenge with its original index so colors stay anchored
+    // to the challenge identity (not its position) across re-shuffles.
+    const tagged = challenges.map((c, i) => ({ ...c, __idx: i }));
+    const ordered = shuffle(tagged);
+
+    // ── Render the lineup slide (with random pitch order) ─────────────
     const lineup = document.getElementById('lineup');
-    lineup.innerHTML = challenges.map((c, i) => {
-      const color = COLORS[i % COLORS.length];
-      const id = c.id ?? (i + 1);
+    lineup.innerHTML = ordered.map((c, pos) => {
+      const color = COLORS[c.__idx % COLORS.length];
+      const id = c.id ?? (c.__idx + 1);
       const members = teamMembers[id] || [];
-      const num = String(i+1).padStart(2,'0');
+      const ordinal = pos + 1;
       const membersHtml = members.length
         ? `<div class="act-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
         : `<div class="act-members-empty">Team assembling…</div>`;
       return `
         <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb}">
-          <div class="act-no"><span class="act-no-bullet">${num}</span>Challenge ${num}</div>
+          <div class="act-no"><span class="act-no-bullet">${ordinal}</span>${ordinal}${ordinalSuffix(ordinal)} up</div>
           <div class="act-title">${escapeH(c.title || 'Untitled')}</div>
           ${membersHtml}
         </div>`;
     }).join('');
 
+    // ── Build per-team presentation slides ───────────────────────────
+    const deck = document.querySelector('.deck');
+    const kickoff = document.getElementById('s2');
+    // Remove any leftover team slides from a re-load
+    Array.from(document.querySelectorAll('.team-slide')).forEach(el => el.remove());
+    Object.keys(TIMERS).forEach(k => delete TIMERS[k]);
+
+    ordered.forEach((c, pos) => {
+      const color = COLORS[c.__idx % COLORS.length];
+      const id = c.id ?? (c.__idx + 1);
+      const members = teamMembers[id] || [];
+      const ordinal = pos + 1;
+      const slideId = `team-${ordinal}`;
+      const slide = document.createElement('div');
+      slide.className = 'slide team-slide';
+      slide.id = slideId;
+      slide.style.setProperty('--team-color', color.hex);
+      slide.style.setProperty('--team-rgb', color.rgb);
+      const membersHtml = members.length
+        ? `<div class="team-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
+        : '';
+      slide.innerHTML = `
+        <div class="team-position">
+          <span class="team-position-num">${ordinal}</span><span class="team-position-suffix">${ordinalSuffix(ordinal)} up</span>
+        </div>
+        <h2 class="team-title">${escapeH(c.title || 'Untitled')}</h2>
+        ${membersHtml}
+        <div class="timer-wrap">
+          <div class="timer-phase">Pitch · ${Math.round(PITCH_SECONDS / 60)} min</div>
+          <div class="timer-display">${fmtMMSS(PITCH_SECONDS)}</div>
+          <div class="timer-controls">
+            <button class="timer-btn timer-btn-play" onclick="togglePauseTimer('${slideId}')">⏸ Pause</button>
+            <button class="timer-btn" onclick="skipPhase('${slideId}')">Skip phase ⏭</button>
+            <button class="timer-btn" onclick="resetTimer('${slideId}')">Reset ↻</button>
+          </div>
+        </div>
+      `;
+      deck.insertBefore(slide, kickoff);
+    });
+
+    // Rebuild SLIDES array + nav now that team slides exist
+    SLIDES = ['s0', 's1', ...ordered.map((_, i) => `team-${i + 1}`), 's2'];
+    buildDots();
+    document.getElementById('count-total').textContent = SLIDES.length;
+
     // Tweak subtitle copy based on count
     const n = challenges.length;
     if (n > 0) {
       const teamsWord = n === 1 ? 'team' : 'teams';
-      document.getElementById('s0-sub').textContent = `${n} ${teamsWord}. ${n} bet${n===1?'':'s'}. Time to show what we've built.`;
+      const totalMin = Math.round((PITCH_SECONDS + QA_SECONDS) * n / 60);
+      document.getElementById('s0-sub').textContent = `${n} ${teamsWord}. ${Math.round(PITCH_SECONDS/60)} min pitch + ${Math.round(QA_SECONDS/60)} min Q&A each · about ${totalMin} min total.`;
     }
   } catch(e) {
     console.warn('Sprint load failed:', e);
