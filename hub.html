@@ -433,7 +433,8 @@ function card(s,votes){
       <a class="alink" href="teams.html?sprint=${s.id}" target="_blank">👥 Teams</a>
       <a class="alink" href="demo-day.html?sprint=${s.id}" target="_blank">🎤 Demo Day</a>
       <a class="alink" href="show-and-tell.html?sprint=${s.id}" target="_blank">🎲 Show &amp; Tell</a>
-      <a class="alink" href="retro.html?sprint=${s.id}" target="_blank">💬 Retro</a>
+      <a class="alink" href="admin.html?sprint=${s.id}#retros" target="_blank">💬 Retros</a>
+      <a class="alink" href="retro.html?sprint=${s.id}" target="_blank">📝 Submit retro</a>
       <button class="alink" onclick="openEditModal('${s.id}')">✏️ Edit</button>
       ${ia?`<button class="alink danger" onclick="archiveSprint('${s.id}')">📦 Archive</button>`:`<button class="alink" onclick="restoreSprint('${s.id}')">♻️ Restore</button><button class="alink danger" onclick="deleteSprint('${s.id}')">🗑 Delete</button>`}
     </div>

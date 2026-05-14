@@ -846,7 +846,7 @@
   </div>
 
   <!-- Retros -->
-  <div class="section-title" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+  <div id="retros-section" class="section-title" style="justify-content:space-between;flex-wrap:wrap;gap:0.5rem;scroll-margin-top:1.5rem;">
     <span>💬 Retros</span>
     <div class="retros-stats" id="retros-stats"></div>
   </div>
@@ -1180,6 +1180,10 @@ async function showDashboard() {
   loadVotes();
   loadRetros();
   subscribeRealtime();
+  // If the URL hash is #retros, scroll to that section after data loads.
+  if (location.hash === '#retros') {
+    setTimeout(() => document.getElementById('retros-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 600);
+  }
 }
 
 function initDragListeners() {
