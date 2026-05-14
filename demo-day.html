@@ -351,6 +351,30 @@ body::after {
 
 #s1 .sub { margin-top: 2vh; }
 
+/* Shuffle pill on lineup slide */
+.shuffle-btn {
+  margin-top: 5vh;
+  padding: 0.8rem 1.6rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  color: var(--text-dim);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  opacity: 0;
+  transition: all .25s cubic-bezier(0.16,1,0.3,1);
+}
+.shuffle-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
+.shuffle-btn .icon { font-size: 1rem; transition: transform .35s; display: inline-block; }
+.shuffle-btn:hover .icon { transform: rotate(180deg); }
+.slide.active .shuffle-btn { animation: fadeIn 1s ease 1.5s forwards; }
+
 /* ─────────────────────────────────────────────
    SLIDE 2 — KICKOFF
 ───────────────────────────────────────────── */
@@ -572,6 +596,14 @@ body::after {
   display: flex;
   gap: 0.6rem;
   margin-top: 2vh;
+  align-items: center;
+}
+.timer-run-controls { display: flex; gap: 0.6rem; }
+.timer-btn-start {
+  padding: 0.85rem 2rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .timer-btn {
   padding: 0.55rem 1.2rem;
@@ -688,14 +720,15 @@ body::after {
     <div class="lineup" id="lineup">
       <div style="grid-column:1/-1;color:var(--text-dim);font-style:italic;padding:2rem">Loading the lineup…</div>
     </div>
+    <button class="shuffle-btn" id="shuffle-btn" onclick="shuffleAndRebuild()"><span class="icon">↻</span><span>Shuffle order</span></button>
   </div>
 
   <!-- 2 · KICKOFF -->
   <div class="slide" id="s2">
-    <div class="eyebrow"><span></span>Time to ship<span></span></div>
-    <h2 class="title">Let the <em>show</em><br>begin</h2>
-    <button class="curtain-cta" id="curtain-cta">🎬 Start the show</button>
-    <div class="cta-note">Hit the button for a little celebration · press ESC to exit</div>
+    <div class="eyebrow"><span></span>That's a wrap<span></span></div>
+    <h2 class="title">Thanks for bringing<br>your <em>A game</em></h2>
+    <button class="curtain-cta" id="curtain-cta">🎉 Celebrate</button>
+    <div class="cta-note">Press the button for confetti · press ESC to exit fullscreen</div>
   </div>
 
 </div>
@@ -741,8 +774,13 @@ function goTo(idx) {
   document.getElementById('progress-bar').style.width = pct + '%';
   document.getElementById('btn-prev').disabled = current === 0;
   document.getElementById('btn-next').disabled = current === SLIDES.length - 1;
-  // Auto-start the timer on team slides
-  if (slide.classList.contains('team-slide')) startTimer(slide.id);
+  // On team slides, just (re)render — user presses Start to begin pitch.
+  // Pitch->Q&A is still automatic once the timer is running.
+  if (slide.classList.contains('team-slide')) {
+    const s = ensureTimer(slide.id);
+    if (s.phase !== 'idle' && s.phase !== 'done' && !s.ticking) startTimer(slide.id);
+    else renderTimer(slide.id);
+  }
 }
 
 function go(dir) { goTo(current + dir); }
@@ -756,7 +794,7 @@ document.addEventListener('keydown', e => {
 });
 
 document.querySelector('.deck').addEventListener('click', e => {
-  if (e.target.closest('.nav') || e.target.closest('.nav-btn') || e.target.closest('.nav-dot') || e.target.closest('.curtain-cta')) return;
+  if (e.target.closest('.nav') || e.target.closest('.nav-btn') || e.target.closest('.nav-dot') || e.target.closest('.curtain-cta') || e.target.closest('.shuffle-btn') || e.target.closest('.timer-controls') || e.target.closest('.timer-btn')) return;
   go(1);
 });
 
@@ -875,13 +913,22 @@ const TIMERS = {};
 function ensureTimer(slideId) {
   if (!TIMERS[slideId]) {
     TIMERS[slideId] = {
-      phase: 'pitch',       // 'pitch' | 'qa' | 'done'
+      phase: 'idle',        // 'idle' | 'pitch' | 'qa' | 'done'
       remaining: PITCH_SECONDS,
       ticking: false,
       tickHandle: null,
     };
   }
   return TIMERS[slideId];
+}
+
+// Start the pitch from idle. Q&A starts automatically after pitch hits 0.
+function startPitch(slideId) {
+  const s = ensureTimer(slideId);
+  if (s.phase !== 'idle') return;
+  s.phase = 'pitch';
+  s.remaining = PITCH_SECONDS;
+  startTimer(slideId);
 }
 
 function renderTimer(slideId) {
@@ -891,21 +938,26 @@ function renderTimer(slideId) {
   const display = slide.querySelector('.timer-display');
   const phaseEl = slide.querySelector('.timer-phase');
   const playBtn = slide.querySelector('.timer-btn-play');
+  const startBtn = slide.querySelector('.timer-btn-start');
+  const runControls = slide.querySelector('.timer-run-controls');
   if (display) display.textContent = fmtMMSS(s.remaining);
   // Warn / danger color states
   if (display) {
     display.classList.remove('warn', 'danger');
     if (s.phase === 'done') display.classList.add('danger');
-    else if (s.remaining <= WARN_SECONDS && s.remaining > 0) display.classList.add('warn');
+    else if (s.remaining <= WARN_SECONDS && s.remaining > 0 && s.phase !== 'idle') display.classList.add('warn');
   }
   // Phase label
   if (phaseEl) {
     phaseEl.classList.remove('qa', 'done');
-    if (s.phase === 'qa')   { phaseEl.classList.add('qa');   phaseEl.textContent = `Q & A · ${Math.round(QA_SECONDS / 60)} min`; }
+    if (s.phase === 'idle') { phaseEl.textContent = `Pitch · ${Math.round(PITCH_SECONDS / 60)} min`; }
+    else if (s.phase === 'pitch') { phaseEl.textContent = `Pitch · ${Math.round(PITCH_SECONDS / 60)} min`; }
+    else if (s.phase === 'qa') { phaseEl.classList.add('qa'); phaseEl.textContent = `Q & A · ${Math.round(QA_SECONDS / 60)} min`; }
     else if (s.phase === 'done') { phaseEl.classList.add('done'); phaseEl.textContent = "Time's up · next team"; }
-    else { phaseEl.textContent = `Pitch · ${Math.round(PITCH_SECONDS / 60)} min`; }
   }
-  // Play/pause button label
+  // Show the right control set
+  if (startBtn) startBtn.style.display = s.phase === 'idle' ? 'inline-flex' : 'none';
+  if (runControls) runControls.style.display = s.phase === 'idle' ? 'none' : 'flex';
   if (playBtn) playBtn.textContent = s.ticking ? '⏸ Pause' : '▶ Resume';
   // Alarm pulse when done
   if (s.phase === 'done') slide.classList.add('alarm');
@@ -914,7 +966,8 @@ function renderTimer(slideId) {
 
 function startTimer(slideId) {
   const s = ensureTimer(slideId);
-  if (s.phase === 'done') { renderTimer(slideId); return; }
+  // Don't auto-start from idle — user must press the "Start pitch" button.
+  if (s.phase === 'idle' || s.phase === 'done') { renderTimer(slideId); return; }
   if (s.ticking) return;
   s.ticking = true;
   s.tickHandle = setInterval(() => {
@@ -959,7 +1012,7 @@ function resetTimer(slideId) {
   if (s.tickHandle) clearInterval(s.tickHandle);
   s.tickHandle = null;
   s.ticking = false;
-  s.phase = 'pitch';
+  s.phase = 'idle';
   s.remaining = PITCH_SECONDS;
   renderTimer(slideId);
 }
@@ -990,6 +1043,10 @@ function beep(freq, duration, volume) {
   } catch(e) {}
 }
 
+// Loaded once on page mount; re-rendered on shuffle.
+let LOADED_TEAMS = [];       // [{...challenge, __idx}]
+let LOADED_MEMBERS = {};     // { teamId: [voterName, ...] }
+
 async function loadSprint() {
   const sprintId = new URLSearchParams(location.search).get('sprint');
   try {
@@ -1005,7 +1062,7 @@ async function loadSprint() {
     const challenges = sprint.challenges || [];
 
     // Fetch team members (public SELECT under our RLS)
-    let teamMembers = {};
+    LOADED_MEMBERS = {};
     try {
       let vq = db.from('votes').select('voter_name,team_assignment,first_choice').order('voter_name',{ascending:true});
       if (sprint.id) vq = vq.eq('sprint_id', sprint.id);
@@ -1013,89 +1070,112 @@ async function loadSprint() {
       (votes || []).forEach(v => {
         const team = v.team_assignment ?? v.first_choice;
         if (team == null) return;
-        (teamMembers[team] = teamMembers[team] || []).push(v.voter_name);
+        (LOADED_MEMBERS[team] = LOADED_MEMBERS[team] || []).push(v.voter_name);
       });
     } catch (e) { /* RLS denied — fall back to empty */ }
 
     // Tag each challenge with its original index so colors stay anchored
     // to the challenge identity (not its position) across re-shuffles.
-    const tagged = challenges.map((c, i) => ({ ...c, __idx: i }));
-    const ordered = shuffle(tagged);
+    LOADED_TEAMS = challenges.map((c, i) => ({ ...c, __idx: i }));
 
-    // ── Render the lineup slide (with random pitch order) ─────────────
-    const lineup = document.getElementById('lineup');
-    lineup.innerHTML = ordered.map((c, pos) => {
-      const color = COLORS[c.__idx % COLORS.length];
-      const id = c.id ?? (c.__idx + 1);
-      const members = teamMembers[id] || [];
-      const ordinal = pos + 1;
-      const membersHtml = members.length
-        ? `<div class="act-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
-        : `<div class="act-members-empty">Team assembling…</div>`;
-      return `
-        <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb}">
-          <div class="act-no"><span class="act-no-bullet">${ordinal}</span>${ordinal}${ordinalSuffix(ordinal)} up</div>
-          <div class="act-title">${escapeH(c.title || 'Untitled')}</div>
-          ${membersHtml}
-        </div>`;
-    }).join('');
+    // Subtitle (count-aware)
+    const n = challenges.length;
+    if (n > 0) {
+      const teamsWord = n === 1 ? 'team' : 'teams';
+      document.getElementById('s0-sub').textContent = `${n} ${teamsWord}. ${Math.round(PITCH_SECONDS/60)} min pitch + ${Math.round(QA_SECONDS/60)} min Q&A each.`;
+    }
 
-    // ── Build per-team presentation slides ───────────────────────────
-    const deck = document.querySelector('.deck');
-    const kickoff = document.getElementById('s2');
-    // Remove any leftover team slides from a re-load
-    Array.from(document.querySelectorAll('.team-slide')).forEach(el => el.remove());
-    Object.keys(TIMERS).forEach(k => delete TIMERS[k]);
+    shuffleAndRebuild();
+  } catch(e) {
+    console.warn('Sprint load failed:', e);
+    document.getElementById('sprint-chip').textContent = 'Sprint unavailable';
+  }
+}
 
-    ordered.forEach((c, pos) => {
-      const color = COLORS[c.__idx % COLORS.length];
-      const id = c.id ?? (c.__idx + 1);
-      const members = teamMembers[id] || [];
-      const ordinal = pos + 1;
-      const slideId = `team-${ordinal}`;
-      const slide = document.createElement('div');
-      slide.className = 'slide team-slide';
-      slide.id = slideId;
-      slide.style.setProperty('--team-color', color.hex);
-      slide.style.setProperty('--team-rgb', color.rgb);
-      const membersHtml = members.length
-        ? `<div class="team-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
-        : '';
-      slide.innerHTML = `
-        <div class="team-position">
-          <span class="team-position-num">${ordinal}</span><span class="team-position-suffix">${ordinalSuffix(ordinal)} up</span>
-        </div>
-        <h2 class="team-title">${escapeH(c.title || 'Untitled')}</h2>
+// Re-shuffle + rebuild both the lineup slide AND the per-team slides.
+// Wipes any in-progress timer state since "team 1" might now be a
+// different team after shuffle.
+function shuffleAndRebuild() {
+  if (!LOADED_TEAMS.length) return;
+  const ordered = shuffle(LOADED_TEAMS);
+
+  // ── Lineup slide ───────────────────────────────────────────────────
+  const lineup = document.getElementById('lineup');
+  lineup.innerHTML = ordered.map((c, pos) => {
+    const color = COLORS[c.__idx % COLORS.length];
+    const id = c.id ?? (c.__idx + 1);
+    const members = LOADED_MEMBERS[id] || [];
+    const ordinal = pos + 1;
+    const membersHtml = members.length
+      ? `<div class="act-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
+      : `<div class="act-members-empty">Team assembling…</div>`;
+    return `
+      <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb}">
+        <div class="act-no"><span class="act-no-bullet">${ordinal}</span>${ordinal}${ordinalSuffix(ordinal)} up</div>
+        <div class="act-title">${escapeH(c.title || 'Untitled')}</div>
         ${membersHtml}
-        <div class="timer-wrap">
-          <div class="timer-phase">Pitch · ${Math.round(PITCH_SECONDS / 60)} min</div>
-          <div class="timer-display">${fmtMMSS(PITCH_SECONDS)}</div>
-          <div class="timer-controls">
+      </div>`;
+  }).join('');
+
+  // ── Per-team slides ───────────────────────────────────────────────
+  const deck = document.querySelector('.deck');
+  const kickoff = document.getElementById('s2');
+  // Remove existing team slides + timer state (start fresh)
+  Array.from(document.querySelectorAll('.team-slide')).forEach(el => el.remove());
+  Object.keys(TIMERS).forEach(k => delete TIMERS[k]);
+
+  ordered.forEach((c, pos) => {
+    const color = COLORS[c.__idx % COLORS.length];
+    const id = c.id ?? (c.__idx + 1);
+    const members = LOADED_MEMBERS[id] || [];
+    const ordinal = pos + 1;
+    const slideId = `team-${ordinal}`;
+    const slide = document.createElement('div');
+    slide.className = 'slide team-slide';
+    slide.id = slideId;
+    slide.style.setProperty('--team-color', color.hex);
+    slide.style.setProperty('--team-rgb', color.rgb);
+    const membersHtml = members.length
+      ? `<div class="team-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
+      : '';
+    slide.innerHTML = `
+      <div class="team-position">
+        <span class="team-position-num">${ordinal}</span><span class="team-position-suffix">${ordinalSuffix(ordinal)} up</span>
+      </div>
+      <h2 class="team-title">${escapeH(c.title || 'Untitled')}</h2>
+      ${membersHtml}
+      <div class="timer-wrap">
+        <div class="timer-phase">Pitch · ${Math.round(PITCH_SECONDS / 60)} min</div>
+        <div class="timer-display">${fmtMMSS(PITCH_SECONDS)}</div>
+        <div class="timer-controls">
+          <button class="timer-btn primary timer-btn-start" onclick="startPitch('${slideId}')">▶ Start pitch</button>
+          <div class="timer-run-controls" style="display:none;gap:0.6rem">
             <button class="timer-btn timer-btn-play" onclick="togglePauseTimer('${slideId}')">⏸ Pause</button>
             <button class="timer-btn" onclick="skipPhase('${slideId}')">Skip phase ⏭</button>
             <button class="timer-btn" onclick="resetTimer('${slideId}')">Reset ↻</button>
           </div>
         </div>
-      `;
-      deck.insertBefore(slide, kickoff);
-    });
+      </div>
+    `;
+    deck.insertBefore(slide, kickoff);
+  });
 
-    // Rebuild SLIDES array + nav now that team slides exist
-    SLIDES = ['s0', 's1', ...ordered.map((_, i) => `team-${i + 1}`), 's2'];
-    buildDots();
-    document.getElementById('count-total').textContent = SLIDES.length;
-
-    // Tweak subtitle copy based on count
-    const n = challenges.length;
-    if (n > 0) {
-      const teamsWord = n === 1 ? 'team' : 'teams';
-      const totalMin = Math.round((PITCH_SECONDS + QA_SECONDS) * n / 60);
-      document.getElementById('s0-sub').textContent = `${n} ${teamsWord}. ${Math.round(PITCH_SECONDS/60)} min pitch + ${Math.round(QA_SECONDS/60)} min Q&A each · about ${totalMin} min total.`;
-    }
-  } catch(e) {
-    console.warn('Sprint load failed:', e);
-    document.getElementById('sprint-chip').textContent = 'Sprint unavailable';
-  }
+  // Rebuild SLIDES array + nav
+  SLIDES = ['s0', 's1', ...ordered.map((_, i) => `team-${i + 1}`), 's2'];
+  buildDots();
+  document.getElementById('count-total').textContent = SLIDES.length;
+  // If the current index is no longer valid, snap to lineup slide
+  if (current >= SLIDES.length) goTo(1);
+  // Refresh active class to be safe
+  document.querySelectorAll('.slide').forEach((s, i) => {
+    s.classList.toggle('active', s.id === SLIDES[current]);
+  });
+  // Replay shuffle-button stagger
+  document.querySelectorAll('#s1 .act').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  });
 }
 
 loadSprint();
