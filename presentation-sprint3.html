@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three sprints in · Smitten</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,300;1,400;1,500&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #080810;
+  --text: #ffffff;
+  --text-dim: rgba(255,255,255,0.55);
+  --text-faint: rgba(255,255,255,0.2);
+  --border: rgba(255,255,255,0.08);
+  --c1: #00E5FF;
+  --c2: #FFB800;
+  --c3: #FF5C8A;
+  --cF: #B8FF4A;
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); cursor: none; }
+body { font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+
+#cursor {
+  position: fixed; z-index: 9999;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--c3);
+  pointer-events: none;
+  transition: width .25s, height .25s, background .5s, opacity .2s;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+}
+#cursor.big { width: 48px; height: 48px; }
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+#constellation { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+.deck { position: fixed; inset: 0; z-index: 1; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5vw;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+  text-align: center;
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  font-size: clamp(0.65rem, 1.1vw, 0.8rem);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--c3);
+  margin-bottom: 2.5vh;
+  opacity: 0;
+}
+.eyebrow::before, .eyebrow::after {
+  content: ''; display: block;
+  width: 40px; height: 1px;
+  background: currentColor; opacity: 0.5;
+}
+.slide.active .eyebrow { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s forwards; }
+
+.title {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  opacity: 0;
+}
+.title em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--c1);
+  text-shadow: 0 0 40px currentColor;
+  letter-spacing: -0.01em;
+}
+.slide.active .title { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.25s forwards; }
+
+.sub {
+  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+  color: var(--text-dim);
+  max-width: 760px;
+  line-height: 1.55;
+  margin-top: 3vh;
+  opacity: 0;
+  font-weight: 300;
+}
+.slide.active .sub { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.45s forwards; }
+
+.glow {
+  position: absolute;
+  width: 60vw; height: 60vw;
+  max-width: 700px; max-height: 700px;
+  border-radius: 50%;
+  filter: blur(160px);
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.watermark {
+  position: absolute;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28vw, 35vw, 600px);
+  line-height: 0.85;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.04);
+  right: -4vw; bottom: -4vw;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.05em;
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes numTick { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* ── SHARED: challenge / project tiles ── */
+.tile-grid {
+  margin-top: 5vh;
+  display: grid;
+  gap: 1rem;
+  max-width: 1100px;
+  width: 100%;
+}
+.tile-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.tile-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.tile {
+  padding: 1.5rem 1.4rem;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  text-align: left;
+  opacity: 0;
+  position: relative;
+  overflow: hidden;
+}
+.slide.active .tile { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .tile:nth-child(1) { animation-delay: 0.30s; }
+.slide.active .tile:nth-child(2) { animation-delay: 0.40s; }
+.slide.active .tile:nth-child(3) { animation-delay: 0.50s; }
+.slide.active .tile:nth-child(4) { animation-delay: 0.60s; }
+.slide.active .tile:nth-child(5) { animation-delay: 0.70s; }
+.slide.active .tile:nth-child(6) { animation-delay: 0.80s; }
+.slide.active .tile:nth-child(7) { animation-delay: 0.90s; }
+.tile-tag {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.tile-name {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+  font-weight: 600;
+  margin-top: 0.7rem;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.tile-sub {
+  font-size: 0.86rem;
+  color: var(--text-dim);
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+@media (max-width: 860px) {
+  .tile-grid.cols-3, .tile-grid.cols-4 { grid-template-columns: 1fr; }
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 0 — COVER
+───────────────────────────────────────────── */
+#s0 .glow { background: radial-gradient(circle, rgba(255,92,138,0.7), transparent 70%); top: -10%; left: 50%; transform: translateX(-50%); }
+.cover-icon {
+  font-size: clamp(3rem, 6vw, 4.5rem);
+  margin-bottom: 2.5vh;
+  opacity: 0;
+  filter: drop-shadow(0 0 30px rgba(255,92,138,0.4));
+}
+.slide.active .cover-icon { animation: scaleIn 1s cubic-bezier(0.16,1,0.3,1) 0.05s forwards; }
+#s0 .title { font-size: clamp(3.5rem, 10vw, 8rem); }
+#s0 .title em { color: var(--c3); }
+.cover-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  color: var(--text-dim);
+  margin-top: 4vh;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  font-weight: 300;
+}
+.slide.active .cover-sub { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+.cover-hint {
+  margin-top: 6vh;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+.hint-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 26px;
+  border: 1px solid var(--text-faint);
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+.slide.active .cover-hint { animation: fadeIn 1s ease 1s forwards; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 1 — SPRINT 1
+───────────────────────────────────────────── */
+#s1 .glow { background: radial-gradient(circle, rgba(0,229,255,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s1 .title em { color: var(--c1); }
+#s1 .title { font-size: clamp(2.6rem, 6vw, 4.8rem); }
+#s1 .tile-tag { color: var(--c1); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 2 — SPRINT 2
+───────────────────────────────────────────── */
+#s2 .glow { background: radial-gradient(circle, rgba(255,184,0,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s2 .title em { color: var(--c2); }
+#s2 .title { font-size: clamp(2.6rem, 6vw, 4.8rem); }
+#s2 .tile-tag { color: var(--c2); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 3 — SPRINT 3
+───────────────────────────────────────────── */
+#s3 .glow { background: radial-gradient(circle, rgba(255,92,138,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.big-num {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  font-size: clamp(8rem, 22vw, 20rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  background: linear-gradient(135deg, #fff 0%, var(--c3) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0;
+  padding: 0 0.1em;
+}
+.slide.active .big-num { animation: numTick 1s cubic-bezier(0.16,1,0.3,1) 0.2s forwards; }
+.big-num-caption {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 500;
+  font-size: clamp(1.4rem, 3vw, 2.4rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-top: 1.5vh;
+  opacity: 0;
+}
+.big-num-caption em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--c3);
+}
+.slide.active .big-num-caption { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s forwards; }
+.sprint3-lede {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1rem, 1.7vw, 1.3rem);
+  color: var(--text-dim);
+  margin-top: 4vh;
+  max-width: 760px;
+  opacity: 0;
+}
+.slide.active .sprint3-lede { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.75s forwards; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 4 — WHAT WE LEARNED
+───────────────────────────────────────────── */
+#s4 .glow { background: radial-gradient(circle, rgba(255,184,0,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s4 .title { font-size: clamp(2.4rem, 6vw, 4.4rem); max-width: 1100px; }
+#s4 .title em { color: var(--c2); }
+.split-row {
+  display: flex; gap: 1.5rem;
+  margin-top: 5vh;
+  max-width: 1100px; width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.split-card {
+  flex: 1 1 380px; max-width: 480px;
+  padding: 2rem 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.02);
+  text-align: left;
+  opacity: 0;
+  backdrop-filter: blur(6px);
+}
+.slide.active .split-card { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .split-card:nth-child(1) { animation-delay: 0.45s; border-color: rgba(184,255,74,0.25); }
+.slide.active .split-card:nth-child(2) { animation-delay: 0.6s; border-color: rgba(255,184,0,0.25); }
+.split-lbl {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+.split-card:nth-child(1) .split-lbl { color: var(--cF); }
+.split-card:nth-child(2) .split-lbl { color: var(--c2); }
+.split-val {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.split-desc {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-top: 0.85rem;
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 5 — CORE VALUE
+───────────────────────────────────────────── */
+#s5 .glow { background: radial-gradient(circle, rgba(0,229,255,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s5 .watermark { font-size: clamp(24vw, 32vw, 540px); right: -3vw; bottom: -6vw; -webkit-text-stroke: 1px rgba(0,229,255,0.06); }
+#s5 .title { font-size: clamp(3rem, 8vw, 6.5rem); }
+#s5 .title em { color: var(--c1); }
+.value-tag {
+  margin-top: 4.5vh;
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(0.9rem, 1.4vw, 1.05rem);
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  max-width: 620px;
+  opacity: 0;
+  line-height: 1.55;
+}
+.slide.active .value-tag { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s forwards; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 6 — NEXT 3 WEEKS (INTRO)
+───────────────────────────────────────────── */
+#s6 .glow { background: radial-gradient(circle, rgba(184,255,74,0.4), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s6 .eyebrow { color: var(--cF); }
+#s6 .title { font-size: clamp(2.8rem, 7vw, 5.5rem); }
+#s6 .title em { color: var(--cF); }
+.room-chips {
+  margin-top: 5vh;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+}
+.slide.active .room-chips { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+.room-chip {
+  padding: 0.7em 1.4em;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 500;
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: var(--text-dim);
+  letter-spacing: -0.005em;
+}
+.room-chip.marketing { color: var(--c3); border-color: rgba(255,92,138,0.3); background: rgba(255,92,138,0.05); }
+.room-chip.ops      { color: var(--c2); border-color: rgba(255,184,0,0.3); background: rgba(255,184,0,0.05); }
+.room-chip.prod     { color: var(--cF); border-color: rgba(184,255,74,0.3); background: rgba(184,255,74,0.05); }
+
+/* ─────────────────────────────────────────────
+   SLIDE 7 — MARKETING
+───────────────────────────────────────────── */
+#s7 .glow { background: radial-gradient(circle, rgba(255,92,138,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s7 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+#s7 .title em { color: var(--c3); }
+.market-grid {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 5vh;
+  flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+}
+.slide.active .market-grid { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+.market-pill {
+  padding: 0.7em 1.4em;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 500;
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: var(--text);
+  letter-spacing: -0.005em;
+  background: rgba(255,255,255,0.025);
+}
+.market-pill.new {
+  color: var(--c3);
+  border-color: rgba(255,92,138,0.5);
+  background: rgba(255,92,138,0.08);
+  box-shadow: 0 0 24px rgba(255,92,138,0.18);
+}
+.market-pill.new::after {
+  content: ' · NEW';
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.65em;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  opacity: 0.8;
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 8 — OPS
+───────────────────────────────────────────── */
+#s8 .glow { background: radial-gradient(circle, rgba(255,184,0,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s8 .eyebrow { color: var(--c2); }
+#s8 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+#s8 .title em { color: var(--c2); }
+.iceberg {
+  margin-top: 5vh;
+  width: min(720px, 90vw);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  opacity: 0;
+}
+.slide.active .iceberg { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s forwards; }
+.iceberg-row {
+  display: flex; align-items: center;
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+}
+.iceberg-row.visible {
+  background: rgba(255,184,0,0.06);
+  border-bottom: 1px solid rgba(255,184,0,0.18);
+}
+.iceberg-row.hidden {
+  background: rgba(255,255,255,0.015);
+}
+.iceberg-pct {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  width: 120px;
+  flex-shrink: 0;
+}
+.iceberg-row.visible .iceberg-pct { color: var(--c2); }
+.iceberg-row.hidden  .iceberg-pct { color: var(--text); }
+.iceberg-lbl {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.iceberg-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 9 — PRODUCTION TEAM (NEW)
+───────────────────────────────────────────── */
+#s9 .glow { background: radial-gradient(circle, rgba(184,255,74,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s9 .eyebrow { color: var(--cF); }
+#s9 .title { font-size: clamp(3rem, 7vw, 5.5rem); }
+#s9 .title em { color: var(--cF); }
+.prod-grid {
+  display: flex;
+  gap: 0.9rem;
+  margin-top: 5vh;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 900px;
+  opacity: 0;
+}
+.slide.active .prod-grid { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+.prod-node {
+  padding: 1.1rem 1.5rem;
+  background: rgba(184,255,74,0.04);
+  border: 1px solid rgba(184,255,74,0.25);
+  border-radius: 14px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
+.prod-plus {
+  display: inline-flex;
+  align-items: center;
+  color: var(--cF);
+  opacity: 0.5;
+  font-size: 1.2rem;
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 10 — SAYING NO IS POWER
+───────────────────────────────────────────── */
+#s10 .glow { background: radial-gradient(circle, rgba(255,92,138,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s10 .eyebrow { color: var(--c3); }
+#s10 .title { font-size: clamp(2.4rem, 6vw, 4.6rem); max-width: 1100px; }
+#s10 .title em { color: var(--c3); }
+#s10 .sub { font-style: italic; font-family: 'Fraunces', serif; font-weight: 300; max-width: 720px; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 11 — KILLING
+───────────────────────────────────────────── */
+#s11 .glow { background: radial-gradient(circle, rgba(255,92,138,0.4), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s11 .eyebrow { color: var(--c3); }
+#s11 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+#s11 .title em { color: var(--c3); }
+.kill-grid {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 5vh;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 980px;
+}
+.kill-card {
+  flex: 1 1 240px;
+  max-width: 280px;
+  padding: 2rem 1.75rem;
+  background: rgba(255,92,138,0.04);
+  border: 1px solid rgba(255,92,138,0.25);
+  border-radius: 18px;
+  text-align: left;
+  position: relative;
+  opacity: 0;
+}
+.slide.active .kill-card { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .kill-card:nth-child(1) { animation-delay: 0.4s; }
+.slide.active .kill-card:nth-child(2) { animation-delay: 0.55s; }
+.slide.active .kill-card:nth-child(3) { animation-delay: 0.7s; }
+.kill-name {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--c3);
+  text-decoration: line-through;
+  text-decoration-color: rgba(255,92,138,0.6);
+  text-decoration-thickness: 2px;
+  line-height: 1;
+}
+.kill-tag {
+  margin-top: 1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 12 — LIVING / NOT-NOW
+───────────────────────────────────────────── */
+#s12 .glow { background: radial-gradient(circle, rgba(0,229,255,0.4), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s12 .eyebrow { color: var(--c1); }
+#s12 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+#s12 .title em { color: var(--c1); }
+.live-grid {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 5vh;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 980px;
+}
+.live-card {
+  flex: 1 1 360px;
+  max-width: 440px;
+  padding: 2rem 1.75rem;
+  background: rgba(0,229,255,0.035);
+  border: 1px solid rgba(0,229,255,0.22);
+  border-radius: 18px;
+  text-align: left;
+  opacity: 0;
+}
+.slide.active .live-card { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .live-card:nth-child(1) { animation-delay: 0.45s; }
+.slide.active .live-card:nth-child(2) { animation-delay: 0.6s; }
+.live-status {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c1);
+  font-weight: 600;
+}
+.live-name {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 0.75rem;
+}
+.live-desc {
+  margin-top: 0.85rem;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 13 — FOCUS
+───────────────────────────────────────────── */
+#s13 .glow { background: radial-gradient(circle, rgba(184,255,74,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s13 .eyebrow { color: var(--cF); }
+#s13 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+#s13 .title em { color: var(--cF); }
+.focus-grid {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 5vh;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 980px;
+}
+.focus-card {
+  flex: 1 1 360px;
+  max-width: 440px;
+  padding: 2.2rem 1.9rem;
+  background: rgba(184,255,74,0.05);
+  border: 1px solid rgba(184,255,74,0.3);
+  border-radius: 20px;
+  text-align: left;
+  opacity: 0;
+  position: relative;
+  overflow: hidden;
+}
+.slide.active .focus-card { animation: scaleIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .focus-card:nth-child(1) { animation-delay: 0.45s; }
+.slide.active .focus-card:nth-child(2) { animation-delay: 0.6s; }
+.focus-tag {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--cF);
+  font-weight: 700;
+}
+.focus-name {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-top: 0.8rem;
+  line-height: 1.05;
+}
+.focus-desc {
+  margin-top: 0.9rem;
+  font-size: 0.92rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+.focus-desc em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--cF);
+}
+
+/* ─────────────────────────────────────────────
+   SLIDE 14 — CLOSE (PEP TALK)
+───────────────────────────────────────────── */
+#s14 .glow { background: radial-gradient(circle, rgba(184,255,74,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s14 .eyebrow { color: var(--cF); }
+#s14 .title { font-size: clamp(2.8rem, 7vw, 5.5rem); }
+#s14 .title em { color: var(--cF); }
+.deadline-card {
+  margin-top: 4.5vh;
+  padding: 1.6rem 2.4rem;
+  border: 1px solid rgba(184,255,74,0.35);
+  border-radius: 20px;
+  background: linear-gradient(140deg, rgba(184,255,74,0.07), rgba(184,255,74,0.01));
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  backdrop-filter: blur(8px);
+}
+.slide.active .deadline-card { animation: scaleIn 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s forwards; }
+.deadline-lbl {
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--cF);
+  font-weight: 700;
+}
+.deadline-date {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+}
+.deadline-year {
+  color: var(--text-faint);
+  font-weight: 500;
+}
+.deadline-meta {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  margin-top: 0.2rem;
+}
+.pep-tail {
+  margin-top: 4vh;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: var(--text-dim);
+  line-height: 1.55;
+  max-width: 720px;
+  opacity: 0;
+}
+.pep-tail em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--text);
+}
+.slide.active .pep-tail { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.85s forwards; }
+.pep-mantra {
+  margin-top: 3.5vh;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.5rem, 3vw, 2.3rem);
+  color: var(--cF);
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 30px rgba(184,255,74,0.4);
+  opacity: 0;
+}
+.slide.active .pep-mantra { animation: slideUp 1s cubic-bezier(0.16,1,0.3,1) 1.15s forwards; }
+
+/* ─────────────────────────────────────────────
+   NAV + PROGRESS + FULLSCREEN
+───────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  bottom: 2.5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.nav-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans',sans-serif;
+}
+.nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: var(--text); }
+.nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.nav-dots { display: flex; gap: 0.4rem; }
+.nav-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-faint);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+.nav-dot.active { width: 24px; border-radius: 6px; background: var(--c3); }
+.nav-dot:hover { background: var(--text-dim); }
+
+.counter {
+  position: fixed;
+  top: 2.5vh; right: 3vw;
+  z-index: 100;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--text-faint);
+  font-feature-settings: "tnum";
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.counter-current { color: var(--c3); font-weight: 600; }
+
+#btn-fullscreen {
+  position: fixed; top: 2.5vh; left: 3vw; z-index: 100;
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+#btn-fullscreen:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+#btn-fullscreen svg { width: 18px; height: 18px; }
+
+.progress-bar-wrap { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 100; background: transparent; }
+.progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--c1), var(--c3), var(--c2)); transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
+
+@media (max-width: 768px) {
+  html, body { cursor: default; }
+  #cursor { display: none; }
+  .slide { padding: 8vw 6vw; }
+  .market-grid, .room-chips, .prod-grid, .kill-grid, .live-grid, .focus-grid { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<canvas id="constellation"></canvas>
+
+<div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+<button id="btn-fullscreen" title="Toggle fullscreen">
+  <svg id="fs-icon-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M21 7V3h-4M3 17v4h4M21 17v4h-4"/></svg>
+  <svg id="fs-icon-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M8 3v4H4M16 3v4h4M8 21v-4H4M16 21v-4h4"/></svg>
+</button>
+
+<div class="counter">
+  <span class="counter-current" id="count-current">1</span>
+  <span>/</span>
+  <span id="count-total">15</span>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn" id="btn-prev" onclick="go(-1)" disabled>←</button>
+  <div class="nav-dots" id="nav-dots"></div>
+  <button class="nav-btn" id="btn-next" onclick="go(1)">→</button>
+</nav>
+
+<!-- ═══════ DECK ═══════ -->
+<div class="deck">
+
+  <!-- 0 · COVER -->
+  <div class="slide active" id="s0">
+    <div class="glow"></div>
+    <div class="cover-icon">🦋</div>
+    <div class="eyebrow"><span></span>Smitten · Internal · May 2026<span></span></div>
+    <h1 class="title">Three<br>challenges <em>in</em></h1>
+    <p class="cover-sub">Where we've been. What we learned. What we do next.</p>
+    <div class="cover-hint"><span class="hint-key">→</span><span>press to begin</span></div>
+  </div>
+
+  <!-- 1 · SPRINT 1 -->
+  <div class="slide" id="s1">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Challenge 01 · Apr 2026<span></span></div>
+    <h2 class="title">Challenge <em>one</em></h2>
+    <div class="tile-grid cols-3">
+      <div class="tile">
+        <div class="tile-tag">Challenge 01</div>
+        <div class="tile-name">Launch Smitten in Malta</div>
+        <div class="tile-sub">Replicate the Iceland magic in a brand-new market — near-zero marketing budget.</div>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Challenge 02</div>
+        <div class="tile-name">Organic Growth Hacks</div>
+        <div class="tile-sub">Anything that funnels people our way — but it can't live inside the app.</div>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Challenge 03</div>
+        <div class="tile-name">AI Dating Profile Agent</div>
+        <div class="tile-sub">A standalone AI agent that builds the best dating profiles on the internet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · SPRINT 2 -->
+  <div class="slide" id="s2">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Challenge 02 · Apr 2026<span></span></div>
+    <h2 class="title">Challenge <em>two</em></h2>
+    <div class="tile-grid cols-4">
+      <div class="tile">
+        <div class="tile-tag">Challenge 01</div>
+        <div class="tile-name">Onboarding, Reinvented</div>
+        <div class="tile-sub">Reimagine the onboarding flow. An AI that understands what makes you you.</div>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Challenge 02</div>
+        <div class="tile-name">Matching, Reimagined</div>
+        <div class="tile-sub">The feed is a slot machine. What does the best dating app of 2030 feel like?</div>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Challenge 03</div>
+        <div class="tile-name">Conversations, Reignited</div>
+        <div class="tile-sub">The match-to-conversation ratio is the real health metric. It's bleeding.</div>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">Challenge 04</div>
+        <div class="tile-name">Malta 2.0</div>
+        <div class="tile-sub">Press the advantage. Lock in Smitten as the dating app on the island.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3 · SPRINT 3 -->
+  <div class="slide" id="s3">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Challenge 03 · May 2026<span></span></div>
+    <div class="big-num">16</div>
+    <p class="big-num-caption">individual <em>challenges</em></p>
+    <p class="sprint3-lede">Claude Code in every hand. Stop pitching, start building.</p>
+  </div>
+
+  <!-- 4 · WHAT WE LEARNED -->
+  <div class="slide" id="s4">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>What we learned<span></span></div>
+    <h2 class="title">Brilliant for <em>ideation</em>.<br>Not so for <em>execution</em>.</h2>
+    <div class="split-row">
+      <div class="split-card">
+        <div class="split-lbl">Where it works</div>
+        <div class="split-val">Research &amp; ideation</div>
+        <div class="split-desc">Cross-team teams, fresh constraints, low stakes. We've surfaced more ideas in three sprints than in the previous year.</div>
+      </div>
+      <div class="split-card">
+        <div class="split-lbl">Where it doesn't (yet)</div>
+        <div class="split-val">Shipping &amp; scaling</div>
+        <div class="split-desc">Execution wants depth, ownership, and continuity. The sprint format keeps pulling us back to the surface.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 · CORE VALUE -->
+  <div class="slide" id="s5">
+    <div class="glow"></div>
+    <div class="watermark">value</div>
+    <div class="eyebrow"><span></span>A Smitten value<span></span></div>
+    <h2 class="title">Accept Reality,<br>Shape the <em>Future</em></h2>
+    <p class="value-tag">The format gave us the ideas. The execution muscle is somewhere else. We're not stopping — we're rebalancing.</p>
+  </div>
+
+  <!-- 6 · NEXT 3 WEEKS -->
+  <div class="slide" id="s6">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The next three weeks<span></span></div>
+    <h2 class="title">Back to <em>rooms</em>.<br>Reshaped.</h2>
+    <p class="sub">Three teams. Three rooms. Three weeks of focused execution.</p>
+    <div class="room-chips">
+      <div class="room-chip marketing">Marketing</div>
+      <div class="room-chip ops">Ops</div>
+      <div class="room-chip prod">New team</div>
+    </div>
+  </div>
+
+  <!-- 7 · MARKETING -->
+  <div class="slide" id="s7">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Marketing room<span></span></div>
+    <h2 class="title">Five markets.<br>Time to <em>execute</em>.</h2>
+    <p class="sub">The marketing team reunites in their room. Plan and execute what we're doing now — across five markets.</p>
+    <div class="market-grid">
+      <div class="market-pill">Iceland</div>
+      <div class="market-pill">Sweden</div>
+      <div class="market-pill">Denmark</div>
+      <div class="market-pill">Norway</div>
+      <div class="market-pill new">Malta</div>
+    </div>
+  </div>
+
+  <!-- 8 · OPS -->
+  <div class="slide" id="s8">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Ops room<span></span></div>
+    <h2 class="title">80%<br>you <em>never see</em></h2>
+    <p class="sub">The ops team reunites. There's a lot of built-up demand to work on the things that hold everything else up.</p>
+    <div class="iceberg">
+      <div class="iceberg-row visible">
+        <div class="iceberg-pct">20%</div>
+        <div><div class="iceberg-lbl">Above the waterline</div><div class="iceberg-desc">The part that's visible from the outside.</div></div>
+      </div>
+      <div class="iceberg-row hidden">
+        <div class="iceberg-pct">80%</div>
+        <div><div class="iceberg-lbl">Below the waterline</div><div class="iceberg-desc">The work no one sees that makes everything else possible — backlog with real demand.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9 · PRODUCTION TEAM -->
+  <div class="slide" id="s9">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>A new team<span></span></div>
+    <h2 class="title">Introducing<br><em>Production</em></h2>
+    <p class="sub">We don't want to go back to the way we used to work. Production is a new team — built to ship some of the best ideas from the challenges. Together. For the next three weeks.</p>
+    <div class="prod-grid">
+      <div class="prod-node">Development</div>
+      <span class="prod-plus">+</span>
+      <div class="prod-node">Product</div>
+      <span class="prod-plus">+</span>
+      <div class="prod-node">Data</div>
+      <span class="prod-plus">+</span>
+      <div class="prod-node">Growth</div>
+      <span class="prod-plus">+</span>
+      <div class="prod-node">Revenues</div>
+    </div>
+  </div>
+
+  <!-- 10 · SAYING NO -->
+  <div class="slide" id="s10">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>A culture to celebrate<span></span></div>
+    <h2 class="title">Saying <em>no</em><br>is sometimes more powerful<br>than saying yes</h2>
+    <p class="sub">What hinders us most isn't the absence of good ideas. It's the distraction of too many of them. Killing things is part of the work — and we'll celebrate it.</p>
+  </div>
+
+  <!-- 11 · KILLING -->
+  <div class="slide" id="s11">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>What we're letting go<span></span></div>
+    <h2 class="title">We're <em>killing</em></h2>
+    <div class="kill-grid">
+      <div class="kill-card">
+        <div class="kill-name">Vera</div>
+        <div class="kill-tag">No further work</div>
+      </div>
+      <div class="kill-card">
+        <div class="kill-name">Juliet</div>
+        <div class="kill-tag">No further work</div>
+      </div>
+      <div class="kill-card">
+        <div class="kill-name">iFrame</div>
+        <div class="kill-tag">No further work</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12 · LIVING / NOT NOW -->
+  <div class="slide" id="s12">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>What stays<span></span></div>
+    <h2 class="title">What <em>lives</em></h2>
+    <div class="live-grid">
+      <div class="live-card">
+        <div class="live-status">Lives · as-is</div>
+        <div class="live-name">Dating Insights</div>
+        <div class="live-desc">It works as it is. We let it live without active investment.</div>
+      </div>
+      <div class="live-card">
+        <div class="live-status">Great — but not now</div>
+        <div class="live-name">Onboarding</div>
+        <div class="live-desc">The challenge was amazing. There's something here. But it isn't the major needle-mover we need for organic growth right now.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 13 · FOCUS -->
+  <div class="slide" id="s13">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Where we focus<span></span></div>
+    <h2 class="title">Tournaments<br>+ the <em>chat</em></h2>
+    <p class="sub">We're here to turn matches into conversations.</p>
+    <div class="focus-grid">
+      <div class="focus-card">
+        <div class="focus-tag">Focus 01</div>
+        <div class="focus-name">Tournaments</div>
+        <div class="focus-desc">Could be <em>something no dating app has ever shown.</em> It needs more time and love — but the upside is enormous if we get it right.</div>
+      </div>
+      <div class="focus-card">
+        <div class="focus-tag">Focus 02</div>
+        <div class="focus-name">Chat experience<br>+ new inbox</div>
+        <div class="focus-desc">The new inbox design has real promise. This is the surface where <em>matches actually become conversations.</em></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 14 · CLOSE — PEP TALK -->
+  <div class="slide" id="s14">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The future is bright<span></span></div>
+    <h2 class="title">Heads down.<br>Eyes <em>up</em>.</h2>
+    <div class="deadline-card">
+      <div class="deadline-lbl">Ship by</div>
+      <div class="deadline-date">June 12<span class="deadline-year">, 2026</span></div>
+      <div class="deadline-meta">3 weeks of focused execution</div>
+    </div>
+    <p class="pep-tail">Then? <em>New challenges</em> — or <em>another execution sprint</em>.<br>The work will tell us. Either way, we'll have something real to point at.</p>
+    <div class="pep-mantra">Let's go.</div>
+  </div>
+
+</div>
+
+<script>
+const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14'];
+let current = 0;
+
+function buildDots() {
+  const wrap = document.getElementById('nav-dots');
+  SLIDES.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    wrap.appendChild(d);
+  });
+  document.getElementById('count-total').textContent = SLIDES.length;
+}
+
+function goTo(idx) {
+  if (idx < 0 || idx >= SLIDES.length) return;
+  document.getElementById(SLIDES[current]).classList.remove('active');
+  current = idx;
+  const slide = document.getElementById(SLIDES[current]);
+  slide.classList.add('active');
+
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .sprint3-lede, .tile, .split-card, .value-tag, .room-chips, .market-grid, .iceberg, .prod-grid, .kill-card, .live-card, .focus-card, .deadline-card, .pep-tail, .pep-mantra').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  });
+
+  document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  document.getElementById('count-current').textContent = current + 1;
+
+  const pct = (current / (SLIDES.length - 1)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === SLIDES.length - 1;
+}
+
+function go(dir) { goTo(current + dir); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') goTo(0);
+  else if (e.key === 'End')  goTo(SLIDES.length - 1);
+  else if (e.key === 'f' || e.key === 'F') { document.getElementById('btn-fullscreen').click(); }
+});
+
+document.querySelector('.deck').addEventListener('click', e => {
+  if (e.target.closest('.nav') || e.target.closest('.nav-btn') || e.target.closest('.nav-dot')) return;
+  go(1);
+});
+
+let touchX = 0;
+document.addEventListener('touchstart', e => touchX = e.touches[0].clientX, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+const btnFS = document.getElementById('btn-fullscreen');
+const fsEnter = document.getElementById('fs-icon-enter');
+const fsExit  = document.getElementById('fs-icon-exit');
+
+function updateFSIcon() {
+  const isFS = !!document.fullscreenElement;
+  fsEnter.style.display = isFS ? 'none' : '';
+  fsExit.style.display  = isFS ? '' : 'none';
+}
+
+btnFS.addEventListener('click', () => {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen().catch(()=>{});
+});
+document.addEventListener('fullscreenchange', updateFSIcon);
+
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top  = e.clientY + 'px';
+});
+document.addEventListener('mouseenter', () => cursor.style.opacity = '1');
+document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
+document.querySelectorAll('button, a, .nav-dot, #btn-fullscreen').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+});
+
+(function () {
+  const canvas = document.getElementById('constellation');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts;
+  const N = 60, CONN = 170;
+  const resize = () => {
+    W = canvas.width  = innerWidth;
+    H = canvas.height = innerHeight;
+    pts = Array.from({length: N}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.2, vy: (Math.random()-0.5)*0.2
+    }));
+  };
+  const tick = () => {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of pts) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+    }
+    for (let i = 0; i < N; i++) {
+      for (let j = i+1; j < N; j++) {
+        const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+        const d = Math.hypot(dx, dy);
+        if (d < CONN) {
+          ctx.strokeStyle = `rgba(255,255,255,${0.06*(1-d/CONN)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    for (const p of pts) {
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1, 0, Math.PI*2);
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  };
+  window.addEventListener('resize', resize);
+  resize();
+  tick();
+})();
+
+buildDots();
+</script>
+</body>
+</html>

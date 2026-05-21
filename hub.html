@@ -428,7 +428,7 @@ function card(s,votes){
     <div class="sprint-actions">
       <a class="alink" href="voting.html?sprint=${s.id}" target="_blank">🗳 Vote</a>
       <a class="alink" href="admin.html?sprint=${s.id}" target="_blank">🛠 Admin</a>
-      <a class="alink" href="presentation.html?sprint=${s.id}" target="_blank">🦋 Presentation</a>
+      <a class="alink" href="${s.id==='766325bc-de77-447b-b235-812f81e50d8a'?'presentation-sprint3.html':'presentation.html'}?sprint=${s.id}" target="_blank">🦋 Presentation</a>
       <a class="alink" href="reveal.html?sprint=${s.id}" target="_blank" onclick="event.preventDefault(); window.open('reveal.html?sprint=${s.id}&t=' + Date.now(), '_blank', 'noopener')">🎭 Reveal</a>
       <a class="alink" href="teams.html?sprint=${s.id}" target="_blank">👥 Teams</a>
       <a class="alink" href="demo-day.html?sprint=${s.id}" target="_blank">🎤 Demo Day</a>
