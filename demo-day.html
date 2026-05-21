@@ -151,6 +151,31 @@ body::after {
 @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
 @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+/* "Dealt-deck" reveal for lineup cards: each card flies in from a 3D
+   angle off-left, tumbles forward, and lands with a small overshoot. */
+@keyframes dealCard {
+  0% {
+    opacity: 0;
+    transform:
+      rotateY(-72deg) rotateX(18deg) rotateZ(-6deg)
+      translate3d(-220px, 40px, -320px) scale(0.55);
+    filter: blur(8px);
+  }
+  35% { opacity: 1; filter: blur(0); }
+  78% {
+    transform:
+      rotateY(6deg) rotateX(-2deg) rotateZ(0.6deg)
+      translate3d(0, -8px, 30px) scale(1.04);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform:
+      rotateY(0) rotateX(0) rotateZ(0)
+      translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
 @keyframes shimmer {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
@@ -232,6 +257,8 @@ body::after {
   max-width: 1200px;
   width: 100%;
   margin-top: 6vh;
+  perspective: 1400px;
+  perspective-origin: 20% 30%;
 }
 .act {
   position: relative;
@@ -243,7 +270,9 @@ body::after {
   opacity: 0;
   overflow: hidden;
   backdrop-filter: blur(10px);
-  transition: transform .4s cubic-bezier(0.16,1,0.3,1), border-color .3s;
+  transform-origin: 50% 60%;
+  backface-visibility: hidden;
+  transition: transform .4s cubic-bezier(0.16,1,0.3,1), border-color .3s, box-shadow .4s;
 }
 .act:hover { transform: translateY(-6px); }
 .act::before {
@@ -262,10 +291,14 @@ body::after {
   background: var(--act-color);
   box-shadow: 0 0 24px var(--act-color);
 }
-/* Per-card animation-delay is set inline in JS (see shuffleAndRebuild)
-   so the stagger scales to any N — the old nth-child(1..5) rules only
-   covered 5 cards and left larger lineups jumping in all at once. */
-.slide.active .act { animation: scaleIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+/* Per-card stagger is driven by --card-delay (set inline in JS).
+   A custom property survives the goTo() animation-reset that would
+   otherwise wipe an inline `animation-delay`, so the stagger holds
+   across slide navigations. */
+.slide.active .act {
+  animation: dealCard 1.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--card-delay, 0s);
+}
 
 .act-no {
   font-family: 'DM Sans', sans-serif;
@@ -371,7 +404,10 @@ body::after {
 .shuffle-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
 .shuffle-btn .icon { font-size: 1rem; transition: transform .35s; display: inline-block; }
 .shuffle-btn:hover .icon { transform: rotate(180deg); }
-.slide.active .shuffle-btn { animation: fadeIn 1s ease 1.5s forwards; }
+.slide.active .shuffle-btn {
+  animation: fadeIn 1s ease forwards;
+  animation-delay: var(--shuffle-delay, 1.5s);
+}
 
 /* ─────────────────────────────────────────────
    SLIDE 2 — KICKOFF
@@ -1114,9 +1150,10 @@ function shuffleAndRebuild() {
 
   // ── Lineup slide ───────────────────────────────────────────────────
   const lineup = document.getElementById('lineup');
-  // Stagger scales with N so a 16-card grid still finishes in ~1.3s.
-  const STAGGER_BASE = 0.5;
-  const STAGGER_STEP = Math.min(0.15, 0.8 / Math.max(1, ordered.length));
+  // Stagger scales with N. With dealCard at 1.15s/card, total reveal lands
+  // around ~2.5s for 16 cards and ~1.9s for 5.
+  const STAGGER_BASE = 0.45;
+  const STAGGER_STEP = Math.min(0.18, 1.05 / Math.max(1, ordered.length));
   lineup.innerHTML = ordered.map((c, pos) => {
     const color = COLORS[c.__idx % COLORS.length];
     const id = c.id ?? (c.__idx + 1);
@@ -1127,12 +1164,17 @@ function shuffleAndRebuild() {
       ? `<div class="act-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
       : `<div class="act-members-empty">Team assembling…</div>`;
     return `
-      <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb};animation-delay:${delay}s">
+      <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb};--card-delay:${delay}s">
         <div class="act-no"><span class="act-no-bullet">${ordinal}</span>${ordinal}${ordinalSuffix(ordinal)} up</div>
         <div class="act-title">${escapeH(c.title || 'Untitled')}</div>
         ${membersHtml}
       </div>`;
   }).join('');
+
+  // Defer the Shuffle pill until after the last card lands (~+0.6s).
+  const lastCardLands = STAGGER_BASE + (ordered.length - 1) * STAGGER_STEP + 1.15;
+  const shuffleBtn = document.getElementById('shuffle-btn');
+  if (shuffleBtn) shuffleBtn.style.setProperty('--shuffle-delay', `${(lastCardLands - 0.5).toFixed(2)}s`);
 
   // ── Per-team slides ───────────────────────────────────────────────
   const deck = document.querySelector('.deck');
