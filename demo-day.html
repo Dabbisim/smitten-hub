@@ -262,12 +262,10 @@ body::after {
   background: var(--act-color);
   box-shadow: 0 0 24px var(--act-color);
 }
+/* Per-card animation-delay is set inline in JS (see shuffleAndRebuild)
+   so the stagger scales to any N — the old nth-child(1..5) rules only
+   covered 5 cards and left larger lineups jumping in all at once. */
 .slide.active .act { animation: scaleIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
-.slide.active .act:nth-child(1) { animation-delay: 0.5s; }
-.slide.active .act:nth-child(2) { animation-delay: 0.65s; }
-.slide.active .act:nth-child(3) { animation-delay: 0.8s; }
-.slide.active .act:nth-child(4) { animation-delay: 0.95s; }
-.slide.active .act:nth-child(5) { animation-delay: 1.1s; }
 
 .act-no {
   font-family: 'DM Sans', sans-serif;
@@ -1116,16 +1114,20 @@ function shuffleAndRebuild() {
 
   // ── Lineup slide ───────────────────────────────────────────────────
   const lineup = document.getElementById('lineup');
+  // Stagger scales with N so a 16-card grid still finishes in ~1.3s.
+  const STAGGER_BASE = 0.5;
+  const STAGGER_STEP = Math.min(0.15, 0.8 / Math.max(1, ordered.length));
   lineup.innerHTML = ordered.map((c, pos) => {
     const color = COLORS[c.__idx % COLORS.length];
     const id = c.id ?? (c.__idx + 1);
     const members = LOADED_MEMBERS[id] || [];
     const ordinal = pos + 1;
+    const delay = (STAGGER_BASE + pos * STAGGER_STEP).toFixed(2);
     const membersHtml = members.length
       ? `<div class="act-members">${members.map(n => `<span class="member-chip">${escapeH(n)}</span>`).join('')}</div>`
       : `<div class="act-members-empty">Team assembling…</div>`;
     return `
-      <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb}">
+      <div class="act" style="--act-color:${color.hex};--act-rgb:${color.rgb};animation-delay:${delay}s">
         <div class="act-no"><span class="act-no-bullet">${ordinal}</span>${ordinal}${ordinalSuffix(ordinal)} up</div>
         <div class="act-title">${escapeH(c.title || 'Untitled')}</div>
         ${membersHtml}
