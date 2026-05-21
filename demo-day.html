@@ -879,8 +879,12 @@ const COLORS = [
 function escapeH(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[m])}
 
 // Pitch / Q&A durations (seconds). Tweak here if you need different windows.
-const PITCH_SECONDS = 7 * 60;
-const QA_SECONDS    = 3 * 60;
+// Sprint 3 ("Third sprint") runs 16 solo demos on a tighter 3 + 1 min clock.
+// IS_SPRINT_3 is re-evaluated after the sprint loads (URL may omit ?sprint=).
+const SPRINT_3_ID = '766325bc-de77-447b-b235-812f81e50d8a';
+let IS_SPRINT_3 = new URLSearchParams(location.search).get('sprint') === SPRINT_3_ID;
+let PITCH_SECONDS = IS_SPRINT_3 ? 3 * 60 : 7 * 60;
+let QA_SECONDS    = IS_SPRINT_3 ? 1 * 60 : 3 * 60;
 const WARN_SECONDS  = 30;     // last-N-seconds amber warning
 
 // Fisher-Yates shuffle
@@ -1059,6 +1063,13 @@ async function loadSprint() {
       return;
     }
     document.getElementById('sprint-chip').textContent = sprint.name;
+    // Re-check Sprint 3 against the loaded sprint id, so direct loads of
+    // demo-day.html (no ?sprint= in URL) still pick up the shorter clock.
+    if (sprint.id === SPRINT_3_ID) {
+      IS_SPRINT_3 = true;
+      PITCH_SECONDS = 3 * 60;
+      QA_SECONDS    = 1 * 60;
+    }
     const challenges = sprint.challenges || [];
 
     // Fetch team members (public SELECT under our RLS)
@@ -1081,8 +1092,12 @@ async function loadSprint() {
     // Subtitle (count-aware)
     const n = challenges.length;
     if (n > 0) {
-      const teamsWord = n === 1 ? 'team' : 'teams';
-      document.getElementById('s0-sub').textContent = `${n} ${teamsWord}. ${Math.round(PITCH_SECONDS/60)} min pitch + ${Math.round(QA_SECONDS/60)} min Q&A each.`;
+      if (IS_SPRINT_3) {
+        document.getElementById('s0-sub').textContent = `${n} demos. ${Math.round(PITCH_SECONDS/60)} min each, ${Math.round(QA_SECONDS/60)} min Q&A.`;
+      } else {
+        const teamsWord = n === 1 ? 'team' : 'teams';
+        document.getElementById('s0-sub').textContent = `${n} ${teamsWord}. ${Math.round(PITCH_SECONDS/60)} min pitch + ${Math.round(QA_SECONDS/60)} min Q&A each.`;
+      }
     }
 
     shuffleAndRebuild();
