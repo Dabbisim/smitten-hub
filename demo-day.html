@@ -380,6 +380,28 @@ body::after {
   position: relative; z-index: 1;
 }
 
+/* Compact lineup — auto-applied for large lineups (N > 8) so 16 solo
+   presenters fit in a fullscreen viewport with the shuffle button
+   still visible. Tighter columns, smaller cards, no empty members row. */
+.lineup.lineup--compact {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+  margin-top: 3.5vh;
+}
+.lineup--compact .act { padding: 1.05rem 1.1rem 1.15rem; border-radius: 16px; }
+.lineup--compact .act-no { font-size: 0.62rem; margin-bottom: 0.7rem; gap: 0.5em; }
+.lineup--compact .act-no-bullet { width: 24px; height: 24px; font-size: 0.72rem; }
+.lineup--compact .act-title {
+  font-size: clamp(1rem, 1.4vw, 1.3rem);
+  margin-bottom: 0;
+  min-height: 0;
+}
+.lineup--compact .act-members,
+.lineup--compact .act-members-empty,
+.lineup--compact .act-meta { display: none; }
+#s1.slide.has-compact-lineup .eyebrow { margin-bottom: 1.5vh; }
+#s1.slide.has-compact-lineup .title { font-size: clamp(2.2rem, 4.8vw, 3.8rem); }
+
 #s1 .sub { margin-top: 2vh; }
 
 /* Shuffle pill on lineup slide */
@@ -1193,6 +1215,12 @@ function shuffleAndRebuild() {
 
   // ── Lineup slide ───────────────────────────────────────────────────
   const lineup = document.getElementById('lineup');
+  // Compact layout when the lineup is too tall for the viewport at the
+  // standard card size. Threshold tuned to 16-card sprint-3 case.
+  const isCompactLineup = ordered.length > 8;
+  lineup.classList.toggle('lineup--compact', isCompactLineup);
+  const s1 = document.getElementById('s1');
+  if (s1) s1.classList.toggle('has-compact-lineup', isCompactLineup);
   // Stagger scales with N. With dealCard at 1.15s/card, total reveal lands
   // around ~2.5s for 16 cards and ~1.9s for 5.
   const STAGGER_BASE = 0.45;
