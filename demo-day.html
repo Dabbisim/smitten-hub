@@ -969,6 +969,21 @@ function startPitch(slideId) {
   startTimer(slideId);
 }
 
+// Look one slide ahead in SLIDES and return the team-title text for the
+// next team-slide (the upcoming presenter's name). Returns null on the
+// final team or if the next slide isn't a team-slide (e.g. wrap-up).
+function nextPresenterName(slideId) {
+  const idx = SLIDES.indexOf(slideId);
+  if (idx < 0) return null;
+  const nextId = SLIDES[idx + 1];
+  if (!nextId) return null;
+  const nextSlide = document.getElementById(nextId);
+  if (!nextSlide || !nextSlide.classList.contains('team-slide')) return null;
+  const titleEl = nextSlide.querySelector('.team-title');
+  const name = titleEl ? titleEl.textContent.trim() : '';
+  return name || null;
+}
+
 function renderTimer(slideId) {
   const s = ensureTimer(slideId);
   const slide = document.getElementById(slideId);
@@ -991,7 +1006,11 @@ function renderTimer(slideId) {
     if (s.phase === 'idle') { phaseEl.textContent = `Pitch · ${Math.round(PITCH_SECONDS / 60)} min`; }
     else if (s.phase === 'pitch') { phaseEl.textContent = `Pitch · ${Math.round(PITCH_SECONDS / 60)} min`; }
     else if (s.phase === 'qa') { phaseEl.classList.add('qa'); phaseEl.textContent = `Q & A · ${Math.round(QA_SECONDS / 60)} min`; }
-    else if (s.phase === 'done') { phaseEl.classList.add('done'); phaseEl.textContent = "Time's up · next team"; }
+    else if (s.phase === 'done') {
+      phaseEl.classList.add('done');
+      const next = nextPresenterName(slideId);
+      phaseEl.textContent = next ? `Time's up · next presenter is ${next}` : "Time's up · that's a wrap";
+    }
   }
   // Show the right control set
   if (startBtn) startBtn.style.display = s.phase === 'idle' ? 'inline-flex' : 'none';
