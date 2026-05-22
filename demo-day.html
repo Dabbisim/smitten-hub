@@ -1002,6 +1002,32 @@ function renderTimer(slideId) {
   else slide.classList.remove('alarm');
 }
 
+// Blink "Time's up · next team" for this long, then auto-advance.
+const DONE_BLINK_MS = 10000;
+
+// Centralised "we're done with this team" transition. Used both from the
+// natural qa→done expiry and from skipPhase when the user jumps to done.
+function enterDoneState(slideId) {
+  const s = ensureTimer(slideId);
+  if (s.tickHandle) { clearInterval(s.tickHandle); s.tickHandle = null; }
+  s.phase = 'done';
+  s.remaining = 0;
+  s.ticking = false;
+  // Triple beep when totally done
+  beep(880, 0.18, 0.5); setTimeout(() => beep(880, 0.18, 0.5), 350); setTimeout(() => beep(660, 0.4, 0.5), 700);
+  // Auto-advance after the blink. Bail out if the user has navigated away
+  // or reset the timer in the meantime so we don't yank them around.
+  if (s.autoHandle) clearTimeout(s.autoHandle);
+  s.autoHandle = setTimeout(() => {
+    s.autoHandle = null;
+    const slide = document.getElementById(slideId);
+    const cur = TIMERS[slideId];
+    if (!slide || !cur || cur.phase !== 'done') return;
+    if (!slide.classList.contains('active')) return;
+    go(1);
+  }, DONE_BLINK_MS);
+}
+
 function startTimer(slideId) {
   const s = ensureTimer(slideId);
   // Don't auto-start from idle — user must press the "Start pitch" button.
@@ -1017,13 +1043,7 @@ function startTimer(slideId) {
         s.remaining = QA_SECONDS;
         beep(440, 0.2, 0.4);
       } else if (s.phase === 'qa') {
-        s.phase = 'done';
-        s.remaining = 0;
-        s.ticking = false;
-        clearInterval(s.tickHandle);
-        s.tickHandle = null;
-        // Triple beep when totally done
-        beep(880, 0.18, 0.5); setTimeout(() => beep(880, 0.18, 0.5), 350); setTimeout(() => beep(660, 0.4, 0.5), 700);
+        enterDoneState(slideId);
       }
     }
     renderTimer(slideId);
@@ -1037,6 +1057,9 @@ function pauseTimer(slideId) {
   if (s.tickHandle) clearInterval(s.tickHandle);
   s.tickHandle = null;
   s.ticking = false;
+  // Pause cancels a pending auto-advance — if we're on the done blink and
+  // the user navigates away, goTo() calls pauseTimer() and we stop here.
+  if (s.autoHandle) { clearTimeout(s.autoHandle); s.autoHandle = null; }
   renderTimer(slideId);
 }
 
@@ -1050,6 +1073,7 @@ function resetTimer(slideId) {
   if (s.tickHandle) clearInterval(s.tickHandle);
   s.tickHandle = null;
   s.ticking = false;
+  if (s.autoHandle) { clearTimeout(s.autoHandle); s.autoHandle = null; }
   s.phase = 'idle';
   s.remaining = PITCH_SECONDS;
   renderTimer(slideId);
@@ -1061,7 +1085,7 @@ function skipPhase(slideId) {
   s.tickHandle = null;
   s.ticking = false;
   if (s.phase === 'pitch') { s.phase = 'qa'; s.remaining = QA_SECONDS; }
-  else if (s.phase === 'qa') { s.phase = 'done'; s.remaining = 0; }
+  else if (s.phase === 'qa') { enterDoneState(slideId); }
   renderTimer(slideId);
   if (s.phase !== 'done') startTimer(slideId);
 }
