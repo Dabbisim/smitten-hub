@@ -321,52 +321,7 @@ body::after {
 .q-foot em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
 .slide.active .q-foot { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 1s forwards; }
 
-/* ── big number (the pilot) ── */
-.big-num {
-  font-family: 'Clash Display', sans-serif;
-  font-weight: 700;
-  font-size: clamp(8rem, 22vw, 20rem);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
-  font-feature-settings: "tnum" 1, "lnum" 1;
-  background: linear-gradient(135deg, #fff 0%, var(--c3) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  opacity: 0;
-  padding: 0 0.1em;
-}
-.slide.active .big-num { animation: numTick 1s cubic-bezier(0.16,1,0.3,1) 0.2s forwards; }
-.big-num-caption {
-  font-family: 'Clash Display', sans-serif;
-  font-weight: 500;
-  font-size: clamp(1.4rem, 3vw, 2.4rem);
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  margin-top: 1.5vh;
-  opacity: 0;
-}
-.big-num-caption em {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 300;
-  color: var(--c3);
-}
-.slide.active .big-num-caption { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.5s forwards; }
-.num-lede {
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(1rem, 1.7vw, 1.3rem);
-  color: var(--text-dim);
-  margin-top: 4vh;
-  max-width: 780px;
-  line-height: 1.5;
-  opacity: 0;
-}
-.slide.active .num-lede { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.75s forwards; }
-
-/* ── closing recap chips + mantra ── */
+/* ── closing recap chips ── */
 .recap-chips {
   margin-top: 5vh;
   display: flex;
@@ -399,18 +354,6 @@ body::after {
 }
 .pep-tail em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
 .slide.active .pep-tail { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.85s forwards; }
-.pep-mantra {
-  margin-top: 3.5vh;
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(1.6rem, 3.2vw, 2.5rem);
-  color: var(--c3);
-  letter-spacing: -0.01em;
-  text-shadow: 0 0 30px rgba(255,92,138,0.4);
-  opacity: 0;
-}
-.slide.active .pep-mantra { animation: slideUp 1s cubic-bezier(0.16,1,0.3,1) 1.15s forwards; }
 .doc-link {
   margin-top: 3.5vh;
   display: inline-flex;
@@ -509,16 +452,11 @@ body::after {
 #s6 .title { font-size: clamp(2.2rem, 5vw, 3.6rem); }
 #s6 .title em { color: var(--c1); }
 
-#s7 .glow { background: radial-gradient(circle, rgba(255,92,138,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
-#s7 .eyebrow { color: var(--c3); }
-#s7 .big-num { background: linear-gradient(135deg, #fff 0%, var(--c3) 100%); -webkit-background-clip: text; background-clip: text; }
-#s7 .big-num-caption em { color: var(--c3); }
-
-#s8 .glow { background: radial-gradient(circle, rgba(184,255,74,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
-#s8 .watermark { -webkit-text-stroke: 1px rgba(184,255,74,0.06); right: -2vw; bottom: -5vw; font-size: clamp(24vw, 32vw, 560px); }
-#s8 .eyebrow { color: var(--cF); }
-#s8 .title { font-size: clamp(3rem, 8vw, 6.5rem); }
-#s8 .title em { color: var(--cF); }
+#s7 .glow { background: radial-gradient(circle, rgba(184,255,74,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s7 .watermark { -webkit-text-stroke: 1px rgba(184,255,74,0.06); right: -2vw; bottom: -5vw; font-size: clamp(24vw, 32vw, 560px); }
+#s7 .eyebrow { color: var(--cF); }
+#s7 .title { font-size: clamp(3rem, 8vw, 6.5rem); }
+#s7 .title em { color: var(--cF); }
 
 /* ─────────────────────────────────────────────
    NAV + PROGRESS + FULLSCREEN
@@ -619,7 +557,7 @@ body::after {
 <div class="counter">
   <span class="counter-current" id="count-current">1</span>
   <span>/</span>
-  <span id="count-total">9</span>
+  <span id="count-total">8</span>
 </div>
 
 <nav class="nav">
@@ -733,16 +671,8 @@ body::after {
     <p class="q-foot">The goal isn't to check every box — it's to <em>think clearly</em> about whether this is worth building.</p>
   </div>
 
-  <!-- 7 · THE PILOT -->
+  <!-- 7 · CLOSE -->
   <div class="slide" id="s7">
-    <div class="glow"></div>
-    <div class="big-num">90</div>
-    <p class="big-num-caption">days to find out if it's <em>huge</em></p>
-    <p class="num-lede">A pilot is a fast, focused, time-boxed test — real resources, a tight window, one clear signal to watch. We learn quickly whether a bet has the spark to go all the way, or whether to fold it and move to the next.</p>
-  </div>
-
-  <!-- 8 · CLOSE -->
-  <div class="slide" id="s8">
     <div class="glow"></div>
     <div class="eyebrow"><span></span>Your move<span></span></div>
     <h2 class="title">What's your <em>bet?</em></h2>
@@ -752,14 +682,13 @@ body::after {
       <div class="recap-chip"><strong>Pilot</strong> what could be huge</div>
     </div>
     <p class="pep-tail">The team is here. The time is here. The mission hasn't moved. The only thing left is the ideas worth betting everything on — and <em>anyone</em> can bring them.</p>
-    <div class="pep-mantra">The next billion starts with your case.</div>
     <a class="doc-link" href="https://app.notion.com/p/smittenapp/The-Business-Case-How-to-Pitch-a-New-Product-or-Bet-389162a4d66181d286c9d5d8bbd835d6" target="_blank" rel="noopener">📂 Read the full Business Case doc →</a>
   </div>
 
 </div>
 
 <script>
-const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7','s8'];
+const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7'];
 let current = 0;
 
 function buildDots() {
@@ -780,7 +709,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .flow-step, .q-card, .q-foot, .recap-chips, .pep-tail, .pep-mantra, .doc-link').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .flow-step, .q-card, .q-foot, .recap-chips, .pep-tail, .doc-link').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
