@@ -286,16 +286,7 @@ body::after {
   gap: 0.85rem;
   align-items: flex-start;
 }
-.slide.active .q-card { animation: slideUp 0.55s cubic-bezier(0.16,1,0.3,1) forwards; }
-.slide.active .q-card:nth-child(1) { animation-delay: 0.30s; }
-.slide.active .q-card:nth-child(2) { animation-delay: 0.37s; }
-.slide.active .q-card:nth-child(3) { animation-delay: 0.44s; }
-.slide.active .q-card:nth-child(4) { animation-delay: 0.51s; }
-.slide.active .q-card:nth-child(5) { animation-delay: 0.58s; }
-.slide.active .q-card:nth-child(6) { animation-delay: 0.65s; }
-.slide.active .q-card:nth-child(7) { animation-delay: 0.72s; }
-.slide.active .q-card:nth-child(8) { animation-delay: 0.79s; }
-.slide.active .q-card:nth-child(9) { animation-delay: 0.86s; }
+.q-card.shown { animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
 .q-num {
   font-family: 'Clash Display', sans-serif;
   font-weight: 700;
@@ -319,7 +310,7 @@ body::after {
   font-weight: 300;
 }
 .q-foot em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
-.slide.active .q-foot { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 1s forwards; }
+.q-foot.shown { animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
 
 /* ── closing recap chips ── */
 .recap-chips {
@@ -442,21 +433,16 @@ body::after {
 #s4 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
 #s4 .title em { color: var(--c2); }
 
-#s5 .glow { background: radial-gradient(circle, rgba(0,229,255,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s5 .glow { background: radial-gradient(circle, rgba(0,229,255,0.4), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 #s5 .eyebrow { color: var(--c1); }
-#s5 .title { font-size: clamp(2.8rem, 7vw, 5.5rem); }
+#s5 .title { font-size: clamp(2.2rem, 5vw, 3.6rem); }
 #s5 .title em { color: var(--c1); }
 
-#s6 .glow { background: radial-gradient(circle, rgba(0,229,255,0.4), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
-#s6 .eyebrow { color: var(--c1); }
-#s6 .title { font-size: clamp(2.2rem, 5vw, 3.6rem); }
-#s6 .title em { color: var(--c1); }
-
-#s7 .glow { background: radial-gradient(circle, rgba(184,255,74,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
-#s7 .watermark { -webkit-text-stroke: 1px rgba(184,255,74,0.06); right: -2vw; bottom: -5vw; font-size: clamp(24vw, 32vw, 560px); }
-#s7 .eyebrow { color: var(--cF); }
-#s7 .title { font-size: clamp(3rem, 8vw, 6.5rem); }
-#s7 .title em { color: var(--cF); }
+#s6 .glow { background: radial-gradient(circle, rgba(184,255,74,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s6 .watermark { -webkit-text-stroke: 1px rgba(184,255,74,0.06); right: -2vw; bottom: -5vw; font-size: clamp(24vw, 32vw, 560px); }
+#s6 .eyebrow { color: var(--cF); }
+#s6 .title { font-size: clamp(3rem, 8vw, 6.5rem); }
+#s6 .title em { color: var(--cF); }
 
 /* ─────────────────────────────────────────────
    NAV + PROGRESS + FULLSCREEN
@@ -557,13 +543,13 @@ body::after {
 <div class="counter">
   <span class="counter-current" id="count-current">1</span>
   <span>/</span>
-  <span id="count-total">8</span>
+  <span id="count-total">7</span>
 </div>
 
 <nav class="nav">
-  <button class="nav-btn" id="btn-prev" onclick="go(-1)" disabled>←</button>
+  <button class="nav-btn" id="btn-prev" onclick="retreat()" disabled>←</button>
   <div class="nav-dots" id="nav-dots"></div>
-  <button class="nav-btn" id="btn-next" onclick="go(1)">→</button>
+  <button class="nav-btn" id="btn-next" onclick="advance()">→</button>
 </nav>
 
 <!-- ═══════ DECK ═══════ -->
@@ -619,76 +605,53 @@ body::after {
   <div class="slide" id="s4">
     <div class="glow"></div>
     <div class="eyebrow"><span></span>The path<span></span></div>
-    <h2 class="title">From idea to <em>pilot</em></h2>
+    <h2 class="title">From idea to <em>pitch</em></h2>
     <div class="flow-row">
       <div class="flow-step">
         <div class="flow-num">Step 01</div>
-        <div class="flow-name">Pitch your case</div>
-        <div class="flow-desc">Bring your bet to David — live or on the page. Make the argument.</div>
+        <div class="flow-name">Answer the nine questions</div>
+        <div class="flow-desc">Work through them honestly — they're the shared language for every bet.</div>
       </div>
       <div class="flow-step">
         <div class="flow-num">Step 02</div>
-        <div class="flow-name">Answer the questions</div>
-        <div class="flow-desc">Work through the nine questions. They're the shared language for every bet.</div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">Step 03</div>
-        <div class="flow-name">Check the boxes</div>
-        <div class="flow-desc">If it's exciting and the case holds up, it earns a green light.</div>
-      </div>
-      <div class="flow-step">
-        <div class="flow-num">Step 04</div>
-        <div class="flow-name">Get resources</div>
-        <div class="flow-desc">We allocate real resources to a short, focused pilot.</div>
+        <div class="flow-name">Pitch your case</div>
+        <div class="flow-desc">Bring it to David, live or on the page, and make the argument.</div>
       </div>
     </div>
   </div>
 
-  <!-- 5 · THE BAR -->
+  <!-- 5 · THE NINE QUESTIONS -->
   <div class="slide" id="s5">
-    <div class="glow"></div>
-    <div class="eyebrow"><span></span>The bar<span></span></div>
-    <h2 class="title">We want <em>conviction</em></h2>
-    <p class="sub">Backed by reasoning — not a sales pitch. The best cases are specific, honest about what's unknown, and have stress-tested themselves. A great pitch makes the risks <em>more</em> visible, not less. "Don't know yet" is a legitimate answer — it tells us where the risk lives.</p>
-  </div>
-
-  <!-- 6 · THE NINE QUESTIONS -->
-  <div class="slide" id="s6">
     <div class="glow"></div>
     <div class="eyebrow"><span></span>The shared language<span></span></div>
     <h2 class="title">Nine <em>questions</em> every bet must answer</h2>
     <div class="q-grid">
-      <div class="q-card"><div class="q-num">01</div><div class="q-text">Why now? What just changed that opens the window?</div></div>
-      <div class="q-card"><div class="q-num">02</div><div class="q-text">What is it, and who is it for — in one plain sentence?</div></div>
-      <div class="q-card"><div class="q-num">03</div><div class="q-text">Can it become a billion-dollar product / hit $100M+ ARR?</div></div>
+      <div class="q-card"><div class="q-num">01</div><div class="q-text">What is it, and who is it for — in one plain sentence?</div></div>
+      <div class="q-card"><div class="q-num">02</div><div class="q-text">Can it become a billion-dollar product / hit $100M+ ARR?</div></div>
+      <div class="q-card"><div class="q-num">03</div><div class="q-text">Why now? What just changed that opens the window?</div></div>
       <div class="q-card"><div class="q-num">04</div><div class="q-text">How is it 10X better or different in kind from the competition?</div></div>
-      <div class="q-card"><div class="q-num">05</div><div class="q-text">Why will it win? What's the thesis of victory?</div></div>
-      <div class="q-card"><div class="q-num">06</div><div class="q-text">What's the moat that stops others from copying it?</div></div>
-      <div class="q-card"><div class="q-num">07</div><div class="q-text">What's the distribution — the clear path to users?</div></div>
+      <div class="q-card"><div class="q-num">05</div><div class="q-text">What's the moat that stops others from copying it?</div></div>
+      <div class="q-card"><div class="q-num">06</div><div class="q-text">What's the distribution — the clear path to users?</div></div>
+      <div class="q-card"><div class="q-num">07</div><div class="q-text">Why will it win? What's the thesis of victory?</div></div>
       <div class="q-card"><div class="q-num">08</div><div class="q-text">Why are we the best team to build this?</div></div>
       <div class="q-card"><div class="q-num">09</div><div class="q-text">What's the signal that proves it's an A+ product?</div></div>
     </div>
     <p class="q-foot">The goal isn't to check every box — it's to <em>think clearly</em> about whether this is worth building.</p>
   </div>
 
-  <!-- 7 · CLOSE -->
-  <div class="slide" id="s7">
+  <!-- 6 · CLOSE -->
+  <div class="slide" id="s6">
     <div class="glow"></div>
-    <div class="eyebrow"><span></span>Your move<span></span></div>
-    <h2 class="title">What's your <em>bet?</em></h2>
-    <div class="recap-chips">
-      <div class="recap-chip"><strong>Make Smitten</strong> profitable</div>
-      <div class="recap-chip"><strong>Pitch</strong> the next bet</div>
-      <div class="recap-chip"><strong>Pilot</strong> what could be huge</div>
-    </div>
-    <p class="pep-tail">The team is here. The time is here. The mission hasn't moved. The only thing left is the ideas worth betting everything on — and <em>anyone</em> can bring them.</p>
+    <div class="eyebrow"><span></span>What happened next<span></span></div>
+    <h2 class="title">One idea checked<br><em>every box</em></h2>
+    <p class="pep-tail">We put this process to the test. Plenty of ideas were pitched — and many failed or came up short. <em>That's the process working.</em> But one idea checked every box. One I'm genuinely excited about — excited enough to put real resources behind it.</p>
     <a class="doc-link" href="https://app.notion.com/p/smittenapp/The-Business-Case-How-to-Pitch-a-New-Product-or-Bet-389162a4d66181d286c9d5d8bbd835d6" target="_blank" rel="noopener">📂 Read the full Business Case doc →</a>
   </div>
 
 </div>
 
 <script>
-const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7'];
+const SLIDES = ['s0','s1','s2','s3','s4','s5','s6'];
 let current = 0;
 
 function buildDots() {
@@ -709,6 +672,11 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
+  // Questions slide starts blank — reveal each question on click instead.
+  if (SLIDES[current] === 's5') {
+    slide.querySelectorAll('.q-card, .q-foot').forEach(el => el.classList.remove('shown'));
+  }
+
   slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .flow-step, .q-card, .q-foot, .recap-chips, .pep-tail, .doc-link').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
@@ -727,9 +695,40 @@ function goTo(idx) {
 
 function go(dir) { goTo(current + dir); }
 
+// On the questions slide, each forward step reveals one more question
+// so you can talk through them one at a time. Once all are revealed,
+// the next step advances to the following slide.
+function advance() {
+  if (SLIDES[current] === 's5') {
+    const cards = Array.from(document.querySelectorAll('#s5 .q-card'));
+    const next = cards.find(c => !c.classList.contains('shown'));
+    if (next) {
+      next.classList.add('shown');
+      if (cards.every(c => c.classList.contains('shown'))) {
+        const foot = document.querySelector('#s5 .q-foot');
+        if (foot) foot.classList.add('shown');
+      }
+      return;
+    }
+  }
+  go(1);
+}
+function retreat() {
+  if (SLIDES[current] === 's5') {
+    const shown = Array.from(document.querySelectorAll('#s5 .q-card.shown'));
+    if (shown.length) {
+      shown[shown.length - 1].classList.remove('shown');
+      const foot = document.querySelector('#s5 .q-foot');
+      if (foot) foot.classList.remove('shown');
+      return;
+    }
+  }
+  go(-1);
+}
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); go(1); }
-  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); advance(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); retreat(); }
   else if (e.key === 'Home') goTo(0);
   else if (e.key === 'End')  goTo(SLIDES.length - 1);
   else if (e.key === 'f' || e.key === 'F') { document.getElementById('btn-fullscreen').click(); }
@@ -737,14 +736,14 @@ document.addEventListener('keydown', e => {
 
 document.querySelector('.deck').addEventListener('click', e => {
   if (e.target.closest('.nav') || e.target.closest('.nav-btn') || e.target.closest('.nav-dot') || e.target.closest('a')) return;
-  go(1);
+  advance();
 });
 
 let touchX = 0;
 document.addEventListener('touchstart', e => touchX = e.touches[0].clientX, { passive: true });
 document.addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - touchX;
-  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+  if (Math.abs(dx) > 50) { dx < 0 ? advance() : retreat(); }
 }, { passive: true });
 
 const btnFS = document.getElementById('btn-fullscreen');
