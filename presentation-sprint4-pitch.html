@@ -428,6 +428,11 @@ body::after {
 #s3 .title { font-size: clamp(2.8rem, 7.5vw, 6rem); }
 #s3 .title em { color: var(--c3); }
 
+#sproc .glow { background: radial-gradient(circle, rgba(0,229,255,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#sproc .eyebrow { color: var(--c1); }
+#sproc .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+#sproc .title em { color: var(--c1); }
+
 #s4 .glow { background: radial-gradient(circle, rgba(255,184,0,0.42), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 #s4 .eyebrow { color: var(--c2); }
 #s4 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
@@ -567,7 +572,7 @@ body::after {
 <div class="counter">
   <span class="counter-current" id="count-current">1</span>
   <span>/</span>
-  <span id="count-total">8</span>
+  <span id="count-total">9</span>
 </div>
 
 <nav class="nav">
@@ -623,6 +628,14 @@ body::after {
     <div class="eyebrow"><span></span>Plan two · The invitation<span></span></div>
     <h2 class="title">The next bet<br>could come from <em>you</em></h2>
     <p class="sub">Great ideas don't only come from the top. So Plan two is open to <em>everyone</em> on this team. If you see a product or a bet that could be huge — pitch it. Bring your business case to David and make it.</p>
+  </div>
+
+  <!-- 3b · THE PROCESS -->
+  <div class="slide" id="sproc">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>How we find them<span></span></div>
+    <h2 class="title">A process to find<br>the <em>A+ products</em></h2>
+    <p class="sub">Good ideas are everywhere — but A+ ideas are rare, and easy to mistake for merely good ones. So we built a process to tell them apart: a shared bar every bet has to clear before we commit.</p>
   </div>
 
   <!-- 4 · HOW IT WORKS -->
@@ -683,7 +696,7 @@ body::after {
 </div>
 
 <script>
-const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7'];
+const SLIDES = ['s0','s1','s2','s3','sproc','s4','s5','s6','s7'];
 let current = 0;
 
 // Rotating word on the Rabbit reveal slide
