@@ -444,6 +444,29 @@ body::after {
 #s6 .title { font-size: clamp(3rem, 8vw, 6.5rem); }
 #s6 .title em { color: var(--cF); }
 
+/* ── Rabbit reveal ── */
+#s7 .glow { background: radial-gradient(circle, rgba(255,136,0,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s7 .eyebrow { color: #FF8800; }
+.rabbit-logo {
+  width: min(640px, 80vw);
+  max-height: 32vh;
+  object-fit: contain;
+  opacity: 0;
+  filter: drop-shadow(0 0 70px rgba(255,136,0,0.4));
+}
+.slide.active .rabbit-logo { animation: scaleIn 1s cubic-bezier(0.16,1,0.3,1) 0.2s forwards; }
+.rabbit-tag {
+  margin-top: 5.5vh;
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  color: var(--text-dim);
+  font-weight: 300;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  opacity: 0;
+}
+.rabbit-tag em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: #FF8800; }
+.slide.active .rabbit-tag { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+
 /* ─────────────────────────────────────────────
    NAV + PROGRESS + FULLSCREEN
 ───────────────────────────────────────────── */
@@ -543,7 +566,7 @@ body::after {
 <div class="counter">
   <span class="counter-current" id="count-current">1</span>
   <span>/</span>
-  <span id="count-total">7</span>
+  <span id="count-total">8</span>
 </div>
 
 <nav class="nav">
@@ -648,10 +671,18 @@ body::after {
     <a class="doc-link" href="https://app.notion.com/p/smittenapp/The-Business-Case-How-to-Pitch-a-New-Product-or-Bet-389162a4d66181d286c9d5d8bbd835d6" target="_blank" rel="noopener">📂 Read the full Business Case doc →</a>
   </div>
 
+  <!-- 7 · RABBIT REVEAL -->
+  <div class="slide" id="s7">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The one idea<span></span></div>
+    <img class="rabbit-logo" src="rabbit-logo.png" alt="Rabbit">
+    <p class="rabbit-tag">See what your friends are <em>building</em>.</p>
+  </div>
+
 </div>
 
 <script>
-const SLIDES = ['s0','s1','s2','s3','s4','s5','s6'];
+const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7'];
 let current = 0;
 
 function buildDots() {
@@ -677,7 +708,7 @@ function goTo(idx) {
     slide.querySelectorAll('.q-card, .q-foot').forEach(el => el.classList.remove('shown'));
   }
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .flow-step, .q-card, .q-foot, .recap-chips, .pep-tail, .doc-link').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .flow-step, .q-card, .q-foot, .recap-chips, .pep-tail, .doc-link, .rabbit-logo, .rabbit-tag').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
