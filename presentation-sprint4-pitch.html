@@ -270,36 +270,36 @@ body::after {
 .q-grid {
   margin-top: 4vh;
   display: grid;
-  gap: 0.8rem;
-  max-width: 1120px;
+  gap: 1.1rem;
+  max-width: 1320px;
   width: 100%;
   grid-template-columns: repeat(3, 1fr);
 }
 .q-card {
-  padding: 1.15rem 1.25rem;
+  padding: 1.6rem 1.7rem;
   background: rgba(255,255,255,0.025);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
   text-align: left;
   opacity: 0;
   display: flex;
-  gap: 0.85rem;
+  gap: 1.1rem;
   align-items: flex-start;
 }
 .q-card.shown { animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1) forwards; }
 .q-num {
   font-family: 'Clash Display', sans-serif;
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: clamp(1.5rem, 1.9vw, 2rem);
   line-height: 1;
   color: var(--c1);
   flex-shrink: 0;
   font-feature-settings: "tnum";
 }
 .q-text {
-  font-size: clamp(0.82rem, 1.05vw, 0.95rem);
+  font-size: clamp(1.1rem, 1.45vw, 1.5rem);
   color: var(--text);
-  line-height: 1.35;
+  line-height: 1.4;
   font-weight: 400;
 }
 .q-foot {
