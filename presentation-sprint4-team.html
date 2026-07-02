@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A new way of working · Smitten</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@1,300;1,400;1,500&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #080810;
+  --text: #ffffff;
+  --text-dim: rgba(255,255,255,0.55);
+  --text-faint: rgba(255,255,255,0.2);
+  --border: rgba(255,255,255,0.08);
+  --c1: #00E5FF;
+  --c2: #FFB800;
+  --c3: #FF5C8A;
+  --cF: #B8FF4A;
+  --rabbit: #FF8800;
+}
+
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); cursor: none; }
+body { font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+
+#cursor {
+  position: fixed; z-index: 9999;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--c3);
+  pointer-events: none;
+  transition: width .25s, height .25s, background .5s, opacity .2s;
+  transform: translate(-50%, -50%);
+  mix-blend-mode: difference;
+}
+#cursor.big { width: 48px; height: 48px; }
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+#constellation { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+.deck { position: fixed; inset: 0; z-index: 1; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5vw;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+  text-align: center;
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  font-size: clamp(0.65rem, 1.1vw, 0.8rem);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--c3);
+  margin-bottom: 2.5vh;
+  opacity: 0;
+}
+.eyebrow::before, .eyebrow::after {
+  content: ''; display: block;
+  width: 40px; height: 1px;
+  background: currentColor; opacity: 0.5;
+}
+.slide.active .eyebrow { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s forwards; }
+
+.title {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: var(--text);
+  opacity: 0;
+}
+.title em {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--c1);
+  text-shadow: 0 0 40px currentColor;
+  letter-spacing: -0.01em;
+}
+.slide.active .title { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.25s forwards; }
+
+.sub {
+  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+  color: var(--text-dim);
+  max-width: 760px;
+  line-height: 1.55;
+  margin-top: 3vh;
+  opacity: 0;
+  font-weight: 300;
+}
+.slide.active .sub { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.45s forwards; }
+.sub em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
+
+.glow {
+  position: absolute;
+  width: 60vw; height: 60vw;
+  max-width: 700px; max-height: 700px;
+  border-radius: 50%;
+  filter: blur(160px);
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+.watermark {
+  position: absolute;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 700;
+  font-size: clamp(28vw, 35vw, 600px);
+  line-height: 0.85;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.04);
+  right: -4vw; bottom: -4vw;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: -0.05em;
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+
+/* ── value-tag (mission / invitation) ── */
+.value-tag {
+  margin-top: 4.5vh;
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+  max-width: 740px;
+  opacity: 0;
+  line-height: 1.6;
+  font-weight: 300;
+}
+.value-tag em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
+.slide.active .value-tag { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s forwards; }
+
+/* ── two split cards ── */
+.split-row {
+  display: flex; gap: 1.5rem;
+  margin-top: 5vh;
+  max-width: 1040px; width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.split-card {
+  flex: 1 1 380px; max-width: 480px;
+  padding: 2.2rem 2rem;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.02);
+  text-align: left;
+  opacity: 0;
+  backdrop-filter: blur(6px);
+}
+.slide.active .split-card { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .split-card:nth-child(1) { animation-delay: 0.45s; border-color: rgba(0,229,255,0.28); }
+.slide.active .split-card:nth-child(2) { animation-delay: 0.6s; border-color: rgba(184,255,74,0.28); }
+.split-lbl {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+.split-card:nth-child(1) .split-lbl { color: var(--c1); }
+.split-card:nth-child(2) .split-lbl { color: var(--cF); }
+.split-val {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.split-desc {
+  font-size: 0.92rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+  margin-top: 0.9rem;
+  font-weight: 300;
+}
+.split-owner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  margin-top: 1.3rem;
+  padding: 0.4em 0.9em;
+  border-radius: 99px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  letter-spacing: -0.01em;
+}
+.split-owner span { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.7; }
+.split-card:nth-child(1) .split-owner { color: var(--c1); background: rgba(0,229,255,0.1); }
+.split-card.rabbit { }
+.slide.active .split-card.rabbit { border-color: rgba(255,136,0,0.32); }
+.split-card.rabbit .split-lbl { color: var(--rabbit); }
+.split-card.rabbit .split-owner { color: var(--rabbit); background: rgba(255,136,0,0.1); }
+
+/* ── tile grid (Product Owner role) ── */
+.tile-grid {
+  margin-top: 5vh;
+  display: grid;
+  gap: 1rem;
+  max-width: 1040px;
+  width: 100%;
+  grid-template-columns: repeat(3, 1fr);
+}
+.tile {
+  padding: 1.9rem 1.6rem;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  text-align: left;
+  opacity: 0;
+  position: relative;
+  overflow: hidden;
+}
+.slide.active .tile { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .tile:nth-child(1) { animation-delay: 0.45s; }
+.slide.active .tile:nth-child(2) { animation-delay: 0.58s; }
+.slide.active .tile:nth-child(3) { animation-delay: 0.71s; }
+.tile-tag {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.tile-name {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.15rem, 1.9vw, 1.5rem);
+  font-weight: 600;
+  margin-top: 0.7rem;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tile-sub {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  margin-top: 0.55rem;
+  line-height: 1.45;
+  font-weight: 300;
+}
+
+/* ── team roster ── */
+.roster {
+  margin-top: 4.5vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.6rem;
+  width: 100%;
+  max-width: 900px;
+}
+.roster-po {
+  padding: 1.4rem 2.4rem;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  text-align: center;
+  opacity: 0;
+}
+.slide.active .roster-po { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s forwards; }
+.roster-po-lbl {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--accent, var(--c1));
+  margin-bottom: 0.5rem;
+}
+.roster-po-name {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text);
+}
+.roster-po-note {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  margin-top: 0.8rem;
+  font-weight: 300;
+  line-height: 1.5;
+  max-width: 560px;
+}
+.roster-po-note em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
+.roster-groups {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.roster-group {
+  flex: 1 1 300px;
+  max-width: 440px;
+  padding: 1.6rem 1.7rem;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.02);
+  text-align: left;
+  opacity: 0;
+}
+.slide.active .roster-group { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .roster-group:nth-child(1) { animation-delay: 0.6s; }
+.slide.active .roster-group:nth-child(2) { animation-delay: 0.73s; }
+.roster-group-lbl {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 1rem;
+}
+.roster-pills {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+.person {
+  padding: 0.5em 1em;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 500;
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: var(--text);
+  background: rgba(255,255,255,0.03);
+  letter-spacing: -0.005em;
+}
+.person.moving {
+  color: var(--rabbit);
+  border-color: rgba(255,136,0,0.45);
+  background: rgba(255,136,0,0.08);
+}
+.person.moving::after {
+  content: ' → Rabbit';
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62em;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  opacity: 0.8;
+}
+.person.seed {
+  color: var(--rabbit);
+  border-color: rgba(255,136,0,0.45);
+  background: rgba(255,136,0,0.08);
+}
+
+/* ── closing recap chips + mantra ── */
+.recap-chips {
+  margin-top: 5vh;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+}
+.slide.active .recap-chips { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s forwards; }
+.recap-chip {
+  padding: 0.75em 1.4em;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 500;
+  font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.025);
+  letter-spacing: -0.005em;
+}
+.recap-chip strong { color: var(--text); font-weight: 600; }
+.pep-tail {
+  margin-top: 4vh;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: var(--text-dim);
+  line-height: 1.55;
+  max-width: 720px;
+  opacity: 0;
+  font-weight: 300;
+}
+.pep-tail em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
+.slide.active .pep-tail { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.85s forwards; }
+.pep-mantra {
+  margin-top: 3.5vh;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.6rem, 3.2vw, 2.5rem);
+  color: var(--c3);
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 30px rgba(255,92,138,0.4);
+  opacity: 0;
+}
+.slide.active .pep-mantra { animation: slideUp 1s cubic-bezier(0.16,1,0.3,1) 1.15s forwards; }
+
+/* ─────────────────────────────────────────────
+   SLIDE 0 — COVER
+───────────────────────────────────────────── */
+#s0 .glow { background: radial-gradient(circle, rgba(255,92,138,0.7), transparent 70%); top: -10%; left: 50%; transform: translateX(-50%); }
+.cover-icon {
+  font-size: clamp(3rem, 6vw, 4.5rem);
+  margin-bottom: 2.5vh;
+  opacity: 0;
+  filter: drop-shadow(0 0 30px rgba(255,92,138,0.4));
+}
+.slide.active .cover-icon { animation: scaleIn 1s cubic-bezier(0.16,1,0.3,1) 0.05s forwards; }
+#s0 .title { font-size: clamp(3.5rem, 10vw, 8rem); }
+#s0 .title em { color: var(--c3); }
+.cover-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  color: var(--text-dim);
+  margin-top: 4vh;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  font-weight: 300;
+  max-width: 680px;
+}
+.cover-sub em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
+.slide.active .cover-sub { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+.cover-hint {
+  margin-top: 6vh;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0;
+}
+.hint-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px; height: 26px;
+  border: 1px solid var(--text-faint);
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+.slide.active .cover-hint { animation: fadeIn 1s ease 1s forwards; }
+
+/* ── per-slide accents ── */
+#s1 .glow { background: radial-gradient(circle, rgba(255,92,138,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s1 .eyebrow { color: var(--c3); }
+#s1 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+#s1 .title em { color: var(--c3); }
+
+#s2 .glow { background: radial-gradient(circle, rgba(255,184,0,0.42), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s2 .watermark { -webkit-text-stroke: 1px rgba(255,184,0,0.06); right: -3vw; bottom: -6vw; font-size: clamp(22vw, 30vw, 520px); }
+#s2 .eyebrow { color: var(--c2); }
+#s2 .title { font-size: clamp(2.8rem, 7vw, 5.5rem); }
+#s2 .title em { color: var(--c2); }
+
+#s3 .glow { background: radial-gradient(circle, rgba(0,229,255,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s3 .eyebrow { color: var(--c1); }
+#s3 .title { font-size: clamp(2.8rem, 7vw, 5.5rem); }
+#s3 .title em { color: var(--c1); }
+#s3 .tile-tag { color: var(--c1); }
+
+#s4 .glow { background: radial-gradient(circle, rgba(255,92,138,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s4 .eyebrow { color: var(--c3); }
+#s4 .title { font-size: clamp(2.8rem, 7.5vw, 6rem); }
+#s4 .title em { color: var(--c3); }
+
+#s5 .glow { background: radial-gradient(circle, rgba(0,229,255,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s5 { --accent: var(--c1); }
+#s5 .eyebrow { color: var(--c1); }
+#s5 .title { font-size: clamp(2.6rem, 6.5vw, 5rem); }
+#s5 .title em { color: var(--c1); }
+
+#s6 .glow { background: radial-gradient(circle, rgba(255,136,0,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s6 { --accent: var(--rabbit); }
+#s6 .eyebrow { color: var(--rabbit); }
+.rabbit-mark {
+  width: min(360px, 62vw);
+  max-height: 16vh;
+  object-fit: contain;
+  opacity: 0;
+  filter: drop-shadow(0 0 50px rgba(255,136,0,0.35));
+  margin-bottom: 1vh;
+}
+.slide.active .rabbit-mark { animation: scaleIn 1s cubic-bezier(0.16,1,0.3,1) 0.1s forwards; }
+
+#s7 .glow { background: radial-gradient(circle, rgba(255,92,138,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s7 .eyebrow { color: var(--c3); }
+#s7 .title { font-size: clamp(3rem, 8vw, 6rem); }
+#s7 .title em { color: var(--c3); }
+
+/* ─────────────────────────────────────────────
+   NAV + PROGRESS + FULLSCREEN
+───────────────────────────────────────────── */
+.nav {
+  position: fixed;
+  bottom: 2.5vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+.nav-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans',sans-serif;
+}
+.nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.08); color: var(--text); }
+.nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+.nav-dots { display: flex; gap: 0.4rem; }
+.nav-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-faint);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  padding: 0;
+}
+.nav-dot.active { width: 24px; border-radius: 6px; background: var(--c3); }
+.nav-dot:hover { background: var(--text-dim); }
+
+.counter {
+  position: fixed;
+  top: 2.5vh; right: 3vw;
+  z-index: 100;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--text-faint);
+  font-feature-settings: "tnum";
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.counter-current { color: var(--c3); font-weight: 600; }
+
+#btn-fullscreen {
+  position: fixed; top: 2.5vh; left: 3vw; z-index: 100;
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+#btn-fullscreen:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+#btn-fullscreen svg { width: 18px; height: 18px; }
+
+.progress-bar-wrap { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 100; background: transparent; }
+.progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--c1), var(--c3), var(--c2)); transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
+
+@media (max-width: 860px) {
+  .tile-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  html, body { cursor: default; }
+  #cursor { display: none; }
+  .slide { padding: 8vw 6vw; }
+  .split-row, .recap-chips, .roster-groups { flex-direction: column; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<canvas id="constellation"></canvas>
+
+<div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+<button id="btn-fullscreen" title="Toggle fullscreen">
+  <svg id="fs-icon-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V3h4M21 7V3h-4M3 17v4h4M21 17v4h-4"/></svg>
+  <svg id="fs-icon-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M8 3v4H4M16 3v4h4M8 21v-4H4M16 21v-4h4"/></svg>
+</button>
+
+<div class="counter">
+  <span class="counter-current" id="count-current">1</span>
+  <span>/</span>
+  <span id="count-total">8</span>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn" id="btn-prev" onclick="go(-1)" disabled>←</button>
+  <div class="nav-dots" id="nav-dots"></div>
+  <button class="nav-btn" id="btn-next" onclick="go(1)">→</button>
+</nav>
+
+<!-- ═══════ DECK ═══════ -->
+<div class="deck">
+
+  <!-- 0 · COVER -->
+  <div class="slide active" id="s0">
+    <div class="glow"></div>
+    <div class="cover-icon">🔀</div>
+    <div class="eyebrow"><span></span>Smitten · Internal · Sprint 4 · July 2026<span></span></div>
+    <h1 class="title">A new way of <em>working</em></h1>
+    <p class="cover-sub">Two plans need two teams. Here's how we <em>organize</em> to run both.</p>
+    <div class="cover-hint"><span class="hint-key">→</span><span>press to begin</span></div>
+  </div>
+
+  <!-- 1 · RECAP — TWO PLANS -->
+  <div class="slide" id="s1">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Where we left off<span></span></div>
+    <h2 class="title">Two plans.<br>One <em>mission</em></h2>
+    <div class="split-row">
+      <div class="split-card">
+        <div class="split-lbl">Plan 01 · Optimize</div>
+        <div class="split-val">Improve Smitten</div>
+        <div class="split-desc">Sharpen the product we already love. Optimize relentlessly, grow revenue, and reach profitability.</div>
+      </div>
+      <div class="split-card">
+        <div class="split-lbl">Plan 02 · Explore</div>
+        <div class="split-val">Build an A+ product</div>
+        <div class="split-desc">Explore the next bet that could be A+ from day one. The one idea that checked every box: Rabbit.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · WHAT WASN'T WORKING -->
+  <div class="slide" id="s2">
+    <div class="glow"></div>
+    <div class="watermark">reset</div>
+    <div class="eyebrow"><span></span>An honest look<span></span></div>
+    <h2 class="title">What wasn't <em>working</em></h2>
+    <p class="sub">We ran one production team with every function crammed inside it. It hasn't clicked — the calls are unclear and there's <em>no clear leader</em>. Good people, held back by the shape of the team. That's on the structure, not the people. So we change the structure.</p>
+  </div>
+
+  <!-- 3 · THE FIX — PRODUCT OWNER -->
+  <div class="slide" id="s3">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The change<span></span></div>
+    <h2 class="title">Enter the <em>Product Owner</em></h2>
+    <p class="sub">Every product gets one owner — a single person who leads the team and calls the shots. No more decisions by committee.</p>
+    <div class="tile-grid">
+      <div class="tile">
+        <div class="tile-tag">01</div>
+        <div class="tile-name">Leads the team</div>
+        <div class="tile-sub">One owner sets direction and holds the product end to end. The buck stops with them.</div>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">02</div>
+        <div class="tile-name">Calls the shots</div>
+        <div class="tile-sub">Clear, fast decisions. The team knows exactly who owns the call — and it gets made.</div>
+      </div>
+      <div class="tile">
+        <div class="tile-tag">03</div>
+        <div class="tile-name">Backed by resources</div>
+        <div class="tile-sub">Each owner can pull real resources from the stakeholders to move the product forward.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4 · TWO TEAMS -->
+  <div class="slide" id="s4">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The new structure<span></span></div>
+    <h2 class="title">A team per <em>plan</em></h2>
+    <div class="split-row">
+      <div class="split-card">
+        <div class="split-lbl">Plan 01 · Optimize</div>
+        <div class="split-val">The Product team</div>
+        <div class="split-desc">Owns Smitten. Takes the product we love from great to unforgettable, all the way to profitability.</div>
+        <div class="split-owner"><span>PO</span> Tedda</div>
+      </div>
+      <div class="split-card rabbit">
+        <div class="split-lbl">Plan 02 · Explore</div>
+        <div class="split-val">Rabbit</div>
+        <div class="split-desc">Explores the next A+ product in parallel — so we're never betting on just one thing.</div>
+        <div class="split-owner"><span>PO</span> David</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 · THE PRODUCT TEAM -->
+  <div class="slide" id="s5">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Plan one · Smitten<span></span></div>
+    <h2 class="title">The <em>Product</em> team</h2>
+    <div class="roster">
+      <div class="roster-po">
+        <div class="roster-po-lbl">Product Owner</div>
+        <div class="roster-po-name">Tedda</div>
+        <div class="roster-po-note">Leads the team and calls the shots — with <em>deep stakeholder resources</em> to pull from.</div>
+      </div>
+      <div class="roster-groups">
+        <div class="roster-group">
+          <div class="roster-group-lbl">Design</div>
+          <div class="roster-pills">
+            <span class="person">Hugrún</span>
+          </div>
+        </div>
+        <div class="roster-group">
+          <div class="roster-group-lbl">Development · front &amp; back</div>
+          <div class="roster-pills">
+            <span class="person">Gunnsteinn</span>
+            <span class="person">Garðar</span>
+            <span class="person">Bjarki</span>
+            <span class="person">Gulli</span>
+            <span class="person moving">Yossi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6 · RABBIT -->
+  <div class="slide" id="s6">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Plan two · Explore<span></span></div>
+    <img class="rabbit-mark" src="rabbit-logo.png" alt="Rabbit">
+    <h2 class="title" style="font-size:clamp(1.6rem,3vw,2.4rem)">A team to explore <em>what's next</em></h2>
+    <div class="roster">
+      <div class="roster-po">
+        <div class="roster-po-lbl">Product Owner</div>
+        <div class="roster-po-name">David</div>
+        <div class="roster-po-note">Same access to <em>stakeholder resources</em> — so the next bet gets a real shot from day one.</div>
+      </div>
+      <div class="roster-groups">
+        <div class="roster-group" style="max-width:520px">
+          <div class="roster-group-lbl">Starting lineup</div>
+          <div class="roster-pills">
+            <span class="person seed">Yossi</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7 · CLOSE -->
+  <div class="slide" id="s7">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The new way<span></span></div>
+    <h2 class="title">Two teams.<br>One <em>mission</em></h2>
+    <div class="recap-chips">
+      <div class="recap-chip"><strong>Two owners</strong>, clear calls</div>
+      <div class="recap-chip"><strong>Two bets</strong>, run in parallel</div>
+      <div class="recap-chip"><strong>One mission</strong>, unchanged</div>
+    </div>
+    <p class="pep-tail">Clear ownership. Real resources behind each product. Two plans, now running side by side. <em>This is how we build the next billion.</em></p>
+    <div class="pep-mantra">Let's get to work.</div>
+  </div>
+
+</div>
+
+<script>
+const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7'];
+let current = 0;
+
+function buildDots() {
+  const wrap = document.getElementById('nav-dots');
+  SLIDES.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    wrap.appendChild(d);
+  });
+  document.getElementById('count-total').textContent = SLIDES.length;
+}
+
+function goTo(idx) {
+  if (idx < 0 || idx >= SLIDES.length) return;
+  document.getElementById(SLIDES[current]).classList.remove('active');
+  current = idx;
+  const slide = document.getElementById(SLIDES[current]);
+  slide.classList.add('active');
+
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .roster-po, .roster-group, .rabbit-mark, .recap-chips, .pep-tail, .pep-mantra').forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight;
+    el.style.animation = '';
+  });
+
+  document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  document.getElementById('count-current').textContent = current + 1;
+
+  const pct = (current / (SLIDES.length - 1)) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+
+  document.getElementById('btn-prev').disabled = current === 0;
+  document.getElementById('btn-next').disabled = current === SLIDES.length - 1;
+}
+
+function go(dir) { goTo(current + dir); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); go(1); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  else if (e.key === 'Home') goTo(0);
+  else if (e.key === 'End')  goTo(SLIDES.length - 1);
+  else if (e.key === 'f' || e.key === 'F') { document.getElementById('btn-fullscreen').click(); }
+});
+
+document.querySelector('.deck').addEventListener('click', e => {
+  if (e.target.closest('.nav') || e.target.closest('.nav-btn') || e.target.closest('.nav-dot') || e.target.closest('a')) return;
+  go(1);
+});
+
+let touchX = 0;
+document.addEventListener('touchstart', e => touchX = e.touches[0].clientX, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+}, { passive: true });
+
+const btnFS = document.getElementById('btn-fullscreen');
+const fsEnter = document.getElementById('fs-icon-enter');
+const fsExit  = document.getElementById('fs-icon-exit');
+
+function updateFSIcon() {
+  const isFS = !!document.fullscreenElement;
+  fsEnter.style.display = isFS ? 'none' : '';
+  fsExit.style.display  = isFS ? '' : 'none';
+}
+
+btnFS.addEventListener('click', () => {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen().catch(()=>{});
+});
+document.addEventListener('fullscreenchange', updateFSIcon);
+
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top  = e.clientY + 'px';
+});
+document.addEventListener('mouseenter', () => cursor.style.opacity = '1');
+document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
+document.querySelectorAll('button, a, .nav-dot, #btn-fullscreen').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+});
+
+(function () {
+  const canvas = document.getElementById('constellation');
+  const ctx = canvas.getContext('2d');
+  let W, H, pts;
+  const N = 60, CONN = 170;
+  const resize = () => {
+    W = canvas.width  = innerWidth;
+    H = canvas.height = innerHeight;
+    pts = Array.from({length: N}, () => ({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-0.5)*0.2, vy: (Math.random()-0.5)*0.2
+    }));
+  };
+  const tick = () => {
+    ctx.clearRect(0, 0, W, H);
+    for (const p of pts) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+    }
+    for (let i = 0; i < N; i++) {
+      for (let j = i+1; j < N; j++) {
+        const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+        const d = Math.hypot(dx, dy);
+        if (d < CONN) {
+          ctx.strokeStyle = `rgba(255,255,255,${0.06*(1-d/CONN)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[j].x, pts[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+    for (const p of pts) {
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1, 0, Math.PI*2);
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  };
+  window.addEventListener('resize', resize);
+  resize();
+  tick();
+})();
+
+buildDots();
+</script>
+</body>
+</html>
