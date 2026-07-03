@@ -272,6 +272,37 @@ body::after {
   font-weight: 300;
 }
 
+/* ── goal chip (the old single goal, struck through live) ── */
+@keyframes strikeIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.goal-chip {
+  margin-top: 4.5vh;
+  position: relative;
+  padding: 0.85em 1.6em;
+  border: 1px solid rgba(255,184,0,0.5);
+  border-radius: 99px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.1rem, 2.2vw, 1.7rem);
+  color: var(--c2);
+  background: rgba(255,184,0,0.07);
+  letter-spacing: -0.005em;
+  opacity: 0;
+}
+.slide.active .goal-chip { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+.goal-chip::after {
+  content: '';
+  position: absolute;
+  left: 6%; right: 6%;
+  top: 50%;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--c3);
+  box-shadow: 0 0 14px rgba(255,92,138,0.7);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.slide.active .goal-chip::after { animation: strikeIn 0.45s cubic-bezier(0.4,0,0.2,1) 1.5s forwards; }
+
 /* ── loop chips (the new optimization loop) ── */
 .loop-row {
   margin-top: 4.5vh;
@@ -310,7 +341,8 @@ body::after {
   opacity: 0;
 }
 .slide.active .loop-arrow { animation: fadeIn 0.8s ease 1.1s forwards; }
-#s2.slide.active .value-tag { animation-delay: 1.25s; }
+#s2.slide.active .value-tag { animation-delay: 2s; }
+#s2b.slide.active .value-tag { animation-delay: 1.25s; }
 
 /* ── lead reveal hero (Smitten Product team) ── */
 @keyframes nameIn { from { opacity: 0; transform: scale(1.18) translateY(12px); filter: blur(16px); } to { opacity: 1; transform: none; filter: blur(0); } }
@@ -728,6 +760,18 @@ body::after {
 #s2 .title { font-size: clamp(2.8rem, 7vw, 5.5rem); }
 #s2 .title em { color: var(--c2); }
 
+#s2b .glow { background: radial-gradient(circle, rgba(184,255,74,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s2b .watermark { -webkit-text-stroke: 1px rgba(184,255,74,0.06); right: -3vw; bottom: -6vw; font-size: clamp(22vw, 30vw, 520px); }
+#s2b .eyebrow { color: var(--cF); }
+#s2b .title { font-size: clamp(2.8rem, 7vw, 5.5rem); }
+#s2b .title em { color: var(--cF); }
+#s2b .loop-chip.win {
+  color: var(--cF);
+  border-color: rgba(184,255,74,0.5);
+  background: rgba(184,255,74,0.08);
+  box-shadow: 0 0 24px rgba(184,255,74,0.15);
+}
+
 #s3 .glow { background: radial-gradient(circle, rgba(0,229,255,0.45), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 #s3 .eyebrow { color: var(--c1); }
 #s3 .title { font-size: clamp(2.8rem, 7vw, 5.5rem); }
@@ -885,7 +929,7 @@ body::after {
 <div class="counter">
   <span class="counter-current" id="count-current">1</span>
   <span>/</span>
-  <span id="count-total">9</span>
+  <span id="count-total">10</span>
 </div>
 
 <nav class="nav">
@@ -928,10 +972,21 @@ body::after {
   <!-- 2 · KILLING THE PRODUCTION TEAM -->
   <div class="slide" id="s2">
     <div class="glow"></div>
-    <div class="watermark">execute</div>
+    <div class="watermark">over</div>
     <div class="eyebrow"><span></span>An honest look<span></span></div>
     <h2 class="title">Killing the <em>production</em> team</h2>
-    <p class="sub">The production team was a great test — but not the best setup. Its whole goal was to <em>push things to production</em>, and that's the wrong thing to optimize for.</p>
+    <p class="sub">The production team was a great test — but not the best setup. Everything was optimized for a single goal:</p>
+    <div class="goal-chip">Push something to production</div>
+    <p class="value-tag">That's the <em>wrong thing</em> to optimize for. So we're killing it.</p>
+  </div>
+
+  <!-- 2b · THE EXECUTION TEAM -->
+  <div class="slide" id="s2b">
+    <div class="glow"></div>
+    <div class="watermark">execute</div>
+    <div class="eyebrow"><span></span>The new mindset<span></span></div>
+    <h2 class="title">The <em>execution</em> team</h2>
+    <p class="sub">Built to move fast — test things, measure what happens, and push to production only <em>what works</em>.</p>
     <div class="loop-row">
       <div class="loop-chip">Move fast</div>
       <div class="loop-arrow">→</div>
@@ -941,7 +996,7 @@ body::after {
       <div class="loop-arrow">→</div>
       <div class="loop-chip win">Ship what wins</div>
     </div>
-    <p class="value-tag">When a test moves a metric — <em>or a feeling</em> — it goes to everyone. So don't think production team. Think <em>execution team</em>.</p>
+    <p class="value-tag">When a test moves a metric — <em>or a feeling</em> — it ships to everyone. Production is the reward, not the goal.</p>
   </div>
 
   <!-- 3 · THE FIX — PRODUCT LEAD -->
@@ -1110,7 +1165,7 @@ body::after {
 </div>
 
 <script>
-const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','smap','s7'];
+const SLIDES = ['s0','s1','s2','s2b','s3','s4','s5','s6','smap','s7'];
 let current = 0;
 
 // Draw the connector lines on the org-map slide: each stakeholder chip
@@ -1162,7 +1217,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .recap-chips, .pep-tail, .pep-mantra, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .loop-chip, .loop-arrow, .lead-kicker, .lead-name, .lead-line, .squad-card, .team-forming').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .recap-chips, .pep-tail, .pep-mantra, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .loop-chip, .loop-arrow, .goal-chip, .lead-kicker, .lead-name, .lead-line, .squad-card, .team-forming').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
