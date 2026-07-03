@@ -555,6 +555,18 @@ body::after {
   background: rgba(8,8,16,0.5);
   letter-spacing: -0.005em;
 }
+.org-members:empty { display: none; }
+.org-member.in-rabbit {
+  color: var(--rabbit);
+  border-color: rgba(255,136,0,0.5);
+  background: rgba(255,136,0,0.1);
+}
+.org-member.flying {
+  position: relative;
+  z-index: 60;
+  box-shadow: 0 0 28px rgba(255,136,0,0.55);
+  will-change: transform;
+}
 .org-forming {
   margin-top: 0.9rem;
   font-family: 'Fraunces', serif;
@@ -877,9 +889,9 @@ body::after {
 </div>
 
 <nav class="nav">
-  <button class="nav-btn" id="btn-prev" onclick="go(-1)" disabled>←</button>
+  <button class="nav-btn" id="btn-prev" onclick="retreat()" disabled>←</button>
   <div class="nav-dots" id="nav-dots"></div>
-  <button class="nav-btn" id="btn-next" onclick="go(1)">→</button>
+  <button class="nav-btn" id="btn-next" onclick="advance()">→</button>
 </nav>
 
 <!-- ═══════ DECK ═══════ -->
@@ -1054,13 +1066,13 @@ body::after {
         <div class="org-team-lbl">Smitten</div>
         <div class="org-po-lbl">Product Lead</div>
         <div class="org-po-name">Tedda</div>
-        <div class="org-members">
+        <div class="org-members" id="smitten-members">
           <span class="org-member">Hugrún</span>
           <span class="org-member">Gunnsteinn</span>
           <span class="org-member">Garðar</span>
           <span class="org-member">Bjarki</span>
           <span class="org-member">Gulli</span>
-          <span class="org-member">Yossi</span>
+          <span class="org-member" id="yossi-pill">Yossi</span>
         </div>
       </div>
       <div class="stk-col">
@@ -1076,6 +1088,7 @@ body::after {
         <div class="org-team-lbl">Rabbit</div>
         <div class="org-po-lbl">Product Lead</div>
         <div class="org-po-name">David</div>
+        <div class="org-members" id="rabbit-members"></div>
         <div class="org-forming">team forming…</div>
       </div>
     </div>
@@ -1156,7 +1169,7 @@ function goTo(idx) {
     el.style.animation = '';
   });
 
-  if (SLIDES[current] === 'smap') requestAnimationFrame(drawOrgLines);
+  if (SLIDES[current] === 'smap') { resetYossi(); requestAnimationFrame(drawOrgLines); }
 
   document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === current));
   document.getElementById('count-current').textContent = current + 1;
@@ -1170,9 +1183,47 @@ function goTo(idx) {
 
 function go(dir) { goTo(current + dir); }
 
+// On the org-map slide, the first forward step flies Yossi from the Smitten
+// bubble into the Rabbit bubble (FLIP). The next step advances. Back reverses.
+let yossiMoved = false;
+function moveYossi(back) {
+  const pill = document.getElementById('yossi-pill');
+  if (!pill) return;
+  const from = pill.getBoundingClientRect();
+  document.getElementById(back ? 'smitten-members' : 'rabbit-members').appendChild(pill);
+  pill.classList.toggle('in-rabbit', !back);
+  const to = pill.getBoundingClientRect();
+  pill.classList.add('flying');
+  pill.style.transition = 'none';
+  pill.style.transform = `translate(${from.left - to.left}px, ${from.top - to.top}px)`;
+  pill.offsetHeight;
+  pill.style.transition = 'transform 0.9s cubic-bezier(0.22, 1, 0.36, 1)';
+  pill.style.transform = 'translate(0, 0)';
+  setTimeout(() => { pill.classList.remove('flying'); pill.style.transition = ''; pill.style.transform = ''; }, 950);
+  yossiMoved = !back;
+}
+function resetYossi() {
+  const pill = document.getElementById('yossi-pill');
+  if (!pill) return;
+  document.getElementById('smitten-members').appendChild(pill);
+  pill.classList.remove('in-rabbit', 'flying');
+  pill.style.transition = '';
+  pill.style.transform = '';
+  yossiMoved = false;
+}
+
+function advance() {
+  if (SLIDES[current] === 'smap' && !yossiMoved) { moveYossi(false); return; }
+  go(1);
+}
+function retreat() {
+  if (SLIDES[current] === 'smap' && yossiMoved) { moveYossi(true); return; }
+  go(-1);
+}
+
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); go(1); }
-  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); advance(); }
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); retreat(); }
   else if (e.key === 'Home') goTo(0);
   else if (e.key === 'End')  goTo(SLIDES.length - 1);
   else if (e.key === 'f' || e.key === 'F') { document.getElementById('btn-fullscreen').click(); }
@@ -1180,14 +1231,14 @@ document.addEventListener('keydown', e => {
 
 document.querySelector('.deck').addEventListener('click', e => {
   if (e.target.closest('.nav') || e.target.closest('.nav-btn') || e.target.closest('.nav-dot') || e.target.closest('a')) return;
-  go(1);
+  advance();
 });
 
 let touchX = 0;
 document.addEventListener('touchstart', e => touchX = e.touches[0].clientX, { passive: true });
 document.addEventListener('touchend', e => {
   const dx = e.changedTouches[0].clientX - touchX;
-  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+  if (Math.abs(dx) > 50) { dx < 0 ? advance() : retreat(); }
 }, { passive: true });
 
 const btnFS = document.getElementById('btn-fullscreen');
