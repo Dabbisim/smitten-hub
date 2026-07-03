@@ -749,10 +749,18 @@ body::after {
   background-clip: text;
   filter: drop-shadow(0 0 34px rgba(255,136,0,0.35));
 }
-#s6 .squad-card::before { background: linear-gradient(90deg, transparent, rgba(255,136,0,0.8), transparent); }
-#s6 .squad-card:hover { border-color: rgba(255,136,0,0.45); }
-#s6 .squad-card.forming { border-style: dashed; background: transparent; }
-#s6 .squad-card.forming .squad-name { color: var(--text-faint); }
+.team-forming {
+  position: relative;
+  z-index: 1;
+  margin-top: 6vh;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(1.2rem, 2vw, 1.7rem);
+  color: var(--text-dim);
+  opacity: 0;
+}
+.slide.active .team-forming { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.9s forwards; }
 
 #smap .glow { background: radial-gradient(circle, rgba(255,92,138,0.4), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 #smap .eyebrow { color: var(--c3); }
@@ -1031,18 +1039,7 @@ body::after {
       <div class="lead-name"><span>David</span></div>
       <p class="lead-line">Leads the team. Calls the shots.</p>
     </div>
-    <div class="squad-row">
-      <div class="squad-card">
-        <div class="squad-num">01</div>
-        <div class="squad-name">Yossi</div>
-        <div class="squad-role">Development</div>
-      </div>
-      <div class="squad-card forming">
-        <div class="squad-num">02</div>
-        <div class="squad-name">…</div>
-        <div class="squad-role">More to come</div>
-      </div>
-    </div>
+    <p class="team-forming">team forming…</p>
   </div>
 
   <!-- 6b · ORG MAP -->
@@ -1153,7 +1150,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .recap-chips, .pep-tail, .pep-mantra, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .loop-chip, .loop-arrow, .lead-kicker, .lead-name, .lead-line, .squad-card').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .recap-chips, .pep-tail, .pep-mantra, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .loop-chip, .loop-arrow, .lead-kicker, .lead-name, .lead-line, .squad-card, .team-forming').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
