@@ -649,14 +649,12 @@ body::after {
 
 /* ── closing recap chips + mantra ── */
 .recap-chips {
-  margin-top: 5vh;
+  margin-top: 4.5vh;
   display: flex;
-  gap: 0.75rem;
+  gap: 0.8rem;
   flex-wrap: wrap;
   justify-content: center;
-  opacity: 0;
 }
-.slide.active .recap-chips { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s forwards; }
 .recap-chip {
   padding: 0.75em 1.4em;
   border: 1px solid var(--border);
@@ -667,8 +665,78 @@ body::after {
   color: var(--text-dim);
   background: rgba(255,255,255,0.025);
   letter-spacing: -0.005em;
+  opacity: 0;
 }
+.slide.active .recap-chip { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .recap-chip:nth-child(1) { animation-delay: 0.5s; }
+.slide.active .recap-chip:nth-child(2) { animation-delay: 0.62s; }
+.slide.active .recap-chip:nth-child(3) { animation-delay: 0.74s; }
 .recap-chip strong { color: var(--text); font-weight: 600; }
+.recap-chip.cyan { border-color: rgba(0,229,255,0.35); background: rgba(0,229,255,0.06); box-shadow: 0 0 20px rgba(0,229,255,0.1); }
+.recap-chip.cyan strong { color: var(--c1); }
+.recap-chip.orange { border-color: rgba(255,136,0,0.4); background: rgba(255,136,0,0.06); box-shadow: 0 0 20px rgba(255,136,0,0.1); }
+.recap-chip.orange strong { color: var(--rabbit); }
+.recap-chip.pink { border-color: rgba(255,92,138,0.45); background: rgba(255,92,138,0.07); box-shadow: 0 0 20px rgba(255,92,138,0.12); }
+.recap-chip.pink strong { color: var(--c3); }
+
+/* ── mantra hero (the finale) ── */
+.mantra-hero {
+  position: relative;
+  margin-top: 6vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mantra-halo {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: min(46vh, 440px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,92,138,0.55), transparent 65%);
+  filter: blur(55px);
+  pointer-events: none;
+  animation: haloPulse 5s ease-in-out infinite;
+}
+.mantra-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: min(30vh, 300px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0% 38%, rgba(0,229,255,0.6) 50%, transparent 62% 100%);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+  pointer-events: none;
+  animation: ringSpin 10s linear infinite;
+}
+.mantra-ring.r2 {
+  width: min(38vh, 380px);
+  background: conic-gradient(from 180deg, transparent 0% 42%, rgba(255,136,0,0.55) 50%, transparent 58% 100%);
+  animation: ringSpin 15s linear infinite reverse;
+}
+.mantra-text {
+  position: relative;
+  opacity: 0;
+  line-height: 1.15;
+}
+.slide.active .mantra-text { animation: nameIn 1.1s cubic-bezier(0.16,1,0.3,1) 1.2s forwards; }
+.mantra-text span {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(2.6rem, 7vw, 5.5rem);
+  letter-spacing: -0.01em;
+  padding: 0 0.12em;
+  background: linear-gradient(115deg, #ffffff 10%, var(--c3) 45%, #ffffff 70%, var(--c3) 95%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 7s ease-in-out infinite;
+  filter: drop-shadow(0 0 34px rgba(255,92,138,0.4));
+}
 .pep-tail {
   margin-top: 4vh;
   font-size: clamp(0.95rem, 1.5vw, 1.15rem);
@@ -680,18 +748,6 @@ body::after {
 }
 .pep-tail em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
 .slide.active .pep-tail { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.85s forwards; }
-.pep-mantra {
-  margin-top: 3.5vh;
-  font-family: 'Fraunces', serif;
-  font-style: italic;
-  font-weight: 300;
-  font-size: clamp(1.6rem, 3.2vw, 2.5rem);
-  color: var(--c3);
-  letter-spacing: -0.01em;
-  text-shadow: 0 0 30px rgba(255,92,138,0.4);
-  opacity: 0;
-}
-.slide.active .pep-mantra { animation: slideUp 1s cubic-bezier(0.16,1,0.3,1) 1.15s forwards; }
 
 /* ─────────────────────────────────────────────
    SLIDE 0 — COVER
@@ -824,10 +880,13 @@ body::after {
 #smap .title em { color: var(--c3); }
 #smap .sub { margin-top: 1.5vh; max-width: 680px; font-size: clamp(0.85rem, 1.3vw, 1.05rem); }
 
-#s7 .glow { background: radial-gradient(circle, rgba(255,92,138,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#s7 .glow.gl-cyan { background: radial-gradient(circle, rgba(0,229,255,0.5), transparent 70%); top: -22%; left: -12%; width: 45vw; height: 45vw; }
+#s7 .glow.gl-orange { background: radial-gradient(circle, rgba(255,136,0,0.5), transparent 70%); top: -22%; right: -12%; width: 45vw; height: 45vw; }
+#s7 .glow.gl-pink { background: radial-gradient(circle, rgba(255,92,138,0.5), transparent 70%); top: 62%; left: 50%; transform: translate(-50%,-50%); }
 #s7 .eyebrow { color: var(--c3); }
-#s7 .title { font-size: clamp(3rem, 8vw, 6rem); }
+#s7 .title { font-size: clamp(2.2rem, 5vw, 4rem); }
 #s7 .title em { color: var(--c3); }
+#s7 .pep-tail { font-size: clamp(0.9rem, 1.35vw, 1.05rem); margin-top: 3vh; }
 
 /* ─────────────────────────────────────────────
    NAV + PROGRESS + FULLSCREEN
@@ -1149,16 +1208,23 @@ body::after {
 
   <!-- 7 · CLOSE -->
   <div class="slide" id="s7">
-    <div class="glow"></div>
+    <div class="glow gl-cyan"></div>
+    <div class="glow gl-orange"></div>
+    <div class="glow gl-pink"></div>
     <div class="eyebrow"><span></span>The new way<span></span></div>
     <h2 class="title">Every bet<br>One <em>mission</em></h2>
     <div class="recap-chips">
-      <div class="recap-chip"><strong>A lead</strong> per product</div>
-      <div class="recap-chip"><strong>Teams</strong>, run in parallel</div>
-      <div class="recap-chip"><strong>One mission</strong>, unchanged</div>
+      <div class="recap-chip cyan"><strong>A lead</strong> per product</div>
+      <div class="recap-chip orange"><strong>Teams</strong>, run in parallel</div>
+      <div class="recap-chip pink"><strong>One mission</strong>, unchanged</div>
     </div>
-    <p class="pep-tail">Clear ownership. Real resources behind every bet. And the structure scales — <em>the next bet gets a team and a lead too</em>. That's how we build the next billion.</p>
-    <div class="pep-mantra">Let's get to work.</div>
+    <p class="pep-tail">Clear ownership. Real resources behind every bet. And the structure scales — <em>the next bet gets a team and a lead too</em>.</p>
+    <div class="mantra-hero">
+      <div class="mantra-halo"></div>
+      <div class="mantra-ring"></div>
+      <div class="mantra-ring r2"></div>
+      <div class="mantra-text"><span>Let's get to work.</span></div>
+    </div>
   </div>
 
 </div>
@@ -1216,7 +1282,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .recap-chips, .pep-tail, .pep-mantra, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .loop-chip, .loop-arrow, .goal-chip, .lead-kicker, .lead-name, .lead-line, .squad-card, .team-forming').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .recap-chip, .pep-tail, .mantra-text, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .loop-chip, .loop-arrow, .goal-chip, .lead-kicker, .lead-name, .lead-line, .squad-card, .team-forming').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
