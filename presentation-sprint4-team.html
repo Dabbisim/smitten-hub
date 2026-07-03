@@ -468,114 +468,6 @@ body::after {
 .squad-card.rabbit-bound .squad-name { color: var(--rabbit); }
 .squad-card.rabbit-bound .squad-role { color: rgba(255,136,0,0.8); }
 
-/* ── team roster ── */
-.roster {
-  margin-top: 4.5vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.6rem;
-  width: 100%;
-  max-width: 900px;
-}
-.roster-po {
-  padding: 1.4rem 2.4rem;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
-  text-align: center;
-  opacity: 0;
-}
-.slide.active .roster-po { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s forwards; }
-.roster-po-lbl {
-  font-size: 0.7rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--accent, var(--c1));
-  margin-bottom: 0.5rem;
-}
-.roster-po-name {
-  font-family: 'Clash Display', sans-serif;
-  font-weight: 600;
-  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
-  letter-spacing: -0.02em;
-  line-height: 1;
-  color: var(--text);
-}
-.roster-po-note {
-  font-size: 0.9rem;
-  color: var(--text-dim);
-  margin-top: 0.8rem;
-  font-weight: 300;
-  line-height: 1.5;
-  max-width: 560px;
-}
-.roster-po-note em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; color: var(--text); }
-.roster-groups {
-  display: flex;
-  gap: 1rem;
-  width: 100%;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.roster-group {
-  flex: 1 1 300px;
-  max-width: 440px;
-  padding: 1.6rem 1.7rem;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: rgba(255,255,255,0.02);
-  text-align: left;
-  opacity: 0;
-}
-.slide.active .roster-group { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
-.slide.active .roster-group:nth-child(1) { animation-delay: 0.6s; }
-.slide.active .roster-group:nth-child(2) { animation-delay: 0.73s; }
-.roster-group-lbl {
-  font-family: 'Clash Display', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  margin-bottom: 1rem;
-}
-.roster-pills {
-  display: flex;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-}
-.person {
-  padding: 0.5em 1em;
-  border: 1px solid var(--border);
-  border-radius: 99px;
-  font-family: 'Clash Display', sans-serif;
-  font-weight: 500;
-  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
-  color: var(--text);
-  background: rgba(255,255,255,0.03);
-  letter-spacing: -0.005em;
-}
-.person.moving {
-  color: var(--rabbit);
-  border-color: rgba(255,136,0,0.45);
-  background: rgba(255,136,0,0.08);
-}
-.person.moving::after {
-  content: ' → Rabbit';
-  font-family: 'DM Sans', sans-serif;
-  font-size: 0.62em;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  opacity: 0.8;
-}
-.person.seed {
-  color: var(--rabbit);
-  border-color: rgba(255,136,0,0.45);
-  background: rgba(255,136,0,0.08);
-}
-
 /* ── org map (two PO bubbles + shared stakeholders) ── */
 .org-map {
   position: relative;
@@ -843,16 +735,24 @@ body::after {
 
 #s6 .glow { background: radial-gradient(circle, rgba(255,136,0,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 #s6 { --accent: var(--rabbit); }
-#s6 .eyebrow { color: var(--rabbit); }
-.rabbit-mark {
-  width: min(360px, 62vw);
-  max-height: 16vh;
-  object-fit: contain;
-  opacity: 0;
-  filter: drop-shadow(0 0 50px rgba(255,136,0,0.35));
-  margin-bottom: 1vh;
+#s6 .eyebrow { color: var(--rabbit); position: relative; z-index: 2; }
+#s6 .title { font-size: clamp(1.8rem, 3.8vw, 3rem); position: relative; z-index: 2; }
+#s6 .title em { color: var(--rabbit); }
+#s6 .lead-halo { background: radial-gradient(circle, rgba(255,136,0,0.5), transparent 65%); }
+#s6 .lead-ring { background: conic-gradient(from 0deg, transparent 0% 38%, rgba(255,136,0,0.7) 50%, transparent 62% 100%); }
+#s6 .lead-ring.r2 { background: conic-gradient(from 180deg, transparent 0% 42%, rgba(255,92,138,0.4) 50%, transparent 58% 100%); }
+#s6 .lead-kicker { color: var(--rabbit); text-shadow: 0 0 20px rgba(255,136,0,0.6); }
+#s6 .lead-name span {
+  background: linear-gradient(115deg, #ffffff 15%, var(--rabbit) 40%, #ffffff 65%, var(--rabbit) 90%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 34px rgba(255,136,0,0.35));
 }
-.slide.active .rabbit-mark { animation: scaleIn 1s cubic-bezier(0.16,1,0.3,1) 0.1s forwards; }
+#s6 .squad-card::before { background: linear-gradient(90deg, transparent, rgba(255,136,0,0.8), transparent); }
+#s6 .squad-card:hover { border-color: rgba(255,136,0,0.45); }
+#s6 .squad-card.forming { border-style: dashed; background: transparent; }
+#s6 .squad-card.forming .squad-name { color: var(--text-faint); }
 
 #smap .glow { background: radial-gradient(circle, rgba(255,92,138,0.4), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 #smap .eyebrow { color: var(--c3); }
@@ -946,7 +846,7 @@ body::after {
   html, body { cursor: default; }
   #cursor { display: none; }
   .slide { padding: 8vw 6vw; }
-  .split-row, .recap-chips, .roster-groups { flex-direction: column; align-items: center; }
+  .split-row, .recap-chips { flex-direction: column; align-items: center; }
 }
 </style>
 </head>
@@ -1118,25 +1018,29 @@ body::after {
     </div>
   </div>
 
-  <!-- 6 · RABBIT -->
+  <!-- 6 · THE RABBIT TEAM — LEAD REVEAL -->
   <div class="slide" id="s6">
     <div class="glow"></div>
-    <div class="eyebrow"><span></span>Plan two · Explore<span></span></div>
-    <img class="rabbit-mark" src="rabbit-logo.png" alt="Rabbit">
-    <h2 class="title" style="font-size:clamp(1.6rem,3vw,2.4rem)">A team to explore <em>what's next</em></h2>
-    <div class="roster">
-      <div class="roster-po">
-        <div class="roster-po-lbl">Product Lead</div>
-        <div class="roster-po-name">David</div>
-        <div class="roster-po-note">Same access to <em>stakeholder resources</em> — so the next bet gets a real shot from day one.</div>
+    <div class="eyebrow"><span></span>Plan two · Rabbit<span></span></div>
+    <h2 class="title">The <em>Rabbit</em> team</h2>
+    <div class="lead-hero">
+      <div class="lead-halo"></div>
+      <div class="lead-ring"></div>
+      <div class="lead-ring r2"></div>
+      <div class="lead-kicker">Product Lead</div>
+      <div class="lead-name"><span>David</span></div>
+      <p class="lead-line">Leads the team. Calls the shots.</p>
+    </div>
+    <div class="squad-row">
+      <div class="squad-card">
+        <div class="squad-num">01</div>
+        <div class="squad-name">Yossi</div>
+        <div class="squad-role">Development</div>
       </div>
-      <div class="roster-groups">
-        <div class="roster-group" style="max-width:520px">
-          <div class="roster-group-lbl">Starting lineup</div>
-          <div class="roster-pills">
-            <span class="person seed">Yossi</span>
-          </div>
-        </div>
+      <div class="squad-card forming">
+        <div class="squad-num">02</div>
+        <div class="squad-name">…</div>
+        <div class="squad-role">More to come</div>
       </div>
     </div>
   </div>
@@ -1249,7 +1153,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .roster-po, .roster-group, .rabbit-mark, .recap-chips, .pep-tail, .pep-mantra, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .loop-chip, .loop-arrow, .lead-kicker, .lead-name, .lead-line, .squad-card').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .recap-chips, .pep-tail, .pep-mantra, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .loop-chip, .loop-arrow, .lead-kicker, .lead-name, .lead-line, .squad-card').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
