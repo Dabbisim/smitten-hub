@@ -380,6 +380,149 @@ body::after {
   background: rgba(255,136,0,0.08);
 }
 
+/* ── org map (two PO bubbles + shared stakeholders) ── */
+.org-map {
+  position: relative;
+  margin-top: 3.5vh;
+  width: min(1280px, 94vw);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.org-lines {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+}
+.slide.active .org-lines { animation: fadeIn 1.2s ease 1.05s forwards; }
+.org-bubble {
+  position: relative; z-index: 1;
+  width: clamp(240px, min(28vw, 46vh), 380px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 0.3rem;
+  padding: 2rem;
+  opacity: 0;
+  text-align: center;
+  flex-shrink: 0;
+}
+.slide.active .org-bubble { animation: scaleIn 0.9s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .org-bubble.smitten { animation-delay: 0.4s; }
+.slide.active .org-bubble.rabbit  { animation-delay: 0.55s; }
+.org-bubble.smitten {
+  border: 1px solid rgba(0,229,255,0.35);
+  background: radial-gradient(circle at 50% 30%, rgba(0,229,255,0.09), rgba(0,229,255,0.02) 70%);
+  box-shadow: 0 0 60px rgba(0,229,255,0.08), inset 0 0 60px rgba(0,229,255,0.05);
+}
+.org-bubble.rabbit {
+  border: 1px solid rgba(255,136,0,0.4);
+  background: radial-gradient(circle at 50% 30%, rgba(255,136,0,0.09), rgba(255,136,0,0.02) 70%);
+  box-shadow: 0 0 60px rgba(255,136,0,0.08), inset 0 0 60px rgba(255,136,0,0.05);
+}
+.org-team-lbl {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.org-bubble.smitten .org-team-lbl { color: var(--c1); }
+.org-bubble.rabbit  .org-team-lbl { color: var(--rabbit); }
+.org-po-lbl {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-top: 0.4rem;
+}
+.org-po-name {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600;
+  font-size: clamp(1.6rem, 2.8vw, 2.3rem);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.org-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-top: 0.8rem;
+  max-width: 88%;
+}
+.org-member {
+  padding: 0.32em 0.8em;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 500;
+  font-size: clamp(0.72rem, 1vw, 0.88rem);
+  color: var(--text);
+  background: rgba(8,8,16,0.5);
+  letter-spacing: -0.005em;
+}
+.org-forming {
+  margin-top: 0.9rem;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  color: var(--text-dim);
+}
+.stk-col {
+  position: relative; z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+}
+.stk-col-lbl {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-faint);
+  margin-bottom: 0.3rem;
+  opacity: 0;
+}
+.slide.active .stk-col-lbl { animation: fadeIn 0.8s ease 0.7s forwards; }
+.stk-chip {
+  min-width: 190px;
+  padding: 0.5em 1.1em;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(12,12,22,0.92);
+  text-align: center;
+  opacity: 0;
+}
+.slide.active .stk-chip { animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .stk-chip:nth-child(2) { animation-delay: 0.62s; }
+.slide.active .stk-chip:nth-child(3) { animation-delay: 0.70s; }
+.slide.active .stk-chip:nth-child(4) { animation-delay: 0.78s; }
+.slide.active .stk-chip:nth-child(5) { animation-delay: 0.86s; }
+.slide.active .stk-chip:nth-child(6) { animation-delay: 0.94s; }
+.slide.active .stk-chip:nth-child(7) { animation-delay: 1.02s; }
+.stk-name {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.9rem, 1.2vw, 1.05rem);
+  letter-spacing: -0.01em;
+}
+.stk-role {
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-top: 0.15rem;
+  font-weight: 500;
+}
+
 /* ── closing recap chips + mantra ── */
 .recap-chips {
   margin-top: 5vh;
@@ -515,6 +658,12 @@ body::after {
 }
 .slide.active .rabbit-mark { animation: scaleIn 1s cubic-bezier(0.16,1,0.3,1) 0.1s forwards; }
 
+#smap .glow { background: radial-gradient(circle, rgba(255,92,138,0.4), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+#smap .eyebrow { color: var(--c3); }
+#smap .title { font-size: clamp(2rem, 4.6vw, 3.6rem); }
+#smap .title em { color: var(--c3); }
+#smap .sub { margin-top: 1.5vh; max-width: 680px; font-size: clamp(0.85rem, 1.3vw, 1.05rem); }
+
 #s7 .glow { background: radial-gradient(circle, rgba(255,92,138,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 #s7 .eyebrow { color: var(--c3); }
 #s7 .title { font-size: clamp(3rem, 8vw, 6rem); }
@@ -592,6 +741,11 @@ body::after {
 @media (max-width: 860px) {
   .tile-grid { grid-template-columns: 1fr; }
 }
+@media (max-width: 900px) {
+  .org-map { flex-direction: column; gap: 1.2rem; }
+  .org-lines { display: none; }
+  .org-bubble { width: clamp(220px, 60vw, 300px); }
+}
 @media (max-width: 768px) {
   html, body { cursor: default; }
   #cursor { display: none; }
@@ -615,7 +769,7 @@ body::after {
 <div class="counter">
   <span class="counter-current" id="count-current">1</span>
   <span>/</span>
-  <span id="count-total">8</span>
+  <span id="count-total">9</span>
 </div>
 
 <nav class="nav">
@@ -766,6 +920,45 @@ body::after {
     </div>
   </div>
 
+  <!-- 6b · ORG MAP -->
+  <div class="slide" id="smap">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The full picture<span></span></div>
+    <h2 class="title">How it all <em>connects</em></h2>
+    <p class="sub">Each Product Owner leads their own team — and both pull on the <em>same bench of stakeholders</em> for resources.</p>
+    <div class="org-map" id="org-map">
+      <svg class="org-lines" id="org-lines"></svg>
+      <div class="org-bubble smitten" id="bubble-smitten">
+        <div class="org-team-lbl">Smitten</div>
+        <div class="org-po-lbl">Product Owner</div>
+        <div class="org-po-name">Tedda</div>
+        <div class="org-members">
+          <span class="org-member">Hugrún</span>
+          <span class="org-member">Gunnsteinn</span>
+          <span class="org-member">Garðar</span>
+          <span class="org-member">Bjarki</span>
+          <span class="org-member">Gulli</span>
+          <span class="org-member">Yossi</span>
+        </div>
+      </div>
+      <div class="stk-col">
+        <div class="stk-col-lbl">Stakeholder resources</div>
+        <div class="stk-chip"><div class="stk-name">Ingi</div><div class="stk-role">Growth &amp; Revenue</div></div>
+        <div class="stk-chip"><div class="stk-name">Sverrir</div><div class="stk-role">Data &amp; Analytics</div></div>
+        <div class="stk-chip"><div class="stk-name">Jennica</div><div class="stk-role">Marketing</div></div>
+        <div class="stk-chip"><div class="stk-name">Bella</div><div class="stk-role">Finance</div></div>
+        <div class="stk-chip"><div class="stk-name">Vísir</div><div class="stk-role">UX &amp; Design</div></div>
+        <div class="stk-chip"><div class="stk-name">Maggi</div><div class="stk-role">Technology</div></div>
+      </div>
+      <div class="org-bubble rabbit" id="bubble-rabbit">
+        <div class="org-team-lbl">Rabbit</div>
+        <div class="org-po-lbl">Product Owner</div>
+        <div class="org-po-name">David</div>
+        <div class="org-forming">team forming…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- 7 · CLOSE -->
   <div class="slide" id="s7">
     <div class="glow"></div>
@@ -783,8 +976,39 @@ body::after {
 </div>
 
 <script>
-const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7'];
+const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','smap','s7'];
 let current = 0;
+
+// Draw the connector lines on the org-map slide: each stakeholder chip
+// links left to the Smitten bubble and right to the Rabbit bubble.
+function edgePoint(center, radius, target) {
+  const dx = target.x - center.x, dy = target.y - center.y;
+  const d = Math.hypot(dx, dy) || 1;
+  return { x: center.x + dx / d * radius, y: center.y + dy / d * radius };
+}
+function drawOrgLines() {
+  const map = document.getElementById('org-map');
+  const svg = document.getElementById('org-lines');
+  if (!map || !svg) return;
+  const r = map.getBoundingClientRect();
+  if (r.width < 10) return;
+  svg.setAttribute('viewBox', `0 0 ${r.width} ${r.height}`);
+  const sm = document.getElementById('bubble-smitten').getBoundingClientRect();
+  const rb = document.getElementById('bubble-rabbit').getBoundingClientRect();
+  const smC = { x: sm.left + sm.width/2 - r.left, y: sm.top + sm.height/2 - r.top };
+  const rbC = { x: rb.left + rb.width/2 - r.left, y: rb.top + rb.height/2 - r.top };
+  let html = '';
+  map.querySelectorAll('.stk-chip').forEach(chip => {
+    const c = chip.getBoundingClientRect();
+    const left  = { x: c.left  - r.left, y: c.top + c.height/2 - r.top };
+    const right = { x: c.right - r.left, y: c.top + c.height/2 - r.top };
+    const p1 = edgePoint(smC, sm.width/2, left);
+    const p2 = edgePoint(rbC, rb.width/2, right);
+    html += `<line x1="${p1.x}" y1="${p1.y}" x2="${left.x}" y2="${left.y}" stroke="rgba(0,229,255,0.28)" stroke-width="1"/>`;
+    html += `<line x1="${right.x}" y1="${right.y}" x2="${p2.x}" y2="${p2.y}" stroke="rgba(255,136,0,0.3)" stroke-width="1"/>`;
+  });
+  svg.innerHTML = html;
+}
 
 function buildDots() {
   const wrap = document.getElementById('nav-dots');
@@ -804,11 +1028,13 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .roster-po, .roster-group, .rabbit-mark, .recap-chips, .pep-tail, .pep-mantra').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .value-tag, .split-card, .tile, .roster-po, .roster-group, .rabbit-mark, .recap-chips, .pep-tail, .pep-mantra, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
   });
+
+  if (SLIDES[current] === 'smap') requestAnimationFrame(drawOrgLines);
 
   document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === current));
   document.getElementById('count-current').textContent = current + 1;
@@ -918,6 +1144,10 @@ document.querySelectorAll('button, a, .nav-dot, #btn-fullscreen').forEach(el => 
 })();
 
 buildDots();
+drawOrgLines();
+window.addEventListener('resize', drawOrgLines);
+window.addEventListener('load', () => setTimeout(drawOrgLines, 200));
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawOrgLines);
 </script>
 </body>
 </html>
