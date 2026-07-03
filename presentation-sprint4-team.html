@@ -705,7 +705,15 @@ body::after {
 }
 .slide.active .cover-icon { animation: scaleIn 1s cubic-bezier(0.16,1,0.3,1) 0.05s forwards; }
 #s0 .title { font-size: clamp(3.5rem, 10vw, 8rem); }
-#s0 .title em { color: var(--c3); }
+#s0 .title em { color: var(--c3); display: inline-block; animation: jolt 3.4s ease-in-out 1.8s infinite; }
+@keyframes jolt {
+  0%, 12%, 100% { transform: none; }
+  2%  { transform: translate(-4px, 2px) rotate(-1.6deg); }
+  4%  { transform: translate(5px, -2px) rotate(1.3deg); }
+  6%  { transform: translate(-5px, -1px) rotate(-1.1deg); }
+  8%  { transform: translate(4px, 2px) rotate(1.5deg); }
+  10% { transform: translate(-2px, 1px) rotate(-0.6deg); }
+}
 .cover-sub {
   font-family: 'DM Sans', sans-serif;
   font-size: clamp(1rem, 1.8vw, 1.3rem);
@@ -937,8 +945,8 @@ body::after {
   <div class="slide active" id="s0">
     <div class="glow"></div>
     <div class="eyebrow"><span></span>Smitten · Internal · Sprint 4 · July 2026<span></span></div>
-    <h1 class="title">A new way of <em>working</em></h1>
-    <p class="cover-sub">Two plans need two teams. Here's how we <em>organize</em> to run both.</p>
+    <h1 class="title">Time to <em>shake</em><br>things up</h1>
+    <p class="cover-sub">The production team is gone. Two teams, two leads, <em>one mission</em>.</p>
     <div class="cover-hint"><span class="hint-key">→</span><span>press to begin</span></div>
   </div>
 
