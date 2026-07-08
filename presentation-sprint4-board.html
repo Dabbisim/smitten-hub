@@ -6,7 +6,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What we're building · Smitten</title>
+<title>The next billion · Smitten</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap');
 @import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap');
@@ -598,6 +598,164 @@ body::after {
 }
 .slide.active .pep-mantra { animation: slideUp 1s cubic-bezier(0.16,1,0.3,1) 1.15s forwards; }
 
+/* ── agenda + people (session slide) ── */
+.people-row {
+  display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;
+  margin-top: 4vh;
+  opacity: 0;
+}
+.slide.active .people-row { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s forwards; }
+.person-chip {
+  padding: 0.5em 1.1em;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.02);
+}
+.person-chip.board { border-color: rgba(255,184,0,0.4); color: var(--c2); background: rgba(255,184,0,0.05); }
+.agenda-list {
+  margin-top: 4vh;
+  max-width: 660px; width: 100%;
+  text-align: left;
+  opacity: 0;
+}
+.slide.active .agenda-list { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.55s forwards; }
+.agenda-row {
+  display: flex; align-items: baseline; gap: 1.2rem;
+  padding: 0.55rem 0.2rem;
+  border-bottom: 1px solid var(--border);
+}
+.agenda-row:last-child { border-bottom: none; }
+.agenda-time {
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600; font-size: 0.85rem;
+  color: var(--c2);
+  width: 3.2em; flex-shrink: 0;
+  font-feature-settings: "tnum";
+}
+.agenda-name { flex: 1; font-size: 0.95rem; color: var(--text); font-weight: 300; }
+.agenda-row.is-break .agenda-name { color: var(--text-faint); font-style: italic; }
+.agenda-dur { font-size: 0.72rem; color: var(--text-faint); letter-spacing: 0.1em; }
+
+/* ── part dividers ── */
+.divider .title { font-size: clamp(2.8rem, 7.5vw, 5.8rem); }
+.divider .watermark { font-size: clamp(30vw, 38vw, 640px); right: -6vw; bottom: -8vw; }
+
+/* ── working slides (parts 2-6) ── */
+.ws .title { font-size: clamp(2.2rem, 5.5vw, 4.4rem); }
+.prompt-list {
+  margin-top: 4.5vh;
+  max-width: 860px; width: 100%;
+  text-align: left;
+  display: flex; flex-direction: column; gap: 0.9rem;
+}
+.prompt-row {
+  display: flex; gap: 1.1rem; align-items: baseline;
+  padding: 1.1rem 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+  opacity: 0;
+}
+.slide.active .prompt-row { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .prompt-row:nth-child(1) { animation-delay: 0.45s; }
+.slide.active .prompt-row:nth-child(2) { animation-delay: 0.58s; }
+.slide.active .prompt-row:nth-child(3) { animation-delay: 0.71s; }
+.slide.active .prompt-row:nth-child(4) { animation-delay: 0.84s; }
+.prompt-num {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--c2);
+  flex-shrink: 0;
+}
+.prompt-text {
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: var(--text);
+  line-height: 1.5;
+  font-weight: 300;
+}
+.prompt-text em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 400; }
+
+/* ── commitment capture ── */
+.commit-list {
+  margin-top: 5vh;
+  max-width: 760px; width: 100%;
+  display: flex; flex-direction: column; gap: 2.4rem;
+  text-align: left;
+}
+.commit-row { opacity: 0; }
+.slide.active .commit-row { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .commit-row:nth-child(1) { animation-delay: 0.45s; }
+.slide.active .commit-row:nth-child(2) { animation-delay: 0.6s; }
+.slide.active .commit-row:nth-child(3) { animation-delay: 0.75s; }
+.slide.active .commit-row:nth-child(4) { animation-delay: 0.9s; }
+.commit-lbl {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+.commit-line {
+  margin-top: 1rem;
+  border-bottom: 1px dashed rgba(255,255,255,0.25);
+  height: 1.5em;
+}
+
+/* ── timebox (click-to-start timer) ── */
+.timebox {
+  margin-top: 4.5vh;
+  display: inline-flex; align-items: center; gap: 0.8em;
+  padding: 0.7em 1.4em;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  background: rgba(255,255,255,0.03);
+  color: var(--text-dim);
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  opacity: 0;
+  letter-spacing: 0.02em;
+  transition: border-color .3s;
+}
+.slide.active .timebox { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.95s forwards; }
+.timebox .tb-time { font-feature-settings: "tnum"; color: var(--text); min-width: 3.2em; text-align: center; }
+.timebox .tb-hint {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+.timebox.running { border-color: rgba(184,255,74,0.45); }
+.timebox.running .tb-time { color: var(--cF); }
+.timebox.over { border-color: rgba(255,92,138,0.7); box-shadow: 0 0 24px rgba(255,92,138,0.4); }
+.timebox.over .tb-time { color: var(--c3); }
+
+/* ── accent utility classes (working slides) ── */
+.acc-cyan .eyebrow { color: var(--c1); }
+.acc-cyan .title em { color: var(--c1); }
+.acc-cyan .prompt-num { color: var(--c1); }
+.acc-cyan .glow { background: radial-gradient(circle, rgba(0,229,255,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.acc-pink .eyebrow { color: var(--c3); }
+.acc-pink .title em { color: var(--c3); }
+.acc-pink .prompt-num { color: var(--c3); }
+.acc-pink .glow { background: radial-gradient(circle, rgba(255,92,138,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.acc-gold .eyebrow { color: var(--c2); }
+.acc-gold .title em { color: var(--c2); }
+.acc-gold .prompt-num { color: var(--c2); }
+.acc-gold .glow { background: radial-gradient(circle, rgba(255,184,0,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.acc-lime .eyebrow { color: var(--cF); }
+.acc-lime .title em { color: var(--cF); }
+.acc-lime .prompt-num { color: var(--cF); }
+.acc-lime .glow { background: radial-gradient(circle, rgba(184,255,74,0.5), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.acc-rabbit .eyebrow { color: var(--rabbit); }
+.acc-rabbit .title em { color: var(--rabbit); }
+.acc-rabbit .prompt-num { color: var(--rabbit); }
+.acc-rabbit .glow { background: radial-gradient(circle, rgba(255,136,0,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
 /* ─────────────────────────────────────────────
    SLIDE 0 — COVER
 ───────────────────────────────────────────── */
@@ -836,10 +994,45 @@ body::after {
   <div class="slide active" id="s0">
     <div class="glow"></div>
     <div class="cover-icon">🦋</div>
-    <div class="eyebrow"><span></span>Smitten · Board Update · July 2026<span></span></div>
-    <h1 class="title">What we're <em>building</em></h1>
-    <p class="cover-sub">The mission, the product, the bets — and the team behind them.</p>
+    <div class="eyebrow"><span></span>Smitten · Strategy Session · July 2026<span></span></div>
+    <h1 class="title">The next <em>billion</em></h1>
+    <p class="cover-sub">Three hours, six people, one question: how do we build a billion-dollar company?</p>
     <div class="cover-hint"><span class="hint-key">→</span><span>press to begin</span></div>
+  </div>
+
+  <!-- AGENDA · THE ROOM -->
+  <div class="slide ws acc-gold" id="a1">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The shape of the day<span></span></div>
+    <h2 class="title">Three hours.<br>One <em>question</em></h2>
+    <div class="people-row">
+      <span class="person-chip">David</span>
+      <span class="person-chip">Vísir</span>
+      <span class="person-chip">Magnús</span>
+      <span class="person-chip">Jennica</span>
+      <span class="person-chip board">Alli · Board</span>
+      <span class="person-chip board">Andri · Board</span>
+    </div>
+    <div class="agenda-list">
+      <div class="agenda-row"><span class="agenda-time">0:00</span><span class="agenda-name">Welcome &amp; the room</span><span class="agenda-dur">5 min</span></div>
+      <div class="agenda-row"><span class="agenda-time">0:05</span><span class="agenda-name">Part 1 · The story so far</span><span class="agenda-dur">30 min</span></div>
+      <div class="agenda-row"><span class="agenda-time">0:35</span><span class="agenda-name">Part 2 · The billion-dollar question</span><span class="agenda-dur">35 min</span></div>
+      <div class="agenda-row is-break"><span class="agenda-time">1:10</span><span class="agenda-name">Break</span><span class="agenda-dur">10 min</span></div>
+      <div class="agenda-row"><span class="agenda-time">1:20</span><span class="agenda-name">Part 3 · Smitten's ceiling</span><span class="agenda-dur">30 min</span></div>
+      <div class="agenda-row"><span class="agenda-time">1:50</span><span class="agenda-name">Part 4 · Stress-testing Rabbit</span><span class="agenda-dur">30 min</span></div>
+      <div class="agenda-row is-break"><span class="agenda-time">2:20</span><span class="agenda-name">Break</span><span class="agenda-dur">5 min</span></div>
+      <div class="agenda-row"><span class="agenda-time">2:25</span><span class="agenda-name">Part 5 · The portfolio</span><span class="agenda-dur">20 min</span></div>
+      <div class="agenda-row"><span class="agenda-time">2:45</span><span class="agenda-name">Part 6 · Commitments</span><span class="agenda-dur">15 min</span></div>
+    </div>
+  </div>
+
+  <!-- DIVIDER · PART 1 -->
+  <div class="slide divider acc-cyan" id="d1">
+    <div class="glow"></div>
+    <div class="watermark">01</div>
+    <div class="eyebrow"><span></span>Part 1 · 0:05 – 0:35<span></span></div>
+    <h2 class="title">The story so <em>far</em></h2>
+    <p class="sub">What we've been up to over the past three months — and what it taught us. David presents, questions as we go.</p>
   </div>
 
   <!-- 1 · MISSION -->
@@ -1059,16 +1252,240 @@ body::after {
     </div>
   </div>
 
-  <!-- 15 · CLOSE -->
+  <!-- 15 · HINGE — FROM REPORTING TO DECIDING -->
   <div class="slide" id="s15">
     <div class="glow"></div>
-    <div class="eyebrow"><span></span>The road ahead<span></span></div>
-    <h2 class="title">Multiple bets<br>One <em>mission</em></h2>
+    <div class="eyebrow"><span></span>The hinge<span></span></div>
+    <h2 class="title">From <em>reporting</em><br>to deciding</h2>
     <div class="recap-chips">
       <div class="recap-chip"><strong>Smitten</strong> → A+ &amp; profitability</div>
       <div class="recap-chip"><strong>Rabbit</strong> — the next bet</div>
       <div class="recap-chip"><strong>17 months</strong> of runway</div>
     </div>
+    <p class="pep-tail">That's the past three months. The next two and a half hours belong to the future — and to the six people in this room. <em>Nothing here is settled. That's the point.</em></p>
+  </div>
+
+  <!-- DIVIDER · PART 2 -->
+  <div class="slide divider acc-pink" id="d2">
+    <div class="glow"></div>
+    <div class="watermark">02</div>
+    <div class="eyebrow"><span></span>Part 2 · 0:35 – 1:10<span></span></div>
+    <h2 class="title">The billion-dollar <em>question</em></h2>
+    <p class="sub">Stop reporting, start deciding: where can a billion dollars of value actually come from?</p>
+  </div>
+
+  <!-- P2 · THE MATH -->
+  <div class="slide ws acc-pink" id="w1">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The math, roughly<span></span></div>
+    <h2 class="title">What a billion <em>weighs</em></h2>
+    <p class="sub">A billion-dollar company is, in rough strokes, a hundred-million-ARR company. The multiple moves with the market — <em>the order of magnitude doesn't.</em> That's the scale we're designing for.</p>
+    <div class="data-grid">
+      <div class="data-card"><div class="data-num" style="color:var(--c3)">$100M</div><div class="data-lbl">ARR</div><div class="data-sub">The revenue engine it takes</div></div>
+      <div class="data-card"><div class="data-num" style="color:var(--c3)">×10</div><div class="data-lbl">Multiple</div><div class="data-sub">A healthy growth-stage multiple</div></div>
+      <div class="data-card"><div class="data-num" style="color:var(--c3)">$1B</div><div class="data-lbl">Outcome</div><div class="data-sub">The mission, in one number</div></div>
+    </div>
+  </div>
+
+  <!-- P2 · SILENT WRITE -->
+  <div class="slide ws acc-pink" id="w2">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Exercise · Silent start<span></span></div>
+    <h2 class="title">Where does the <em>billion</em> come from?</h2>
+    <p class="sub">Everyone writes their honest answer before anyone speaks — <em>no anchoring, no politeness.</em> Then we go around the table, board first.</p>
+    <div class="recap-chips">
+      <div class="recap-chip">Smitten alone</div>
+      <div class="recap-chip">Smitten + Rabbit</div>
+      <div class="recap-chip">A bet we haven't found yet</div>
+      <div class="recap-chip">An exit along the way</div>
+    </div>
+    <button class="timebox" data-min="3"><span>⏱</span><span class="tb-time">3:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- P2 · DISCUSSION -->
+  <div class="slide ws acc-pink" id="w3">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Discussion<span></span></div>
+    <h2 class="title">What would have to be <em>true</em>?</h2>
+    <div class="prompt-list">
+      <div class="prompt-row"><span class="prompt-num">01</span><span class="prompt-text">How many paying users, at what ARPU, make $100M ARR — and which markets hold them?</span></div>
+      <div class="prompt-row"><span class="prompt-num">02</span><span class="prompt-text">What does Smitten realistically contribute by 2030 — and is that enough?</span></div>
+      <div class="prompt-row"><span class="prompt-num">03</span><span class="prompt-text">What does Rabbit have to become to carry the rest?</span></div>
+      <div class="prompt-row"><span class="prompt-num">04</span><span class="prompt-text">What are we assuming that a board member should <em>challenge right now</em>?</span></div>
+    </div>
+    <button class="timebox" data-min="25"><span>⏱</span><span class="tb-time">25:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- BREAK 1 -->
+  <div class="slide ws acc-lime" id="b1">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>1:10 – 1:20<span></span></div>
+    <div class="big-num" style="background:linear-gradient(135deg,#fff 0%,var(--cF) 100%);-webkit-background-clip:text;background-clip:text">10</div>
+    <p class="big-num-caption">minutes — <em style="color:var(--cF)">breathe</em></p>
+    <button class="timebox" data-min="10"><span>⏱</span><span class="tb-time">10:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- DIVIDER · PART 3 -->
+  <div class="slide divider acc-cyan" id="d3">
+    <div class="glow"></div>
+    <div class="watermark">03</div>
+    <div class="eyebrow"><span></span>Part 3 · 1:20 – 1:50<span></span></div>
+    <h2 class="title">Smitten's <em>ceiling</em></h2>
+    <p class="sub">How big can the product we already have get — and what has to change to get there?</p>
+  </div>
+
+  <!-- P3 · HOW BIG -->
+  <div class="slide ws acc-cyan" id="w4">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Discussion<span></span></div>
+    <h2 class="title">How big can Smitten <em>get</em>?</h2>
+    <div class="prompt-list">
+      <div class="prompt-row"><span class="prompt-num">01</span><span class="prompt-text">Five markets at Iceland-level density — what does that math actually say?</span></div>
+      <div class="prompt-row"><span class="prompt-num">02</span><span class="prompt-text">Profitability: by when, and at what monthly number?</span></div>
+      <div class="prompt-row"><span class="prompt-num">03</span><span class="prompt-text">If Smitten tops out as a profitable regional business — is that a failure, or a <em>war chest</em>?</span></div>
+    </div>
+    <button class="timebox" data-min="15"><span>⏱</span><span class="tb-time">15:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- P3 · THE A+ SWINGS -->
+  <div class="slide ws acc-cyan" id="w5">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Discussion<span></span></div>
+    <h2 class="title">The <em>A+</em> swings</h2>
+    <div class="prompt-list">
+      <div class="prompt-row"><span class="prompt-num">01</span><span class="prompt-text">Which bold bet are we most scared of — and is that exactly the one to take?</span></div>
+      <div class="prompt-row"><span class="prompt-num">02</span><span class="prompt-text">What would make Smitten <em>undeniable</em> in a pitch to the next investor?</span></div>
+      <div class="prompt-row"><span class="prompt-num">03</span><span class="prompt-text">What should we kill next?</span></div>
+    </div>
+    <button class="timebox" data-min="10"><span>⏱</span><span class="tb-time">10:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- P3 · CAPTURE -->
+  <div class="slide ws acc-cyan" id="w6">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Before we move on<span></span></div>
+    <h2 class="title">Smitten: we <em>commit</em> to</h2>
+    <div class="commit-list">
+      <div class="commit-row"><div class="commit-lbl">The decision</div><div class="commit-line"></div></div>
+      <div class="commit-row"><div class="commit-lbl">The owner</div><div class="commit-line"></div></div>
+      <div class="commit-row"><div class="commit-lbl">By when</div><div class="commit-line"></div></div>
+    </div>
+    <button class="timebox" data-min="5"><span>⏱</span><span class="tb-time">5:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- DIVIDER · PART 4 -->
+  <div class="slide divider acc-rabbit" id="d4">
+    <div class="glow"></div>
+    <div class="watermark">04</div>
+    <div class="eyebrow"><span></span>Part 4 · 1:50 – 2:20<span></span></div>
+    <h2 class="title">Stress-testing <em>Rabbit</em></h2>
+    <p class="sub">The board's first real look. We put Rabbit through the same bar every bet has to clear — no home-team scoring.</p>
+  </div>
+
+  <!-- P4 · NINE QUESTIONS LIVE -->
+  <div class="slide ws acc-rabbit" id="w7">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Live scoring<span></span></div>
+    <h2 class="title">Rabbit vs the nine <em>questions</em></h2>
+    <p class="sub">Score each one 1–5, as a group. Anything under 4 isn't a verdict — <em>it's the conversation we need to have.</em></p>
+    <div class="q-grid">
+      <div class="q-card"><div class="q-num">01</div><div class="q-text">What is it, and who is it for, in one plain sentence?</div></div>
+      <div class="q-card"><div class="q-num">02</div><div class="q-text">Can it become a billion-dollar product / hit $100M+ ARR?</div></div>
+      <div class="q-card"><div class="q-num">03</div><div class="q-text">Why now? What just changed that opens the window?</div></div>
+      <div class="q-card"><div class="q-num">04</div><div class="q-text">How is it 10X better or completely different from the competition?</div></div>
+      <div class="q-card"><div class="q-num">05</div><div class="q-text">What's the moat that stops others from copying it?</div></div>
+      <div class="q-card"><div class="q-num">06</div><div class="q-text">What's the distribution and the clear path to users?</div></div>
+      <div class="q-card"><div class="q-num">07</div><div class="q-text">Why will it win? What's the thesis of victory?</div></div>
+      <div class="q-card"><div class="q-num">08</div><div class="q-text">Why are we the best team to build this?</div></div>
+      <div class="q-card"><div class="q-num">09</div><div class="q-text">Once it's live, what's the signal that proves it's an A+ product worth going all in on?</div></div>
+    </div>
+    <button class="timebox" data-min="15"><span>⏱</span><span class="tb-time">15:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- P4 · SIGNAL & KILL SWITCH -->
+  <div class="slide ws acc-rabbit" id="w8">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Discussion<span></span></div>
+    <h2 class="title">The signal &amp; the <em>kill switch</em></h2>
+    <div class="prompt-list">
+      <div class="prompt-row"><span class="prompt-num">01</span><span class="prompt-text">What's the signal that proves Rabbit is A+ — the metric, the number, <em>the date</em>?</span></div>
+      <div class="prompt-row"><span class="prompt-num">02</span><span class="prompt-text">What are the kill criteria — and do we trust ourselves to pull the trigger?</span></div>
+      <div class="prompt-row"><span class="prompt-num">03</span><span class="prompt-text">What does Rabbit need in the next 90 days — people, money, users?</span></div>
+    </div>
+    <button class="timebox" data-min="10"><span>⏱</span><span class="tb-time">10:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- P4 · CAPTURE -->
+  <div class="slide ws acc-rabbit" id="w9">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Before we move on<span></span></div>
+    <h2 class="title">Rabbit: we <em>commit</em> to</h2>
+    <div class="commit-list">
+      <div class="commit-row"><div class="commit-lbl">The decision</div><div class="commit-line"></div></div>
+      <div class="commit-row"><div class="commit-lbl">The owner</div><div class="commit-line"></div></div>
+      <div class="commit-row"><div class="commit-lbl">By when</div><div class="commit-line"></div></div>
+    </div>
+    <button class="timebox" data-min="5"><span>⏱</span><span class="tb-time">5:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- BREAK 2 -->
+  <div class="slide ws acc-lime" id="b2">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>2:20 – 2:25<span></span></div>
+    <div class="big-num" style="background:linear-gradient(135deg,#fff 0%,var(--cF) 100%);-webkit-background-clip:text;background-clip:text">5</div>
+    <p class="big-num-caption">minutes — <em style="color:var(--cF)">stretch</em></p>
+    <button class="timebox" data-min="5"><span>⏱</span><span class="tb-time">5:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- DIVIDER · PART 5 -->
+  <div class="slide divider acc-gold" id="d5">
+    <div class="glow"></div>
+    <div class="watermark">05</div>
+    <div class="eyebrow"><span></span>Part 5 · 2:25 – 2:45<span></span></div>
+    <h2 class="title">The <em>portfolio</em></h2>
+    <p class="sub">Runway, resourcing, and the raise. How many bets can we afford — and when do we go get more fuel?</p>
+  </div>
+
+  <!-- P5 · RUNWAY & RAISE -->
+  <div class="slide ws acc-gold" id="w10">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Discussion<span></span></div>
+    <h2 class="title">17 months. How do we <em>spend</em> them?</h2>
+    <div class="prompt-list">
+      <div class="prompt-row"><span class="prompt-num">01</span><span class="prompt-text">How do we split people and money between Smitten, Rabbit — and a possible bet #3?</span></div>
+      <div class="prompt-row"><span class="prompt-num">02</span><span class="prompt-text">When do we raise — and which story raises best: <em>profitable Smitten, breakout Rabbit, or both</em>?</span></div>
+      <div class="prompt-row"><span class="prompt-num">03</span><span class="prompt-text">What does the board want to see every quarter from here on?</span></div>
+    </div>
+    <button class="timebox" data-min="20"><span>⏱</span><span class="tb-time">20:00</span><span class="tb-hint">click to start</span></button>
+  </div>
+
+  <!-- DIVIDER · PART 6 -->
+  <div class="slide divider acc-lime" id="d6">
+    <div class="glow"></div>
+    <div class="watermark">06</div>
+    <div class="eyebrow"><span></span>Part 6 · 2:45 – 3:00<span></span></div>
+    <h2 class="title"><em>Commitments</em></h2>
+    <p class="sub">Nothing leaves this room vague. Decisions, owners, dates.</p>
+  </div>
+
+  <!-- P6 · WHAT WE DECIDED -->
+  <div class="slide ws acc-lime" id="w11">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>On the record<span></span></div>
+    <h2 class="title">What we <em>decided</em> today</h2>
+    <div class="commit-list">
+      <div class="commit-row"><div class="commit-lbl">Decisions made</div><div class="commit-line"></div></div>
+      <div class="commit-row"><div class="commit-lbl">Owners</div><div class="commit-line"></div></div>
+      <div class="commit-row"><div class="commit-lbl">What must be true in 90 days</div><div class="commit-line"></div></div>
+      <div class="commit-row"><div class="commit-lbl">Next check-in</div><div class="commit-line"></div></div>
+    </div>
+  </div>
+
+  <!-- CLOSE -->
+  <div class="slide" id="zz">
+    <div class="glow" style="background:radial-gradient(circle, rgba(255,92,138,0.55), transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%)"></div>
+    <div class="eyebrow"><span></span>Let's get to work<span></span></div>
+    <h2 class="title" style="font-size:clamp(2.8rem,7.5vw,5.8rem)">Multiple bets<br>One <em style="color:var(--c3)">mission</em></h2>
     <p class="pep-tail">Clear ownership. Real resources behind every bet. And the structure scales — <em>the next bet gets a team and a lead too.</em></p>
     <div class="pep-mantra">The next billion starts here.</div>
   </div>
@@ -1076,7 +1493,7 @@ body::after {
 </div>
 
 <script>
-const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15'];
+const SLIDES = ['s0','a1','d1','s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11','s12','s13','s14','s15','d2','w1','w2','w3','b1','d3','w4','w5','w6','d4','w7','w8','w9','b2','d5','w10','d6','w11','zz'];
 let current = 0;
 
 function buildDots() {
@@ -1097,7 +1514,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .tile, .data-grid, .goal-banner, .ret-card, .q-card, .kill-chips, .market-grid, .rabbit-logo, .rabbit-tag, .recap-chips, .pep-tail, .pep-mantra').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .tile, .data-grid, .goal-banner, .ret-card, .q-card, .kill-chips, .market-grid, .rabbit-logo, .rabbit-tag, .recap-chips, .pep-tail, .pep-mantra, .people-row, .agenda-list, .prompt-row, .commit-row, .timebox:not(.running):not(.over)').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
@@ -1161,6 +1578,41 @@ document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
 document.querySelectorAll('button, a, .nav-dot, #btn-fullscreen').forEach(el => {
   el.addEventListener('mouseenter', () => cursor.classList.add('big'));
   el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+});
+
+// ── timebox timers ──
+function tbFmt(s) { return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+document.querySelectorAll('.timebox').forEach(tb => {
+  const total = Math.round(parseFloat(tb.dataset.min) * 60);
+  const disp = tb.querySelector('.tb-time');
+  const hint = tb.querySelector('.tb-hint');
+  tb.addEventListener('click', e => {
+    e.stopPropagation();
+    if (tb._int) {                       // click while running/done = reset
+      clearInterval(tb._int); tb._int = null;
+      tb.classList.remove('running','over');
+      disp.textContent = tbFmt(total);
+      hint.textContent = 'click to start';
+      return;
+    }
+    let s = total;
+    tb.style.opacity = '1';
+    tb.classList.add('running');
+    hint.textContent = 'click to reset';
+    disp.textContent = tbFmt(s);
+    const int = setInterval(() => {
+      s--;
+      if (s <= 0) {
+        s = 0;
+        clearInterval(int);
+        tb.classList.remove('running');
+        tb.classList.add('over');
+        hint.textContent = "time's up";
+      }
+      disp.textContent = tbFmt(s);
+    }, 1000);
+    tb._int = int;
+  });
 });
 
 const RABBIT_WORDS = ['friends', 'people', 'companies', 'founders', 'teams', 'builders'];
