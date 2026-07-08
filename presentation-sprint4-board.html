@@ -549,7 +549,6 @@ body::after {
   opacity: 0;
 }
 .rabbit-tag em { font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; color: var(--rabbit); text-shadow: 0 0 30px rgba(255,136,0,0.4); }
-#rabbit-word { color: var(--rabbit); }
 .slide.active .rabbit-tag { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.7s forwards; }
 
 /* ── closing recap chips + mantra ── */
@@ -1460,7 +1459,7 @@ body::after {
     <div class="glow"></div>
     <div class="eyebrow"><span></span>The one idea that checked every box<span></span></div>
     <img class="rabbit-logo" src="rabbit-logo.png" alt="Rabbit">
-    <div class="rabbit-tag">See what your <span id="rabbit-word">friends</span> are <em>building</em>.</div>
+    <div class="rabbit-tag">See what people are <em>building</em>.</div>
     <p class="value-tag">Plenty of ideas were pitched — many failed the bar. <em>That's the process working.</em> One cleared every question. We're putting real resources behind it.</p>
   </div>
 
@@ -1863,14 +1862,6 @@ document.querySelectorAll('.timebox').forEach(tb => {
     tb._int = int;
   });
 });
-
-const RABBIT_WORDS = ['friends', 'people', 'companies', 'founders', 'teams', 'builders'];
-let rabbitIdx = 0;
-setInterval(() => {
-  rabbitIdx = (rabbitIdx + 1) % RABBIT_WORDS.length;
-  const el = document.getElementById('rabbit-word');
-  if (el) el.textContent = RABBIT_WORDS[rabbitIdx];
-}, 2000);
 
 (function () {
   const canvas = document.getElementById('constellation');
