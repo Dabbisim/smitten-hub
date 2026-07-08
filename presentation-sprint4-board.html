@@ -600,6 +600,75 @@ body::after {
 /* ── working slides ── */
 .ws .title { font-size: clamp(2.2rem, 5.5vw, 4.4rem); }
 
+/* ── chapter dividers ── */
+.divider .title { font-size: clamp(2.8rem, 7.5vw, 5.8rem); }
+.divider .watermark { font-size: clamp(30vw, 38vw, 640px); right: -6vw; bottom: -8vw; }
+
+/* ── agenda (table of contents) ── */
+.toc-list {
+  margin-top: 4.5vh;
+  max-width: 780px; width: 100%;
+  display: flex; flex-direction: column; gap: 0.9rem;
+  text-align: left;
+}
+.toc-row {
+  display: flex; gap: 1.1rem; align-items: baseline;
+  padding: 1.05rem 1.4rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+  opacity: 0;
+}
+.slide.active .toc-row { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards; }
+.slide.active .toc-row:nth-child(1) { animation-delay: 0.45s; }
+.slide.active .toc-row:nth-child(2) { animation-delay: 0.58s; }
+.slide.active .toc-row:nth-child(3) { animation-delay: 0.71s; }
+.slide.active .toc-row:nth-child(4) { animation-delay: 0.84s; }
+.toc-num {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--c2);
+  flex-shrink: 0;
+}
+.toc-name {
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: var(--text);
+  line-height: 1.5;
+  font-weight: 300;
+}
+
+/* ── hedgehog concept card ── */
+.concept-card {
+  width: min(90vw, 900px);
+  margin-top: 4vh;
+  padding: clamp(1.75rem, 4vw, 3rem);
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 22px;
+  background: linear-gradient(140deg, rgba(0,229,255,0.06), rgba(0,229,255,0.01));
+  text-align: left;
+  opacity: 0;
+  backdrop-filter: blur(10px);
+}
+.slide.active .concept-card { animation: scaleIn 0.9s cubic-bezier(0.16,1,0.3,1) 0.5s forwards; }
+.concept-row { padding: 1.1rem 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.45rem; }
+.concept-row:last-child { border-bottom: none; }
+.concept-lbl {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c1);
+  font-weight: 600;
+}
+.concept-val {
+  font-family: 'Clash Display', sans-serif;
+  font-size: clamp(1.15rem, 2.4vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
 /* ── org map (the full picture) ── */
 .org-map {
   position: relative;
@@ -1059,6 +1128,116 @@ body::after {
     <p class="value-tag">That ambition hasn't moved an inch. Everything this year — every bet, every market, every product — <em>ladders up to it.</em></p>
   </div>
 
+  <!-- AGENDA -->
+  <div class="slide ws acc-gold" id="toc">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The road today<span></span></div>
+    <h2 class="title">Where we're <em>going</em></h2>
+    <div class="toc-list">
+      <div class="toc-row"><span class="toc-num">01</span><span class="toc-name">The last six months — the swings, the hard calls, what they bought us</span></div>
+      <div class="toc-row"><span class="toc-num">02</span><span class="toc-name">What we learned — the vision, the challenges, the new structure</span></div>
+      <div class="toc-row"><span class="toc-num">03</span><span class="toc-name">The strategy — two plans, one mission</span></div>
+      <div class="toc-row"><span class="toc-num">04</span><span class="toc-name">Alignment — your questions, welcome the whole way through</span></div>
+    </div>
+  </div>
+
+  <!-- CHAPTER 1 -->
+  <div class="slide divider acc-cyan" id="ch1">
+    <div class="glow"></div>
+    <div class="watermark">01</div>
+    <div class="eyebrow"><span></span>Chapter 01<span></span></div>
+    <h2 class="title">The last <em>six months</em></h2>
+    <p class="sub">The swings we took, the hard calls we made — and what they bought us.</p>
+  </div>
+
+  <!-- SWEDEN -->
+  <div class="slide ws acc-pink" id="swe">
+    <div class="glow"></div>
+    <div class="watermark">swing</div>
+    <div class="eyebrow"><span></span>Six months ago<span></span></div>
+    <h2 class="title">We swung <em>big</em> in Sweden</h2>
+    <p class="sub">A serious marketing push into a new market — and it didn't return what we hoped.</p>
+    <p class="value-tag">The lesson stuck: <em>growth can't be bought. The product has to earn it.</em></p>
+  </div>
+
+  <!-- HARD CHOICES -->
+  <div class="slide ws acc-gold" id="burn">
+    <div class="glow"></div>
+    <div class="watermark">focus</div>
+    <div class="eyebrow"><span></span>Three months ago<span></span></div>
+    <h2 class="title">Then the hard <em>choices</em></h2>
+    <p class="sub">We lowered the burn and got leaner. It wasn't fun — it was necessary.</p>
+    <p class="value-tag">Every hard call had one purpose: <em>buy the time to build something great.</em></p>
+  </div>
+
+  <!-- 9 · WHAT WE HAVE -->
+  <div class="slide" id="s9">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>What it bought us<span></span></div>
+    <div class="big-num">16</div>
+    <p class="big-num-caption">months of <em>runway</em></p>
+    <p class="num-lede">The hard choices bought us this: time to think clearly, build properly, and place the kind of bets that need room to pay off.</p>
+  </div>
+
+  <!-- 8b · THE TEAM -->
+  <div class="slide ws acc-pink" id="t1">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>What we already have<span></span></div>
+    <h2 class="title">The hardest part?<br>We've <em>done</em> it</h2>
+    <div class="split-row">
+      <div class="split-card">
+        <div class="split-lbl">The old test · Done ✓</div>
+        <div class="split-val">Team &amp; talent</div>
+        <div class="split-desc">Attract real talent, build a team that ships. Pound for pound — one of the best teams in Europe.</div>
+      </div>
+      <div class="split-card">
+        <div class="split-lbl">The new test</div>
+        <div class="split-val">The great idea</div>
+        <div class="split-desc">Time-to-product is racing to zero — execution is table stakes. The idea is the new scarce asset.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8 · HONEST GRADE -->
+  <div class="slide" id="s8">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>An honest look<span></span></div>
+    <div class="big-num">B+</div>
+    <p class="big-num-caption">the product we've <em>built</em></p>
+    <p class="num-lede">Smitten is good — genuinely good. People meet on it, fall for each other on it. But good isn't great, and B+ isn't A+. We know the difference. Now we go and close it.</p>
+  </div>
+
+  <!-- CHAPTER 2 -->
+  <div class="slide divider acc-gold" id="ch2">
+    <div class="glow"></div>
+    <div class="watermark">02</div>
+    <div class="eyebrow"><span></span>Chapter 02<span></span></div>
+    <h2 class="title">What we <em>learned</em></h2>
+    <p class="sub">A product vision, a season of experiments — and a new way to run the company.</p>
+  </div>
+
+  <!-- HEDGEHOG VISION -->
+  <div class="slide ws acc-cyan" id="hedge">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The product vision<span></span></div>
+    <h2 class="title">Our <em>hedgehog</em></h2>
+    <p class="sub">Built on Jim Collins' Hedgehog Concept — one outcome, one obsession.</p>
+    <div class="concept-card">
+      <div class="concept-row">
+        <div class="concept-lbl">Concept</div>
+        <div class="concept-val">Be the best in the world at turning <em style="font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--c1)">matches into conversations.</em></div>
+      </div>
+      <div class="concept-row">
+        <div class="concept-lbl">Economic engine</div>
+        <div class="concept-val">Subscription value driven by <em style="font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--c1)">engaged conversation.</em></div>
+      </div>
+      <div class="concept-row">
+        <div class="concept-lbl">Passion</div>
+        <div class="concept-val">Getting people to <em style="font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--c1)">actually connect.</em></div>
+      </div>
+    </div>
+  </div>
+
   <!-- 2 · PRODUCT THESIS -->
   <div class="slide" id="s2">
     <div class="glow"></div>
@@ -1132,6 +1311,7 @@ body::after {
     <div class="glow"></div>
     <div class="eyebrow"><span></span>What we learned<span></span></div>
     <h2 class="title">Brilliant for <em>ideation</em><br>Not so for <em>execution</em></h2>
+    <p class="sub">Sixteen challenges in, the pattern was clear — and the pace was wearing the team down.</p>
     <div class="split-row">
       <div class="split-card">
         <div class="split-lbl">Where it works</div>
@@ -1146,56 +1326,139 @@ body::after {
     </div>
   </div>
 
-  <!-- 7 · SAYING NO -->
-  <div class="slide" id="s7">
+  <!-- BACK TO TEAMS -->
+  <div class="slide ws acc-cyan" id="teams">
     <div class="glow"></div>
-    <div class="eyebrow"><span></span>A culture to celebrate<span></span></div>
-    <h2 class="title">Saying <em>no</em> is part<br>of the work</h2>
-    <p class="sub">What hinders us most isn't the absence of good ideas — it's the distraction of too many of them. So we kill what doesn't move the mission, and double down on what does.</p>
-    <div class="kill-chips">
-      <div class="kill-chip">Vera</div>
-      <div class="kill-chip">Juliet</div>
-      <div class="kill-chip">iFrame</div>
-      <div class="keep-chip">Matching ✓</div>
-      <div class="keep-chip">Conversations ✓</div>
+    <div class="eyebrow"><span></span>The turn<span></span></div>
+    <h2 class="title">Back to <em>teams</em></h2>
+    <p class="sub">The sprints gave us ideas — they couldn't give us momentum. So we went back to real teams.</p>
+    <div class="recap-chips">
+      <div class="recap-chip"><strong>Depth</strong></div>
+      <div class="recap-chip"><strong>Ownership</strong></div>
+      <div class="recap-chip"><strong>Momentum</strong></div>
     </div>
   </div>
 
-  <!-- 8 · HONEST GRADE -->
-  <div class="slide" id="s8">
+  <!-- P1 · THE SMITTEN TEAM -->
+  <div class="slide ws acc-cyan" id="p1t">
     <div class="glow"></div>
-    <div class="eyebrow"><span></span>An honest look<span></span></div>
-    <div class="big-num">B+</div>
-    <p class="big-num-caption">the product we've <em>built</em></p>
-    <p class="num-lede">Smitten is good — genuinely good. People meet on it, fall for each other on it. But good isn't great, and B+ isn't A+. We know the difference. Now we go and close it.</p>
+    <div class="eyebrow"><span></span>The new structure<span></span></div>
+    <h2 class="title">The <em>Smitten</em> team</h2>
+    <p class="sub">Every product gets one Product Lead — a single person who leads the team and calls the shots. <em>No more decisions by committee.</em></p>
+    <div class="lead-hero">
+      <div class="lead-kicker">Product Lead</div>
+      <div class="lead-name">Tedda</div>
+      <div class="lead-line">Leads the team. Calls the shots.</div>
+    </div>
+    <div class="team-chips">
+      <span class="member-chip">Hugrún</span>
+      <span class="member-chip">Gunnsteinn</span>
+      <span class="member-chip">Garðar</span>
+      <span class="member-chip">Bjarki</span>
+      <span class="member-chip">Gulli</span>
+    </div>
   </div>
 
-  <!-- 8b · THE TEAM -->
-  <div class="slide ws acc-pink" id="t1">
+  <!-- P2 · BREAKER — BUILDING WHAT'S NEXT -->
+  <div class="slide ws acc-rabbit" id="p2b">
     <div class="glow"></div>
-    <div class="eyebrow"><span></span>What we already have<span></span></div>
-    <h2 class="title">The hardest part?<br>We've <em>done</em> it</h2>
-    <div class="split-row">
-      <div class="split-card">
-        <div class="split-lbl">The old test · Done ✓</div>
-        <div class="split-val">Team &amp; talent</div>
-        <div class="split-desc">Attract real talent, build a team that ships. Pound for pound — one of the best teams in Europe.</div>
+    <div class="watermark">next</div>
+    <div class="eyebrow"><span></span>The framework<span></span></div>
+    <h2 class="title">A bar for every new <em>bet</em></h2>
+    <p class="value-tag">Good ideas are everywhere. A+ ideas are rare — so every new bet has to clear <em>the same nine questions</em> before we commit.</p>
+  </div>
+
+  <!-- 12 · NINE QUESTIONS -->
+  <div class="slide" id="s12">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The bar<span></span></div>
+    <h2 class="title">Nine <em>questions</em> every bet must answer</h2>
+    <div class="q-grid">
+      <div class="q-card"><div class="q-num">01</div><div class="q-text">What is it, and who is it for, in one plain sentence?</div></div>
+      <div class="q-card"><div class="q-num">02</div><div class="q-text">Can it become a billion-dollar product / hit $100M+ ARR?</div></div>
+      <div class="q-card"><div class="q-num">03</div><div class="q-text">Why now? What just changed that opens the window?</div></div>
+      <div class="q-card"><div class="q-num">04</div><div class="q-text">How is it 10X better or completely different from the competition?</div></div>
+      <div class="q-card"><div class="q-num">05</div><div class="q-text">What's the moat that stops others from copying it?</div></div>
+      <div class="q-card"><div class="q-num">06</div><div class="q-text">What's the distribution and the clear path to users?</div></div>
+      <div class="q-card"><div class="q-num">07</div><div class="q-text">Why will it win? What's the thesis of victory?</div></div>
+      <div class="q-card"><div class="q-num">08</div><div class="q-text">Why are we the best team to build this?</div></div>
+      <div class="q-card"><div class="q-num">09</div><div class="q-text">Once it's live, what's the signal that proves it's an A+ product worth going all in on?</div></div>
+    </div>
+  </div>
+
+  <!-- 13 · RABBIT -->
+  <div class="slide" id="s13">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The first bet through the bar<span></span></div>
+    <img class="rabbit-logo" src="rabbit-logo.png" alt="Rabbit">
+    <div class="rabbit-tag">See what people are <em>building</em>.</div>
+    <p class="value-tag">Plenty of ideas were pitched — many failed the bar. <em>That's the process working.</em> One cleared every question. We're putting real resources behind it.</p>
+  </div>
+
+  <!-- P2 · THE RABBIT TEAM -->
+  <div class="slide ws acc-rabbit" id="p2t">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>Rabbit · The team<span></span></div>
+    <h2 class="title">The <em>Rabbit</em> team</h2>
+    <p class="sub">Run in parallel, same structure: one lead who calls the shots — and both teams pull on the <em>same bench of stakeholders</em>: growth, data, marketing, operations, design, and technology.</p>
+    <div class="lead-hero">
+      <div class="lead-kicker">Product Lead</div>
+      <div class="lead-name">David</div>
+      <div class="lead-line">Leads the team. Calls the shots.</div>
+    </div>
+    <div class="team-chips">
+      <span class="member-chip">Yossi</span>
+      <span class="member-chip forming">team forming…</span>
+    </div>
+  </div>
+
+  <!-- THE FULL PICTURE · ORG MAP -->
+  <div class="slide acc-pink" id="smap">
+    <div class="glow"></div>
+    <div class="eyebrow"><span></span>The full picture<span></span></div>
+    <h2 class="title">How it all <em>connects</em></h2>
+    <p class="sub">Each Product Lead runs their own team — and both pull on the <em>same bench of stakeholders</em> for resources.</p>
+    <div class="org-map" id="org-map">
+      <svg class="org-lines" id="org-lines"></svg>
+      <div class="org-bubble smitten" id="bubble-smitten">
+        <div class="org-team-lbl">Smitten</div>
+        <div class="org-po-lbl">Product Lead</div>
+        <div class="org-po-name">Tedda</div>
+        <div class="org-members">
+          <span class="org-member">Hugrún</span>
+          <span class="org-member">Gunnsteinn</span>
+          <span class="org-member">Garðar</span>
+          <span class="org-member">Bjarki</span>
+          <span class="org-member">Gulli</span>
+        </div>
       </div>
-      <div class="split-card">
-        <div class="split-lbl">The new test</div>
-        <div class="split-val">The great idea</div>
-        <div class="split-desc">Time-to-product is racing to zero — execution is table stakes. The idea is the new scarce asset.</div>
+      <div class="stk-col">
+        <div class="stk-col-lbl">Stakeholder resources</div>
+        <div class="stk-chip"><div class="stk-name">Growth &amp; Revenue</div><div class="stk-role">Ingi</div></div>
+        <div class="stk-chip"><div class="stk-name">Data &amp; Analytics</div><div class="stk-role">Sverrir</div></div>
+        <div class="stk-chip"><div class="stk-name">Marketing</div><div class="stk-role">Jennica · Sylvía · Sölvi · Esther</div></div>
+        <div class="stk-chip"><div class="stk-name">Operations</div><div class="stk-role">Bella · Ragna</div></div>
+        <div class="stk-chip"><div class="stk-name">UX &amp; Design</div><div class="stk-role">Vísir</div></div>
+        <div class="stk-chip"><div class="stk-name">Technology</div><div class="stk-role">Maggi</div></div>
+      </div>
+      <div class="org-bubble rabbit" id="bubble-rabbit">
+        <div class="org-team-lbl">Rabbit</div>
+        <div class="org-po-lbl">Product Lead</div>
+        <div class="org-po-name">David</div>
+        <div class="org-members">
+          <span class="org-member in-rabbit">Yossi</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 9 · WHAT WE HAVE -->
-  <div class="slide" id="s9">
+  <!-- CHAPTER 3 -->
+  <div class="slide divider acc-pink" id="ch3">
     <div class="glow"></div>
-    <div class="eyebrow"><span></span>What we already have<span></span></div>
-    <div class="big-num">16</div>
-    <p class="big-num-caption">months of <em>runway</em></p>
-    <p class="num-lede">For a startup, that isn't a countdown — it's a luxury. Time to think clearly, build properly, and place the kind of bets that need room to pay off.</p>
+    <div class="watermark">03</div>
+    <div class="eyebrow"><span></span>Chapter 03<span></span></div>
+    <h2 class="title">The strategy <em>forward</em></h2>
+    <p class="sub">Two plans, one mission — and the discipline to keep making bets.</p>
   </div>
 
   <!-- 10 · TWO PLANS -->
@@ -1203,6 +1466,7 @@ body::after {
     <div class="glow"></div>
     <div class="eyebrow"><span></span>The plan going forward<span></span></div>
     <h2 class="title">Two plans.<br>One <em>mission</em></h2>
+    <p class="sub">Smitten isn't A+ yet — and we won't bet everything on a single product. So we run two plans in parallel.</p>
     <div class="split-row">
       <div class="split-card">
         <div class="split-lbl">Plan 01 · Optimize</div>
@@ -1265,119 +1529,6 @@ body::after {
     </div>
   </div>
 
-  <!-- P1 · THE SMITTEN TEAM -->
-  <div class="slide ws acc-cyan" id="p1t">
-    <div class="glow"></div>
-    <div class="eyebrow"><span></span>Plan one · The team<span></span></div>
-    <h2 class="title">The <em>Smitten</em> team</h2>
-    <p class="sub">Every product gets one Product Lead — a single person who leads the team and calls the shots. <em>No more decisions by committee.</em></p>
-    <div class="lead-hero">
-      <div class="lead-kicker">Product Lead</div>
-      <div class="lead-name">Tedda</div>
-      <div class="lead-line">Leads the team. Calls the shots.</div>
-    </div>
-    <div class="team-chips">
-      <span class="member-chip">Hugrún</span>
-      <span class="member-chip">Gunnsteinn</span>
-      <span class="member-chip">Garðar</span>
-      <span class="member-chip">Bjarki</span>
-      <span class="member-chip">Gulli</span>
-    </div>
-  </div>
-
-  <!-- P2 · BREAKER — BUILDING WHAT'S NEXT -->
-  <div class="slide ws acc-rabbit" id="p2b">
-    <div class="glow"></div>
-    <div class="watermark">next</div>
-    <div class="eyebrow"><span></span>Plan two · Explore<span></span></div>
-    <h2 class="title">Building what's <em>next</em></h2>
-    <p class="value-tag">Find the next bet that could be <em>A+ from day one.</em></p>
-  </div>
-
-  <!-- 12 · NINE QUESTIONS -->
-  <div class="slide" id="s12">
-    <div class="glow"></div>
-    <div class="eyebrow"><span></span>Plan two · The bar<span></span></div>
-    <h2 class="title">Nine <em>questions</em> every bet must answer</h2>
-    <div class="q-grid">
-      <div class="q-card"><div class="q-num">01</div><div class="q-text">What is it, and who is it for, in one plain sentence?</div></div>
-      <div class="q-card"><div class="q-num">02</div><div class="q-text">Can it become a billion-dollar product / hit $100M+ ARR?</div></div>
-      <div class="q-card"><div class="q-num">03</div><div class="q-text">Why now? What just changed that opens the window?</div></div>
-      <div class="q-card"><div class="q-num">04</div><div class="q-text">How is it 10X better or completely different from the competition?</div></div>
-      <div class="q-card"><div class="q-num">05</div><div class="q-text">What's the moat that stops others from copying it?</div></div>
-      <div class="q-card"><div class="q-num">06</div><div class="q-text">What's the distribution and the clear path to users?</div></div>
-      <div class="q-card"><div class="q-num">07</div><div class="q-text">Why will it win? What's the thesis of victory?</div></div>
-      <div class="q-card"><div class="q-num">08</div><div class="q-text">Why are we the best team to build this?</div></div>
-      <div class="q-card"><div class="q-num">09</div><div class="q-text">Once it's live, what's the signal that proves it's an A+ product worth going all in on?</div></div>
-    </div>
-  </div>
-
-  <!-- 13 · RABBIT -->
-  <div class="slide" id="s13">
-    <div class="glow"></div>
-    <div class="eyebrow"><span></span>The one idea that checked every box<span></span></div>
-    <img class="rabbit-logo" src="rabbit-logo.png" alt="Rabbit">
-    <div class="rabbit-tag">See what people are <em>building</em>.</div>
-    <p class="value-tag">Plenty of ideas were pitched — many failed the bar. <em>That's the process working.</em> One cleared every question. We're putting real resources behind it.</p>
-  </div>
-
-  <!-- P2 · THE RABBIT TEAM -->
-  <div class="slide ws acc-rabbit" id="p2t">
-    <div class="glow"></div>
-    <div class="eyebrow"><span></span>Plan two · The team<span></span></div>
-    <h2 class="title">The <em>Rabbit</em> team</h2>
-    <p class="sub">Run in parallel, same structure: one lead who calls the shots — and both teams pull on the <em>same bench of stakeholders</em>: growth, data, marketing, operations, design, and technology.</p>
-    <div class="lead-hero">
-      <div class="lead-kicker">Product Lead</div>
-      <div class="lead-name">David</div>
-      <div class="lead-line">Leads the team. Calls the shots.</div>
-    </div>
-    <div class="team-chips">
-      <span class="member-chip">Yossi</span>
-      <span class="member-chip forming">team forming…</span>
-    </div>
-  </div>
-
-  <!-- THE FULL PICTURE · ORG MAP -->
-  <div class="slide acc-pink" id="smap">
-    <div class="glow"></div>
-    <div class="eyebrow"><span></span>The full picture<span></span></div>
-    <h2 class="title">How it all <em>connects</em></h2>
-    <p class="sub">Each Product Lead runs their own team — and both pull on the <em>same bench of stakeholders</em> for resources.</p>
-    <div class="org-map" id="org-map">
-      <svg class="org-lines" id="org-lines"></svg>
-      <div class="org-bubble smitten" id="bubble-smitten">
-        <div class="org-team-lbl">Smitten</div>
-        <div class="org-po-lbl">Product Lead</div>
-        <div class="org-po-name">Tedda</div>
-        <div class="org-members">
-          <span class="org-member">Hugrún</span>
-          <span class="org-member">Gunnsteinn</span>
-          <span class="org-member">Garðar</span>
-          <span class="org-member">Bjarki</span>
-          <span class="org-member">Gulli</span>
-        </div>
-      </div>
-      <div class="stk-col">
-        <div class="stk-col-lbl">Stakeholder resources</div>
-        <div class="stk-chip"><div class="stk-name">Growth &amp; Revenue</div><div class="stk-role">Ingi</div></div>
-        <div class="stk-chip"><div class="stk-name">Data &amp; Analytics</div><div class="stk-role">Sverrir</div></div>
-        <div class="stk-chip"><div class="stk-name">Marketing</div><div class="stk-role">Jennica · Sylvía · Sölvi · Esther</div></div>
-        <div class="stk-chip"><div class="stk-name">Operations</div><div class="stk-role">Bella · Ragna</div></div>
-        <div class="stk-chip"><div class="stk-name">UX &amp; Design</div><div class="stk-role">Vísir</div></div>
-        <div class="stk-chip"><div class="stk-name">Technology</div><div class="stk-role">Maggi</div></div>
-      </div>
-      <div class="org-bubble rabbit" id="bubble-rabbit">
-        <div class="org-team-lbl">Rabbit</div>
-        <div class="org-po-lbl">Product Lead</div>
-        <div class="org-po-name">David</div>
-        <div class="org-members">
-          <span class="org-member in-rabbit">Yossi</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- STRATEGY SUMMARY -->
   <div class="slide ws acc-pink" id="sum">
     <div class="glow"></div>
@@ -1423,7 +1574,7 @@ body::after {
 </div>
 
 <script>
-const SLIDES = ['s0','s1','s2','s3','s4','s5','s6','s7','s8','t1','s9','s10','p1a','inv','s11','p1t','p2b','s12','s13','p2t','smap','sum','ask','zz'];
+const SLIDES = ['s0','s1','toc','ch1','swe','burn','s9','t1','s8','ch2','hedge','s2','s3','s4','s5','s6','teams','p1t','p2b','s12','s13','p2t','smap','ch3','s10','p1a','inv','s11','sum','ask','zz'];
 let current = 0;
 
 function buildDots() {
@@ -1444,7 +1595,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .tile, .data-grid, .goal-banner, .ret-card, .q-card, .kill-chips, .market-grid, .rabbit-logo, .rabbit-tag, .recap-chips, .pep-tail, .pep-mantra, .lead-hero, .team-chips, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .tile, .data-grid, .goal-banner, .ret-card, .q-card, .kill-chips, .market-grid, .rabbit-logo, .rabbit-tag, .recap-chips, .pep-tail, .pep-mantra, .lead-hero, .team-chips, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .toc-row, .concept-card').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
