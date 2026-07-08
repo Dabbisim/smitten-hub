@@ -934,6 +934,12 @@ body::after {
 .acc-rabbit .prompt-num { color: var(--rabbit); }
 .acc-rabbit .glow { background: radial-gradient(circle, rgba(255,136,0,0.55), transparent 70%); top: 50%; left: 50%; transform: translate(-50%,-50%); }
 
+/* team slide: done ✓ (lime) vs the new test (pink) */
+#t1.active .split-card:nth-child(1) { border-color: rgba(184,255,74,0.3); }
+#t1 .split-card:nth-child(1) .split-lbl { color: var(--cF); }
+#t1.active .split-card:nth-child(2) { border-color: rgba(255,92,138,0.3); }
+#t1 .split-card:nth-child(2) .split-lbl { color: var(--c3); }
+
 /* ─────────────────────────────────────────────
    SLIDE 0 — COVER
 ───────────────────────────────────────────── */
@@ -1335,8 +1341,18 @@ body::after {
     <div class="glow"></div>
     <div class="eyebrow"><span></span>What we already have<span></span></div>
     <h2 class="title">The hardest part?<br>We've <em>done</em> it</h2>
-    <p class="sub">The old startup test: attract real talent, build a team that ships. Done — <em>one of the best teams in Europe.</em></p>
-    <p class="value-tag">The new test: time-to-product is racing to zero. <em>The great idea is the new scarce asset.</em></p>
+    <div class="split-row">
+      <div class="split-card">
+        <div class="split-lbl">The old test · Done ✓</div>
+        <div class="split-val">Team &amp; talent</div>
+        <div class="split-desc">Attract real talent, build a team that ships. Pound for pound — one of the best teams in Europe.</div>
+      </div>
+      <div class="split-card">
+        <div class="split-lbl">The new test</div>
+        <div class="split-val">The great idea</div>
+        <div class="split-desc">Time-to-product is racing to zero — execution is table stakes. The idea is the new scarce asset.</div>
+      </div>
+    </div>
   </div>
 
   <!-- 9 · WHAT WE HAVE -->
