@@ -607,13 +607,12 @@ body::after {
 .slide.active .people-row { animation: slideUp 0.8s cubic-bezier(0.16,1,0.3,1) 0.4s forwards; }
 .person-chip {
   padding: 0.5em 1.1em;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255,184,0,0.4);
   border-radius: 99px;
   font-size: 0.85rem;
-  color: var(--text-dim);
-  background: rgba(255,255,255,0.02);
+  color: var(--c2);
+  background: rgba(255,184,0,0.05);
 }
-.person-chip.board { border-color: rgba(255,184,0,0.4); color: var(--c2); background: rgba(255,184,0,0.05); }
 .agenda-list {
   margin-top: 4vh;
   max-width: 660px; width: 100%;
@@ -1010,8 +1009,8 @@ body::after {
       <span class="person-chip">Vísir</span>
       <span class="person-chip">Magnús</span>
       <span class="person-chip">Jennica</span>
-      <span class="person-chip board">Alli · Board</span>
-      <span class="person-chip board">Andri · Board</span>
+      <span class="person-chip">Alli</span>
+      <span class="person-chip">Andri</span>
     </div>
     <div class="agenda-list">
       <div class="agenda-row"><span class="agenda-time">0:00</span><span class="agenda-name">Welcome &amp; the room</span><span class="agenda-dur">5 min</span></div>
