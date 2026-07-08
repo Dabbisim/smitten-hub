@@ -664,6 +664,36 @@ body::after {
 
 .loop-arrow { color: var(--text-faint); font-size: 1.2rem; align-self: center; }
 
+/* ── production grid ── */
+.prod-grid {
+  display: flex;
+  gap: 0.9rem;
+  margin-top: 5vh;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 900px;
+  opacity: 0;
+}
+.slide.active .prod-grid { animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s forwards; }
+.prod-node {
+  padding: 1.1rem 1.5rem;
+  background: rgba(184,255,74,0.04);
+  border: 1px solid rgba(184,255,74,0.25);
+  border-radius: 14px;
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 600;
+  font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+  color: var(--text);
+  letter-spacing: -0.005em;
+}
+.prod-plus {
+  display: inline-flex;
+  align-items: center;
+  color: var(--cF);
+  opacity: 0.5;
+  font-size: 1.2rem;
+}
+
 /* ── mini timeline (move dividers) ── */
 .tl-mini { margin-top: 7vh; }
 .tl-mini .tl-node.off { opacity: 0; }
@@ -1155,7 +1185,7 @@ body::after {
   #cursor { display: none; }
   .slide { padding: 8vw 6vw; }
   .q-grid { grid-template-columns: 1fr; }
-  .data-grid, .retention-grid, .recap-chips, .kill-chips, .split-row { flex-direction: column; align-items: center; }
+  .data-grid, .retention-grid, .recap-chips, .kill-chips, .split-row, .prod-grid { flex-direction: column; align-items: center; }
   .timeline { flex-direction: column; align-items: center; gap: 2rem; }
   .timeline::before { display: none; }
   .org-map { flex-direction: column; gap: 1.2rem; }
@@ -1377,16 +1407,22 @@ body::after {
     </div>
   </div>
 
-  <!-- BACK TO TEAMS -->
-  <div class="slide ws acc-cyan" id="teams">
+  <!-- INTRODUCING PRODUCTION -->
+  <div class="slide ws acc-lime" id="teams">
     <div class="glow"></div>
-    <div class="eyebrow"><span></span>The turn<span></span></div>
-    <h2 class="title">Introducing <em>Production</em></h2>
-    <p class="sub">The sprints gave us ideas — they couldn't give us momentum. So we formed one real team to ship the best of them.</p>
-    <div class="recap-chips">
-      <div class="recap-chip"><strong>Depth</strong></div>
-      <div class="recap-chip"><strong>Ownership</strong></div>
-      <div class="recap-chip"><strong>Momentum</strong></div>
+    <div class="eyebrow"><span></span>A new team<span></span></div>
+    <h2 class="title">Introducing<br><em>Production</em></h2>
+    <p class="sub">We don't want to go back to the way we used to work. Production is a new team — built to ship some of the best ideas from the challenges. Together. For the next three weeks.</p>
+    <div class="prod-grid">
+      <div class="prod-node">Development</div>
+      <span class="prod-plus">+</span>
+      <div class="prod-node">Product</div>
+      <span class="prod-plus">+</span>
+      <div class="prod-node">Data</div>
+      <span class="prod-plus">+</span>
+      <div class="prod-node">Growth</div>
+      <span class="prod-plus">+</span>
+      <div class="prod-node">Revenues</div>
     </div>
   </div>
 
@@ -1703,7 +1739,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .tile, .data-grid, .goal-banner, .ret-card, .q-card, .kill-chips, .market-grid, .rabbit-logo, .rabbit-tag, .recap-chips, .pep-tail, .pep-mantra, .lead-hero, .team-chips, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .toc-row, .concept-card, .tl-node, .scarce-lbl').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .tile, .data-grid, .goal-banner, .ret-card, .q-card, .kill-chips, .market-grid, .rabbit-logo, .rabbit-tag, .recap-chips, .pep-tail, .pep-mantra, .lead-hero, .team-chips, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .toc-row, .concept-card, .tl-node, .scarce-lbl, .prod-grid').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
