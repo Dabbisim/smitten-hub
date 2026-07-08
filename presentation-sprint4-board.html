@@ -747,6 +747,23 @@ body::after {
   color: var(--text);
 }
 
+.scarce-lbl {
+  margin-top: 4.5vh;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--c3);
+  opacity: 0;
+}
+.slide.active .scarce-lbl { animation: slideUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.85s forwards; }
+#t1 .split-row { margin-top: 2.5vh; }
+#t1 .split-card { padding: 1.5rem 1.7rem; }
+#t1.active .split-card:nth-child(1) { border-color: rgba(255,92,138,0.35); animation-delay: 0.95s; }
+#t1 .split-card:nth-child(1) .split-lbl { color: var(--c3); }
+#t1.active .split-card:nth-child(2) { border-color: rgba(255,184,0,0.35); animation-delay: 1.1s; }
+#t1 .split-card:nth-child(2) .split-lbl { color: var(--c2); }
+
 /* ── org map (the full picture) ── */
 .org-map {
   position: relative;
@@ -1269,7 +1286,7 @@ body::after {
     <div class="glow"></div>
     <div class="eyebrow"><span></span>What we already have<span></span></div>
     <h2 class="title">We can build <em>anything</em></h2>
-    <p class="sub">A world-class team in every position — able to develop, execute, and market whatever product we choose. And a year and a half to do it.</p>
+    <p class="sub">A world-class team in every position — able to develop, execute, and market whatever we choose.</p>
     <div class="kill-chips">
       <div class="keep-chip">Product ✓</div>
       <div class="keep-chip">Development ✓</div>
@@ -1279,7 +1296,19 @@ body::after {
       <div class="keep-chip">Growth ✓</div>
       <div class="keep-chip">Operations ✓</div>
     </div>
-    <p class="value-tag">So the scarce assets aren't talent or time anymore. They're <em>ideas and distribution</em> — and that's exactly what this strategy goes after.</p>
+    <div class="scarce-lbl">What's scarce now</div>
+    <div class="split-row">
+      <div class="split-card">
+        <div class="split-lbl">Scarce 01</div>
+        <div class="split-val">Ideas</div>
+        <div class="split-desc">The bets worth going all-in on. Rare enough that we built a bar every one has to clear.</div>
+      </div>
+      <div class="split-card">
+        <div class="split-lbl">Scarce 02</div>
+        <div class="split-val">Distribution</div>
+        <div class="split-desc">Owned paths to users — the growth we can't buy. Sweden taught us that.</div>
+      </div>
+    </div>
   </div>
 
   <!-- ACT DIVIDER M3 -->
@@ -1698,7 +1727,7 @@ function goTo(idx) {
   const slide = document.getElementById(SLIDES[current]);
   slide.classList.add('active');
 
-  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .tile, .data-grid, .goal-banner, .ret-card, .q-card, .kill-chips, .market-grid, .rabbit-logo, .rabbit-tag, .recap-chips, .pep-tail, .pep-mantra, .lead-hero, .team-chips, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .toc-row, .concept-card, .tl-node').forEach(el => {
+  slide.querySelectorAll('.eyebrow, .title, .sub, .cover-icon, .cover-sub, .cover-hint, .big-num, .big-num-caption, .num-lede, .value-tag, .split-card, .tile, .data-grid, .goal-banner, .ret-card, .q-card, .kill-chips, .market-grid, .rabbit-logo, .rabbit-tag, .recap-chips, .pep-tail, .pep-mantra, .lead-hero, .team-chips, .org-bubble, .stk-col-lbl, .stk-chip, .org-lines, .toc-row, .concept-card, .tl-node, .scarce-lbl').forEach(el => {
     el.style.animation = 'none';
     el.offsetHeight;
     el.style.animation = '';
